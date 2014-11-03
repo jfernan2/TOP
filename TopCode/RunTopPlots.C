@@ -8,7 +8,7 @@ void RunTopPlots(TString pathtofile, Int_t verbose=0){
   cout << "Verbose level is:  " << verbose << endl;
   cout << "--------------" << endl;
   
-  gROOT->LoadMacro("~folgueras/TOP/TopCode/tdrstyle.C");
+  gROOT->LoadMacro("tdrstyle.C");
   setTDRStyle();
   
   cout << "Loading TopPlotter.cc..."<< endl;
@@ -24,29 +24,7 @@ void RunTopPlots(TString pathtofile, Int_t verbose=0){
   tA->SetOutputDir(outputdir);
   tA->SetVerbose(verbose);
   
-  //  cout << "Printing Yields with MC estimations..." << endl;
-  //  tA->PrintYieldsWithMC();
-
-  //  cout << "Draw Kinematic Plots with MC estimations..." << endl;
-  // tA->DrawKinematicPlotsWithMC(-1, NBTagsNJets, -1);
-  // tA->DrawKinematicPlotsWithMC();
-  
-  cout << "Calculate Data-Driven backgrounds" << endl;
-  tA->CalculateNonWZLeptonsBkg();
-  tA->CalculateDYBkg();
-  
-  cout << "Draw Plots for Likelihood..." << endl;
-  tA->DrawNbjetsNjets(false);
-  tA->DrawNbjetsNjets(true);
-  
-  cout << "Saving Plots for Likelihood..." << endl;
-  tA->SaveHistosForLH(false);
-  tA->SaveHistosForLH(true);
-  
-  
-  cout << "Calculating cross section ... " << endl;
-  tA->CalculateCrossSection(false);
-  tA->CalculateCrossSection(true );
+  tA->Loop();
   
   delete tA;
 }

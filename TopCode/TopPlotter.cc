@@ -21,6 +21,32 @@ void TopPlotter::Init(TString pathtofiles){
   
   LoadSamples(pathtofiles);
 }
+void TopPlotter::Loop(){
+  //  cout << "Printing Yields with MC estimations..." << endl;
+  //  tA->PrintYieldsWithMC();
+
+  cout << "Calculate Data-Driven backgrounds" << endl;
+  CalculateNonWZLeptonsBkg();
+  CalculateDYBkg();
+
+  //  cout << "Draw Kinematic Plots with MC/DD estimations..." << endl;
+  // tA->DrawKinematicPlotsWithMC(-1, NBTagsNJets, -1);
+  DrawKinematicPlots(true);
+  DrawKinematicPlots(false);
+  
+  cout << "Draw Plots for Likelihood..." << endl;
+  //  DrawNbjetsNjets(false);
+  //  DrawNbjetsNjets(true);
+  
+//  cout << "Saving Plots for Likelihood..." << endl;
+//  SaveHistosForLH(false);
+//  SaveHistosForLH(true);
+  
+  cout << "Calculating cross section ... " << endl;
+  CalculateCrossSection(false);
+  CalculateCrossSection(true );
+  
+}
 void TopPlotter::LoadSamples(TString pathtofiles){
   TFile *_file ;
   TH1F *hOSyields;
@@ -31,7 +57,7 @@ void TopPlotter::LoadSamples(TString pathtofiles){
   Float_t Weight = fLumiNorm; 
   for (size_t sample=0; sample<gNSAMPLES; sample++){
     TString samplename = pathtofiles + "/Tree_Legacy_"+SampleName[sample]+".root";
-    cout << "Reading " + samplename +" ..." << endl;
+    cout << "Loading " + samplename +" ..." << endl;
     _file = new TFile(samplename);
     Bool_t IsData = (sample == DoubleElectron || sample == DoubleMu || sample == MuEG);
     
@@ -46,54 +72,55 @@ void TopPlotter::LoadSamples(TString pathtofiles){
       Weight = fLumiNorm; 
     
     // Load numbers... 
-    for (size_t chan=0; chan<gNCHANNELS; chan++){
-      hOSyields = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[chan]);
-      hSSyields = (TH1F*) _file->Get("H_SSYields_"+gChanLabel[chan]);
+    for (size_t ch=0; ch<gNCHANNELS; ch++){
+      hOSyields = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[ch]);
+      hSSyields = (TH1F*) _file->Get("H_SSYields_"+gChanLabel[ch]);
       
       for (size_t cut=0; cut<iNCUTS; cut++){
 	if (IsData){
-	  S[sample].Yields       [chan][cut] = hOSyields->GetBinContent(cut+1);
-	  S[sample].Yields_stat  [chan][cut] = hOSyields->GetBinError(cut+1);
-	  S[sample].SSYields     [chan][cut] = hSSyields->GetBinContent(cut+1);
-	  S[sample].SSYields_stat[chan][cut] = hSSyields->GetBinError(cut+1);
+	  S[sample].Yields       [ch][cut] = hOSyields->GetBinContent(cut+1);
+	  S[sample].Yields_stat  [ch][cut] = hOSyields->GetBinError(cut+1);
+	  S[sample].SSYields     [ch][cut] = hSSyields->GetBinContent(cut+1);
+	  S[sample].SSYields_stat[ch][cut] = hSSyields->GetBinError(cut+1);
 	}
 	else {  
-	  S[sample].Yields       [chan][cut] = hOSyields->GetBinContent(cut+1) * Weight;
-	  S[sample].Yields_stat  [chan][cut] = hOSyields->GetBinError(cut+1)   * Weight;
-	  S[sample].SSYields     [chan][cut] = hSSyields->GetBinContent(cut+1) * Weight;
-	  S[sample].SSYields_stat[chan][cut] = hSSyields->GetBinError(cut+1)   * Weight;
+	  S[sample].Yields       [ch][cut] = hOSyields->GetBinContent(cut+1) * Weight;
+	  S[sample].Yields_stat  [ch][cut] = hOSyields->GetBinError(cut+1)   * Weight;
+	  S[sample].SSYields     [ch][cut] = hSSyields->GetBinContent(cut+1) * Weight;
+	  S[sample].SSYields_stat[ch][cut] = hSSyields->GetBinError(cut+1)   * Weight;
 	}
       }
       // Load Systematics (ONLY FOR MC...) 
       if (!IsData){
 	for (size_t sys=1; sys<gNSYST; sys++){
-	  hOSyields_sys = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[chan]+"_"+SystName[sys]);
+	  hOSyields_sys = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[ch]+"_"+SystName[sys]);
 	  for (size_t cut=0; cut<iNCUTS; cut++)
-	    S[sample].Yields_syst[chan][cut][sys] = hOSyields_sys->GetBinContent(cut+1) * Weight;
+	    S[sample].Yields_syst[ch][cut][sys] = hOSyields_sys->GetBinContent(cut+1) * Weight;
 	}
+	
+	S[sample].SystError[ch][SFIDISO] = ((TH1F*)_file->Get("H_LepSys_"+ gChanLabel[ch]+"_dilepton"))->GetMean();
       }
     }
     
     // Load kinematic histograms of the samples. 
     for (size_t chan=0; chan<gNCHANNELS; chan++){
-      
-      if (SampleName[sample] == "DoubleMu"        ||       
-	  SampleName[sample] == "DoubleElectron"  || 
-	  SampleName[sample] == "MuEG"            ||       
-	  SampleName[sample] == "DYJets_Madgraph" ||
-	  SampleName[sample] == "ZJets_Madgraph")  {
-	
-	/// LOAD DY DD estimation:
-	TString histoname = "H_DY_InvMassVsNjets_" + gChanLabel[chan] + "_dilepton";
-	S[sample].MllHistos[chan] = (TH1F*) (GetHisto2D(samplename, histoname))->ProjectionY();
-	if (!IsData)                S[sample].MllHistos[chan]->Scale(Weight);
-      }
-
       for (size_t cut=0; cut<iNCUTS; cut++){
+	if (SampleName[sample] == "DoubleMu"        ||       
+	    SampleName[sample] == "DoubleElectron"  || 
+	    SampleName[sample] == "MuEG"            ||       
+	    SampleName[sample] == "DYJets_Madgraph" ||
+	    SampleName[sample] == "ZJets_Madgraph")  {
+	  
+	  /// LOAD DY DD estimation:
+	  TString histoname = "H_DY_InvMass_" + gChanLabel[chan] +  "_" + sCut[cut];
+	  S[sample].MllHistos[chan][cut] = GetHisto1D(_file, histoname);
+	  if (!IsData)  S[sample].MllHistos[chan][cut]->Scale(Weight);
+	}
+	
 	TString histoname = "";
 	for (size_t var=0; var<gNVARS; var++){
 	  histoname = "H_" + KinVarName[var] + "_" + gChanLabel[chan] + "_" + sCut[cut];
-	  S[sample].KinHistos[chan][cut][var] = GetHisto1D(samplename, histoname);
+	  S[sample].KinHistos[chan][cut][var] = GetHisto1D(_file, histoname);
 	  if (!IsData)                S[sample].KinHistos[chan][cut][var]->Scale(Weight);
 	}
 	
@@ -102,21 +129,106 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	  if (sys==0) histoname = "H_NBtagsNJets_" + gChanLabel[chan] + "_" + sCut[cut];
 	  else        histoname = "H_NBtagsNJets_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
 	  //	  cout << "Reading... " << histoname << endl;
-	  S[sample].SysHistos[chan][cut][sys] = GetHisto1D(samplename, histoname);
-	  if (!IsData) S[sample].SysHistos[chan][cut][sys]->Scale(Weight);
+	  S[sample].NBtagsNJets[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].NBtagsNJets[chan][cut][sys]->Scale(Weight);
 	  
 	  if (sys==0) histoname = "HSS_NBtagsNJets_" + gChanLabel[chan] + "_" + sCut[cut];
 	  else        histoname = "HSS_NBtagsNJets_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
 	  
-	  S[sample].SSSysHistos[chan][cut][sys] = GetHisto1D(samplename, histoname);
-	  if (!IsData) S[sample].SSSysHistos[chan][cut][sys]->Scale(Weight);
+	  S[sample].SSNBtagsNJets[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].SSNBtagsNJets[chan][cut][sys]->Scale(Weight);
+	  
+	  
+	  if (sys==0) histoname = "H_InvMass_" + gChanLabel[chan] + "_" + sCut[cut];
+	  else        histoname = "H_InvMass_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
+	  //	  cout << "Reading... " << histoname << endl;
+	  S[sample].InvMass[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].InvMass[chan][cut][sys]->Scale(Weight);
+	  
+	  if (sys==0) histoname = "HSS_InvMass_" + gChanLabel[chan] + "_" + sCut[cut];
+	  else        histoname = "HSS_InvMass_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
+	  
+	  S[sample].SSInvMass[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].SSInvMass[chan][cut][sys]->Scale(Weight);
 	}
       }
     }
+    _file->Close();
   }
   LoadCategories();
 }
-
+//SANTI void TopPlotter::LoadCategory(Categories &Cat, TString sample){
+//SANTI   
+//SANTI   // CREATE LIST WITH SELECTED SAMPLES...
+//SANTI   std::vector<Samples> SampleList;
+//SANTI   if (sample=="ttbar"){
+//SANTI     if (gUseTTMadSpin) SampleList.push_back(TTJets_MadSpin);
+//SANTI     else               SampleList.push_back(TTJetsFullLeptMGtauola); 
+//SANTI   }
+//SANTI   else if (sample=="stop"){  
+//SANTI     SampleList.push_back(TbarWDilep);
+//SANTI     SampleList.push_back(TWDilep);
+//SANTI   }
+//SANTI   else if (sample=="dy"){
+//SANTI     SampleList.push_back(ZJets_Madgraph);
+//SANTI     SampleList.push_back(DYJets_Madgraph);
+//SANTI   }
+//SANTI   else if (sample=="vv"){
+//SANTI     SampleList.push_back(WZ);
+//SANTI     SampleList.push_back(ZZ);
+//SANTI     SampleList.push_back(WWTo2L2Nu_Madgraph);
+//SANTI   }
+//SANTI   else if (sample=="rare"){
+//SANTI     SampleList.push_back(TTWJets );
+//SANTI     SampleList.push_back(TTZJets );
+//SANTI     SampleList.push_back(TTGJets );
+//SANTI     SampleList.push_back(TTWWJets);
+//SANTI     SampleList.push_back(WWWJets );
+//SANTI     SampleList.push_back(WWZJets );
+//SANTI     SampleList.push_back(WZZJets );
+//SANTI     SampleList.push_back(ZZZJets );
+//SANTI   }
+//SANTI   else if (sample=="fake"){
+//SANTI     SampleList.push_back(TTJetsSemiLeptMGtauola);
+//SANTI     SampleList.push_back(Wbb_Madgraph          );
+//SANTI     SampleList.push_back(WgammaToLNuG          );
+//SANTI   }
+//SANTI   else if (sample=="Data"){
+//SANTI     SampleList.push_back(DoubleMu);
+//SANTI     SampleList.push_back(DoubleElectron);
+//SANTI     SampleList.push_back(MuEG);
+//SANTI   }
+//SANTI   else if (sample=="total"){
+//SANTI     SampleList.push_back(TbarWDilep);
+//SANTI     SampleList.push_back(TWDilep);
+//SANTI     SampleList.push_back(ZJets_Madgraph);
+//SANTI     SampleList.push_back(DYJets_Madgraph);
+//SANTI     SampleList.push_back(WZ);
+//SANTI     SampleList.push_back(ZZ);
+//SANTI     SampleList.push_back(WWTo2L2Nu_Madgraph);
+//SANTI     SampleList.push_back(TTWJets );
+//SANTI     SampleList.push_back(TTZJets );
+//SANTI     SampleList.push_back(TTGJets );
+//SANTI     SampleList.push_back(TTWWJets);
+//SANTI     SampleList.push_back(WWWJets );
+//SANTI     SampleList.push_back(WWZJets );
+//SANTI     SampleList.push_back(WZZJets );
+//SANTI     SampleList.push_back(ZZZJets );
+//SANTI     SampleList.push_back(TTJetsSemiLeptMGtauola);
+//SANTI     SampleList.push_back(Wbb_Madgraph          );
+//SANTI     SampleList.push_back(WgammaToLNuG          );
+//SANTI   }
+//SANTI   else { 
+//SANTI     cout << "[ERROR]: you have not selected a valid category..." << endl;
+//SANTI     break;
+//SANTI   }
+//SANTI   
+//SANTI   // NOW LOAD THE SELECTED CATEGORY:
+//SANTI   for (size_t cut=0; cut<iNCUTS; cut++){
+//SANTI     for (size_t chan=0; chan<gNCHANNELS; chan++){
+//SANTI       for (size_t sl=0; sl<SampleList.size(); sl++){
+//SANTI 	Cat
+//SANTI }
 void TopPlotter::LoadCategories(){
   
   // Now Load everything (Yields, SSYields and KinHistos) to the different bkg. categories...
@@ -213,7 +325,6 @@ void TopPlotter::LoadCategories(){
 	Fake .Yields_syst[chan][cut][sys]  = S[TTJetsSemiLeptMGtauola].Yields_syst[chan][cut][sys];
 	Fake .Yields_syst[chan][cut][sys] += S[Wbb_Madgraph]          .Yields_syst[chan][cut][sys];
 	Fake .Yields_syst[chan][cut][sys] += S[WgammaToLNuG]          .Yields_syst[chan][cut][sys];
-
       }
       
       // STATISTICAL ERROR
@@ -332,17 +443,20 @@ void TopPlotter::LoadCategories(){
       Total.SSYields_stat[chan][cut]  = TMath::Sqrt(Total.SSYields_stat[chan][cut]);
       
     }
+  
+  
+  
+  
+    /// FOR DY ESTIMATION:
+    Data.MllHistos[Muon][cut] = (TH1F*)S[DoubleMu]      .MllHistos[Muon][cut]->Clone();
+    Data.MllHistos[Elec][cut] = (TH1F*)S[DoubleElectron].MllHistos[Elec][cut]->Clone();
+    Data.MllHistos[ElMu][cut] = (TH1F*)S[MuEG]          .MllHistos[ElMu][cut]->Clone();
+    for (size_t chan=0; chan<gNCHANNELS; chan++){
+      DY.MllHistos[chan][cut] = (TH1F*)S[DYJets_Madgraph].MllHistos[chan][cut]->Clone();
+      DY.MllHistos[chan][cut] ->Add(   S[ZJets_Madgraph] .MllHistos[chan][cut]);
+    }
   }
-
-  /// FOR DY ESTIMATION:
-  Data.MllHistos[Muon] = (TH1F*)S[DoubleMu]      .MllHistos[Muon]->Clone();
-  Data.MllHistos[Elec] = (TH1F*)S[DoubleElectron].MllHistos[Elec]->Clone();
-  Data.MllHistos[ElMu] = (TH1F*)S[MuEG]          .MllHistos[ElMu]->Clone();
-  for (size_t chan=0; chan<gNCHANNELS; chan++){
-    DY.MllHistos[chan] = (TH1F*)S[DYJets_Madgraph].MllHistos[chan]->Clone();
-    DY.MllHistos[chan] ->Add(   S[ZJets_Madgraph] .MllHistos[chan]);
-  }
-
+  cout << " ---> Kinematic Histograms..." << endl;
   for (size_t chan=0; chan<gNCHANNELS+1; chan++){
     for (size_t cut=0; cut<iNCUTS; cut++){
       for (size_t var=0; var<gNVARS; var++){
@@ -440,108 +554,234 @@ void TopPlotter::LoadCategories(){
 	SetupDraw(Fake .KinHistos[chan][cut][var], kGreen-3 , var);  
       }
     }
-  }
+    TTbar.SystError[chan][SFIDISO]  = TMath::Sqrt(S[TTJets_MadSpin].SystError[chan][SFIDISO]*S[TTJets_MadSpin].SystError[chan][SFIDISO]);
 
+    STop .SystError[chan][SFIDISO]  = S[TbarWDilep].SystError[chan][SFIDISO]*S[TbarWDilep].SystError[chan][SFIDISO];
+    STop .SystError[chan][SFIDISO] += S[TWDilep]   .SystError[chan][SFIDISO]*S[TWDilep]   .SystError[chan][SFIDISO];
+    STop .SystError[chan][SFIDISO]  = TMath::Sqrt(STop .SystError[chan][SFIDISO]);
+    
+    VV   .SystError[chan][SFIDISO]  = S[WWTo2L2Nu_Madgraph].SystError[chan][SFIDISO]*S[WWTo2L2Nu_Madgraph].SystError[chan][SFIDISO];
+    VV   .SystError[chan][SFIDISO] += S[WZ].SystError[chan][SFIDISO]*S[WZ].SystError[chan][SFIDISO];
+    VV   .SystError[chan][SFIDISO] += S[ZZ].SystError[chan][SFIDISO]*S[ZZ].SystError[chan][SFIDISO];
+    VV   .SystError[chan][SFIDISO]  = TMath::Sqrt(VV.SystError[chan][SFIDISO]);
+
+    Fake .SystError[chan][SFIDISO]  = S[TTJetsSemiLeptMGtauola].SystError[chan][SFIDISO]*S[TTJetsSemiLeptMGtauola].SystError[chan][SFIDISO];
+    Fake .SystError[chan][SFIDISO] += S[WgammaToLNuG]          .SystError[chan][SFIDISO]*S[WgammaToLNuG]          .SystError[chan][SFIDISO];
+    Fake .SystError[chan][SFIDISO] += S[Wbb_Madgraph]          .SystError[chan][SFIDISO]*S[Wbb_Madgraph]          .SystError[chan][SFIDISO];
+    Fake .SystError[chan][SFIDISO]  = TMath::Sqrt(Fake .SystError[chan][SFIDISO]);
+
+    Rare .SystError[chan][SFIDISO]  = S[TTGJets]               .SystError[chan][SFIDISO]*S[TTGJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[TTWJets]               .SystError[chan][SFIDISO]*S[TTWJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[TTWWJets]              .SystError[chan][SFIDISO]*S[TTWWJets]              .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[TTZJets]               .SystError[chan][SFIDISO]*S[TTZJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[WWWJets]               .SystError[chan][SFIDISO]*S[WWWJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[WWZJets]               .SystError[chan][SFIDISO]*S[WWZJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[WZZJets]               .SystError[chan][SFIDISO]*S[WZZJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO] += S[ZZZJets]               .SystError[chan][SFIDISO]*S[ZZZJets]               .SystError[chan][SFIDISO];
+    Rare .SystError[chan][SFIDISO]  = TMath::Sqrt(Rare .SystError[chan][SFIDISO]);
+  }
+  
   // SYSTEMATIC ERRORS HISTOS
+  cout << " ---> Systematic Histograms" << endl;
   for (size_t cut=0; cut<iNCUTS; cut++){
     for (size_t chan=0; chan<gNCHANNELS; chan++){
       for (size_t sys=0; sys<gNSYST; sys++){
 	if (chan == Muon){
-	  Data .SysHistos[chan][cut][sys]   = (TH1F*)S[DoubleMu]        .SysHistos[chan][cut][0]->Clone();
-	  Data .SSSysHistos[chan][cut][sys] = (TH1F*)S[DoubleMu]      .SSSysHistos[chan][cut][0]->Clone();
+	  Data .NBtagsNJets[chan][cut][sys]   = (TH1F*)S[DoubleMu]        .NBtagsNJets[chan][cut][0]->Clone();
+	  Data .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[DoubleMu]      .SSNBtagsNJets[chan][cut][0]->Clone();
 	}
 	else if (chan == Elec){
-	  Data .SysHistos[chan][cut][sys]   = (TH1F*)S[DoubleElectron]  .SysHistos[chan][cut][0]->Clone();
-	  Data .SSSysHistos[chan][cut][sys] = (TH1F*)S[DoubleElectron].SSSysHistos[chan][cut][0]->Clone();
+	  Data .NBtagsNJets[chan][cut][sys]   = (TH1F*)S[DoubleElectron]  .NBtagsNJets[chan][cut][0]->Clone();
+	  Data .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[DoubleElectron].SSNBtagsNJets[chan][cut][0]->Clone();
 	}
 	else if (chan == ElMu){
-	  Data .SysHistos[chan][cut][sys]   = (TH1F*)S[MuEG]            .SysHistos[chan][cut][0]->Clone();
-	  Data .SSSysHistos[chan][cut][sys] = (TH1F*)S[MuEG]          .SSSysHistos[chan][cut][0]->Clone();
+	  Data .NBtagsNJets[chan][cut][sys]   = (TH1F*)S[MuEG]            .NBtagsNJets[chan][cut][0]->Clone();
+	  Data .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[MuEG]          .SSNBtagsNJets[chan][cut][0]->Clone();
 	}
 	
 	if (gUseTTMadSpin) {
-	  TTbar.SysHistos[chan][cut][sys]   = (TH1F*)S[TTJets_MadSpin]        .SysHistos[chan][cut][sys]->Clone();
-	  TTbar.SSSysHistos[chan][cut][sys] = (TH1F*)S[TTJets_MadSpin]      .SSSysHistos[chan][cut][sys]->Clone();
+	  TTbar.NBtagsNJets[chan][cut][sys]   = (TH1F*)S[TTJets_MadSpin]        .NBtagsNJets[chan][cut][sys]->Clone();
+	  TTbar.SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TTJets_MadSpin]      .SSNBtagsNJets[chan][cut][sys]->Clone();
 	}
 	else {
-	  TTbar.SysHistos[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].SysHistos[chan][cut][sys]->Clone();
-	  TTbar.SSSysHistos[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSSysHistos[chan][cut][sys]->Clone();
+	  TTbar.NBtagsNJets[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].NBtagsNJets[chan][cut][sys]->Clone();
+	  TTbar.SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSNBtagsNJets[chan][cut][sys]->Clone();
 	}
-	STop .SysHistos[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .SysHistos[chan][cut][sys]->Clone();
-	STop .SysHistos[chan][cut][sys] ->Add(   S[TWDilep]               .SysHistos[chan][cut][sys]);
-	DY   .SysHistos[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .SysHistos[chan][cut][sys]->Clone();
-	DY   .SysHistos[chan][cut][sys] ->Add(   S[ZJets_Madgraph]        .SysHistos[chan][cut][sys]);
-	VV   .SysHistos[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .SysHistos[chan][cut][sys]->Clone();
-	VV   .SysHistos[chan][cut][sys] ->Add(   S[WZ]                    .SysHistos[chan][cut][sys]);
-	VV   .SysHistos[chan][cut][sys] ->Add(   S[ZZ]                    .SysHistos[chan][cut][sys]);
-	Fake .SysHistos[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].SysHistos[chan][cut][sys]->Clone();  
-	Fake .SysHistos[chan][cut][sys] ->Add(   S[WgammaToLNuG]          .SysHistos[chan][cut][sys]);
-	Fake .SysHistos[chan][cut][sys] ->Add(   S[Wbb_Madgraph]          .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] = (TH1F*)S[TTGJets]               .SysHistos[chan][cut][sys]->Clone();  
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[TTWJets]               .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[TTWWJets]              .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[TTZJets]               .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[WWWJets]               .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[WWZJets]               .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[WZZJets]               .SysHistos[chan][cut][sys]);
-	Rare .SysHistos[chan][cut][sys] ->Add(   S[ZZZJets]               .SysHistos[chan][cut][sys]);
+	STop .NBtagsNJets[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .NBtagsNJets[chan][cut][sys]->Clone();
+	STop .NBtagsNJets[chan][cut][sys] ->Add(   S[TWDilep]               .NBtagsNJets[chan][cut][sys]);
+	DY   .NBtagsNJets[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .NBtagsNJets[chan][cut][sys]->Clone();
+	DY   .NBtagsNJets[chan][cut][sys] ->Add(   S[ZJets_Madgraph]        .NBtagsNJets[chan][cut][sys]);
+	VV   .NBtagsNJets[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .NBtagsNJets[chan][cut][sys]->Clone();
+	VV   .NBtagsNJets[chan][cut][sys] ->Add(   S[WZ]                    .NBtagsNJets[chan][cut][sys]);
+	VV   .NBtagsNJets[chan][cut][sys] ->Add(   S[ZZ]                    .NBtagsNJets[chan][cut][sys]);
+	Fake .NBtagsNJets[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].NBtagsNJets[chan][cut][sys]->Clone();  
+	Fake .NBtagsNJets[chan][cut][sys] ->Add(   S[WgammaToLNuG]          .NBtagsNJets[chan][cut][sys]);
+	Fake .NBtagsNJets[chan][cut][sys] ->Add(   S[Wbb_Madgraph]          .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] = (TH1F*)S[TTGJets]               .NBtagsNJets[chan][cut][sys]->Clone();  
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[TTWJets]               .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[TTWWJets]              .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[TTZJets]               .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[WWWJets]               .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[WWZJets]               .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[WZZJets]               .NBtagsNJets[chan][cut][sys]);
+	Rare .NBtagsNJets[chan][cut][sys] ->Add(   S[ZZZJets]               .NBtagsNJets[chan][cut][sys]);
 	
-	SetupDraw(Data .SysHistos[chan][cut][sys], kBlack   , NBTagsNJets); 
-	SetupDraw(TTbar.SysHistos[chan][cut][sys], kRed+1   , NBTagsNJets);  
-	SetupDraw(STop .SysHistos[chan][cut][sys], kPink-3  , NBTagsNJets);  
-	SetupDraw(DY   .SysHistos[chan][cut][sys], kAzure-2 , NBTagsNJets);  
-	SetupDraw(VV   .SysHistos[chan][cut][sys], kOrange-3, NBTagsNJets);  
-	SetupDraw(Rare .SysHistos[chan][cut][sys], kYellow  , NBTagsNJets);  
-	SetupDraw(Fake .SysHistos[chan][cut][sys], kGreen-3 , NBTagsNJets);  
+	SetupDraw(Data .NBtagsNJets[chan][cut][sys], kBlack   , NBTagsNJets); 
+	SetupDraw(TTbar.NBtagsNJets[chan][cut][sys], kRed+1   , NBTagsNJets);  
+	SetupDraw(STop .NBtagsNJets[chan][cut][sys], kPink-3  , NBTagsNJets);  
+	SetupDraw(DY   .NBtagsNJets[chan][cut][sys], kAzure-2 , NBTagsNJets);  
+	SetupDraw(VV   .NBtagsNJets[chan][cut][sys], kOrange-3, NBTagsNJets);  
+	SetupDraw(Rare .NBtagsNJets[chan][cut][sys], kYellow  , NBTagsNJets);  
+	SetupDraw(Fake .NBtagsNJets[chan][cut][sys], kGreen-3 , NBTagsNJets);  
 
-	STop .SSSysHistos[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .SSSysHistos[chan][cut][sys]->Clone();
-	STop .SSSysHistos[chan][cut][sys] ->Add(   S[TWDilep]               .SSSysHistos[chan][cut][sys]);
-	DY   .SSSysHistos[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .SSSysHistos[chan][cut][sys]->Clone();
-	DY   .SSSysHistos[chan][cut][sys] ->Add(   S[ZJets_Madgraph]        .SSSysHistos[chan][cut][sys]);
-	VV   .SSSysHistos[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .SSSysHistos[chan][cut][sys]->Clone();
-	VV   .SSSysHistos[chan][cut][sys] ->Add(   S[WZ]                    .SSSysHistos[chan][cut][sys]);
-	VV   .SSSysHistos[chan][cut][sys] ->Add(   S[ZZ]                    .SSSysHistos[chan][cut][sys]);
-	Fake .SSSysHistos[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].SSSysHistos[chan][cut][sys]->Clone();  
-	Fake .SSSysHistos[chan][cut][sys] ->Add(   S[WgammaToLNuG]          .SSSysHistos[chan][cut][sys]);
-	Fake .SSSysHistos[chan][cut][sys] ->Add(   S[Wbb_Madgraph]          .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] = (TH1F*)S[TTGJets]               .SSSysHistos[chan][cut][sys]->Clone();  
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[TTWJets]               .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[TTWWJets]              .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[TTZJets]               .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[WWWJets]               .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[WWZJets]               .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[WZZJets]               .SSSysHistos[chan][cut][sys]);
-	Rare .SSSysHistos[chan][cut][sys] ->Add(   S[ZZZJets]               .SSSysHistos[chan][cut][sys]);
+	STop .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .SSNBtagsNJets[chan][cut][sys]->Clone();
+	STop .SSNBtagsNJets[chan][cut][sys] ->Add(   S[TWDilep]               .SSNBtagsNJets[chan][cut][sys]);
+	DY   .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .SSNBtagsNJets[chan][cut][sys]->Clone();
+	DY   .SSNBtagsNJets[chan][cut][sys] ->Add(   S[ZJets_Madgraph]        .SSNBtagsNJets[chan][cut][sys]);
+	VV   .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .SSNBtagsNJets[chan][cut][sys]->Clone();
+	VV   .SSNBtagsNJets[chan][cut][sys] ->Add(   S[WZ]                    .SSNBtagsNJets[chan][cut][sys]);
+	VV   .SSNBtagsNJets[chan][cut][sys] ->Add(   S[ZZ]                    .SSNBtagsNJets[chan][cut][sys]);
+	Fake .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].SSNBtagsNJets[chan][cut][sys]->Clone();  
+	Fake .SSNBtagsNJets[chan][cut][sys] ->Add(   S[WgammaToLNuG]          .SSNBtagsNJets[chan][cut][sys]);
+	Fake .SSNBtagsNJets[chan][cut][sys] ->Add(   S[Wbb_Madgraph]          .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TTGJets]               .SSNBtagsNJets[chan][cut][sys]->Clone();  
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[TTWJets]               .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[TTWWJets]              .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[TTZJets]               .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[WWWJets]               .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[WWZJets]               .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[WZZJets]               .SSNBtagsNJets[chan][cut][sys]);
+	Rare .SSNBtagsNJets[chan][cut][sys] ->Add(   S[ZZZJets]               .SSNBtagsNJets[chan][cut][sys]);
 	
-	SetupDraw(Data .SSSysHistos[chan][cut][sys], kBlack   , NBTagsNJets); 
-	SetupDraw(TTbar.SSSysHistos[chan][cut][sys], kRed+1   , NBTagsNJets);  
-	SetupDraw(STop .SSSysHistos[chan][cut][sys], kPink-3  , NBTagsNJets);  
-	SetupDraw(DY   .SSSysHistos[chan][cut][sys], kAzure-2 , NBTagsNJets);  
-	SetupDraw(VV   .SSSysHistos[chan][cut][sys], kOrange-3, NBTagsNJets);  
-	SetupDraw(Rare .SSSysHistos[chan][cut][sys], kYellow  , NBTagsNJets);  
-	SetupDraw(Fake .SSSysHistos[chan][cut][sys], kGreen-3 , NBTagsNJets);  
+	SetupDraw(Data .SSNBtagsNJets[chan][cut][sys], kBlack   , NBTagsNJets); 
+	SetupDraw(TTbar.SSNBtagsNJets[chan][cut][sys], kRed+1   , NBTagsNJets);  
+	SetupDraw(STop .SSNBtagsNJets[chan][cut][sys], kPink-3  , NBTagsNJets);  
+	SetupDraw(DY   .SSNBtagsNJets[chan][cut][sys], kAzure-2 , NBTagsNJets);  
+	SetupDraw(VV   .SSNBtagsNJets[chan][cut][sys], kOrange-3, NBTagsNJets);  
+	SetupDraw(Rare .SSNBtagsNJets[chan][cut][sys], kYellow  , NBTagsNJets);  
+	SetupDraw(Fake .SSNBtagsNJets[chan][cut][sys], kGreen-3 , NBTagsNJets);  
       }
+      
       if (gUseTTMadSpin) {
-	TTbar.SysHistos[chan][cut][Q2ScaleUp   ] = (TH1F*)S[TTJets_scaleup]     .SysHistos[chan][cut][0]->Clone();
-	TTbar.SysHistos[chan][cut][Q2ScaleDown ] = (TH1F*)S[TTJets_scaledown]   .SysHistos[chan][cut][0]->Clone();
-	TTbar.SysHistos[chan][cut][MatchingUp  ] = (TH1F*)S[TTJets_matchingup]  .SysHistos[chan][cut][0]->Clone();
-	TTbar.SysHistos[chan][cut][MatchingDown] = (TH1F*)S[TTJets_matchingdown].SysHistos[chan][cut][0]->Clone();
+	TTbar.NBtagsNJets[chan][cut][Q2ScaleUp   ] = (TH1F*)S[TTJets_scaleup]     .NBtagsNJets[chan][cut][0]->Clone();
+	TTbar.NBtagsNJets[chan][cut][Q2ScaleDown ] = (TH1F*)S[TTJets_scaledown]   .NBtagsNJets[chan][cut][0]->Clone();
+	TTbar.NBtagsNJets[chan][cut][MatchingUp  ] = (TH1F*)S[TTJets_matchingup]  .NBtagsNJets[chan][cut][0]->Clone();
+	TTbar.NBtagsNJets[chan][cut][MatchingDown] = (TH1F*)S[TTJets_matchingdown].NBtagsNJets[chan][cut][0]->Clone();
 	
-	SetupDraw(TTbar.SysHistos[chan][cut][Q2ScaleUp   ], kRed+1   , NBTagsNJets);  
-	SetupDraw(TTbar.SysHistos[chan][cut][Q2ScaleDown ], kRed+1   , NBTagsNJets);  
-	SetupDraw(TTbar.SysHistos[chan][cut][MatchingUp  ], kRed+1   , NBTagsNJets);  
-	SetupDraw(TTbar.SysHistos[chan][cut][MatchingDown], kRed+1   , NBTagsNJets);  	
+	SetupDraw(TTbar.NBtagsNJets[chan][cut][Q2ScaleUp   ], kRed+1   , NBTagsNJets);  
+	SetupDraw(TTbar.NBtagsNJets[chan][cut][Q2ScaleDown ], kRed+1   , NBTagsNJets);  
+	SetupDraw(TTbar.NBtagsNJets[chan][cut][MatchingUp  ], kRed+1   , NBTagsNJets);  
+	SetupDraw(TTbar.NBtagsNJets[chan][cut][MatchingDown], kRed+1   , NBTagsNJets);  	
 
 	//// SS 
-	TTbar.SSSysHistos[chan][cut][Q2ScaleUp   ]=(TH1F*)S[TTJets_scaleup]     .SSSysHistos[chan][cut][0]->Clone();
-	TTbar.SSSysHistos[chan][cut][Q2ScaleDown ]=(TH1F*)S[TTJets_scaledown]   .SSSysHistos[chan][cut][0]->Clone();
-	TTbar.SSSysHistos[chan][cut][MatchingUp  ]=(TH1F*)S[TTJets_matchingup]  .SSSysHistos[chan][cut][0]->Clone();
-	TTbar.SSSysHistos[chan][cut][MatchingDown]=(TH1F*)S[TTJets_matchingdown].SSSysHistos[chan][cut][0]->Clone();
+	TTbar.SSNBtagsNJets[chan][cut][Q2ScaleUp   ]=(TH1F*)S[TTJets_scaleup]     .SSNBtagsNJets[chan][cut][0]->Clone();
+	TTbar.SSNBtagsNJets[chan][cut][Q2ScaleDown ]=(TH1F*)S[TTJets_scaledown]   .SSNBtagsNJets[chan][cut][0]->Clone();
+	TTbar.SSNBtagsNJets[chan][cut][MatchingUp  ]=(TH1F*)S[TTJets_matchingup]  .SSNBtagsNJets[chan][cut][0]->Clone();
+	TTbar.SSNBtagsNJets[chan][cut][MatchingDown]=(TH1F*)S[TTJets_matchingdown].SSNBtagsNJets[chan][cut][0]->Clone();
 	
-	SetupDraw(TTbar.SSSysHistos[chan][cut][Q2ScaleUp   ], kRed+1   , NBTagsNJets);  
-	SetupDraw(TTbar.SSSysHistos[chan][cut][Q2ScaleDown ], kRed+1   , NBTagsNJets);  
-	SetupDraw(TTbar.SSSysHistos[chan][cut][MatchingUp  ], kRed+1   , NBTagsNJets);  
-	SetupDraw(TTbar.SSSysHistos[chan][cut][MatchingDown], kRed+1   , NBTagsNJets);  	
+	SetupDraw(TTbar.SSNBtagsNJets[chan][cut][Q2ScaleUp   ], kRed+1   , NBTagsNJets);  
+	SetupDraw(TTbar.SSNBtagsNJets[chan][cut][Q2ScaleDown ], kRed+1   , NBTagsNJets);  
+	SetupDraw(TTbar.SSNBtagsNJets[chan][cut][MatchingUp  ], kRed+1   , NBTagsNJets);  
+	SetupDraw(TTbar.SSNBtagsNJets[chan][cut][MatchingDown], kRed+1   , NBTagsNJets);  	
+
+	for (size_t sys=0; sys<gNSYST; sys++){
+	  if (chan == Muon){
+	    Data .InvMass[chan][cut][sys]   = (TH1F*)S[DoubleMu]        .InvMass[chan][cut][0]->Clone();
+	    Data .SSInvMass[chan][cut][sys] = (TH1F*)S[DoubleMu]      .SSInvMass[chan][cut][0]->Clone();
+	  }
+	  else if (chan == Elec){
+	    Data .InvMass[chan][cut][sys]   = (TH1F*)S[DoubleElectron]  .InvMass[chan][cut][0]->Clone();
+	    Data .SSInvMass[chan][cut][sys] = (TH1F*)S[DoubleElectron].SSInvMass[chan][cut][0]->Clone();
+	  }
+	  else if (chan == ElMu){
+	    Data .InvMass[chan][cut][sys]   = (TH1F*)S[MuEG]            .InvMass[chan][cut][0]->Clone();
+	    Data .SSInvMass[chan][cut][sys] = (TH1F*)S[MuEG]          .SSInvMass[chan][cut][0]->Clone();
+	  }
+	  
+	  if (gUseTTMadSpin) {
+	    TTbar.InvMass[chan][cut][sys]   = (TH1F*)S[TTJets_MadSpin]        .InvMass[chan][cut][sys]->Clone();
+	    TTbar.SSInvMass[chan][cut][sys] = (TH1F*)S[TTJets_MadSpin]      .SSInvMass[chan][cut][sys]->Clone();
+	  }
+	  else {
+	    TTbar.InvMass[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].InvMass[chan][cut][sys]->Clone();
+	    TTbar.SSInvMass[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSInvMass[chan][cut][sys]->Clone();
+	  }
+	  STop .InvMass[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .InvMass[chan][cut][sys]->Clone();
+	  STop .InvMass[chan][cut][sys] ->Add(   S[TWDilep]               .InvMass[chan][cut][sys]);
+	  DY   .InvMass[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .InvMass[chan][cut][sys]->Clone();
+	  DY   .InvMass[chan][cut][sys] ->Add(   S[ZJets_Madgraph]        .InvMass[chan][cut][sys]);
+	  VV   .InvMass[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .InvMass[chan][cut][sys]->Clone();
+	  VV   .InvMass[chan][cut][sys] ->Add(   S[WZ]                    .InvMass[chan][cut][sys]);
+	  VV   .InvMass[chan][cut][sys] ->Add(   S[ZZ]                    .InvMass[chan][cut][sys]);
+	  Fake .InvMass[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].InvMass[chan][cut][sys]->Clone();  
+	  Fake .InvMass[chan][cut][sys] ->Add(   S[WgammaToLNuG]          .InvMass[chan][cut][sys]);
+	  Fake .InvMass[chan][cut][sys] ->Add(   S[Wbb_Madgraph]          .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] = (TH1F*)S[TTGJets]               .InvMass[chan][cut][sys]->Clone();  
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[TTWJets]               .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[TTWWJets]              .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[TTZJets]               .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[WWWJets]               .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[WWZJets]               .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[WZZJets]               .InvMass[chan][cut][sys]);
+	  Rare .InvMass[chan][cut][sys] ->Add(   S[ZZZJets]               .InvMass[chan][cut][sys]);
+	  
+	  SetupDraw(Data .InvMass[chan][cut][sys], kBlack   , InvMass); 
+	  SetupDraw(TTbar.InvMass[chan][cut][sys], kRed+1   , InvMass);  
+	  SetupDraw(STop .InvMass[chan][cut][sys], kPink-3  , InvMass);  
+	  SetupDraw(DY   .InvMass[chan][cut][sys], kAzure-2 , InvMass);  
+	  SetupDraw(VV   .InvMass[chan][cut][sys], kOrange-3, InvMass);  
+	  SetupDraw(Rare .InvMass[chan][cut][sys], kYellow  , InvMass);  
+	  SetupDraw(Fake .InvMass[chan][cut][sys], kGreen-3 , InvMass);  
+	  
+	  STop .SSInvMass[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .SSInvMass[chan][cut][sys]->Clone();
+	  STop .SSInvMass[chan][cut][sys] ->Add(   S[TWDilep]               .SSInvMass[chan][cut][sys]);
+	  DY   .SSInvMass[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .SSInvMass[chan][cut][sys]->Clone();
+	  DY   .SSInvMass[chan][cut][sys] ->Add(   S[ZJets_Madgraph]        .SSInvMass[chan][cut][sys]);
+	  VV   .SSInvMass[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .SSInvMass[chan][cut][sys]->Clone();
+	  VV   .SSInvMass[chan][cut][sys] ->Add(   S[WZ]                    .SSInvMass[chan][cut][sys]);
+	  VV   .SSInvMass[chan][cut][sys] ->Add(   S[ZZ]                    .SSInvMass[chan][cut][sys]);
+	  Fake .SSInvMass[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].SSInvMass[chan][cut][sys]->Clone();  
+	  Fake .SSInvMass[chan][cut][sys] ->Add(   S[WgammaToLNuG]          .SSInvMass[chan][cut][sys]);
+	  Fake .SSInvMass[chan][cut][sys] ->Add(   S[Wbb_Madgraph]          .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] = (TH1F*)S[TTGJets]               .SSInvMass[chan][cut][sys]->Clone();  
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[TTWJets]               .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[TTWWJets]              .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[TTZJets]               .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[WWWJets]               .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[WWZJets]               .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[WZZJets]               .SSInvMass[chan][cut][sys]);
+	  Rare .SSInvMass[chan][cut][sys] ->Add(   S[ZZZJets]               .SSInvMass[chan][cut][sys]);
+	
+	  SetupDraw(Data .SSInvMass[chan][cut][sys], kBlack   , InvMass); 
+	  SetupDraw(TTbar.SSInvMass[chan][cut][sys], kRed+1   , InvMass);  
+	  SetupDraw(STop .SSInvMass[chan][cut][sys], kPink-3  , InvMass);  
+	  SetupDraw(DY   .SSInvMass[chan][cut][sys], kAzure-2 , InvMass);  
+	  SetupDraw(VV   .SSInvMass[chan][cut][sys], kOrange-3, InvMass);  
+	  SetupDraw(Rare .SSInvMass[chan][cut][sys], kYellow  , InvMass);  
+	  SetupDraw(Fake .SSInvMass[chan][cut][sys], kGreen-3 , InvMass);  
+	}
+	if (gUseTTMadSpin) {
+	  TTbar.InvMass[chan][cut][Q2ScaleUp   ] = (TH1F*)S[TTJets_scaleup]     .InvMass[chan][cut][0]->Clone();
+	  TTbar.InvMass[chan][cut][Q2ScaleDown ] = (TH1F*)S[TTJets_scaledown]   .InvMass[chan][cut][0]->Clone();
+	  TTbar.InvMass[chan][cut][MatchingUp  ] = (TH1F*)S[TTJets_matchingup]  .InvMass[chan][cut][0]->Clone();
+	  TTbar.InvMass[chan][cut][MatchingDown] = (TH1F*)S[TTJets_matchingdown].InvMass[chan][cut][0]->Clone();
+	  
+	  SetupDraw(TTbar.InvMass[chan][cut][Q2ScaleUp   ], kRed+1   , InvMass);  
+	  SetupDraw(TTbar.InvMass[chan][cut][Q2ScaleDown ], kRed+1   , InvMass);  
+	  SetupDraw(TTbar.InvMass[chan][cut][MatchingUp  ], kRed+1   , InvMass);  
+	  SetupDraw(TTbar.InvMass[chan][cut][MatchingDown], kRed+1   , InvMass);  	
+	  
+	  //// SS 
+	  TTbar.SSInvMass[chan][cut][Q2ScaleUp   ]=(TH1F*)S[TTJets_scaleup]     .SSInvMass[chan][cut][0]->Clone();
+	  TTbar.SSInvMass[chan][cut][Q2ScaleDown ]=(TH1F*)S[TTJets_scaledown]   .SSInvMass[chan][cut][0]->Clone();
+	  TTbar.SSInvMass[chan][cut][MatchingUp  ]=(TH1F*)S[TTJets_matchingup]  .SSInvMass[chan][cut][0]->Clone();
+	  TTbar.SSInvMass[chan][cut][MatchingDown]=(TH1F*)S[TTJets_matchingdown].SSInvMass[chan][cut][0]->Clone();
+	  
+	  SetupDraw(TTbar.SSInvMass[chan][cut][Q2ScaleUp   ], kRed+1   , InvMass);  
+	  SetupDraw(TTbar.SSInvMass[chan][cut][Q2ScaleDown ], kRed+1   , InvMass);  
+	  SetupDraw(TTbar.SSInvMass[chan][cut][MatchingUp  ], kRed+1   , InvMass);  
+	  SetupDraw(TTbar.SSInvMass[chan][cut][MatchingDown], kRed+1   , InvMass);  	
+	}	  
       }
     }
   }
@@ -591,7 +831,6 @@ void TopPlotter::ResetDataMembers(){
 
 	DD_DY  .Yields_syst[chan][cut][sys] = 0.;    
 	DD_NonW.Yields_syst[chan][cut][sys] = 0.;    
-	
       }
 
       Data .SSYields[chan][cut] = 0.; Data .SSYields_stat[chan][cut] = 0.;
@@ -609,7 +848,7 @@ void TopPlotter::ResetDataMembers(){
       DD_DY  .SSYields[chan][cut] = 0.;
       DD_NonW.SSYields[chan][cut] = 0.;
     }
-    for (size_t sys=0; sys<gNSYSTERRTypes; sys++){
+    for (size_t sys=0; sys<gNSYSTERRTypesALL; sys++){
       Data .SystError[chan][sys] = 0.;
       TTbar.SystError[chan][sys] = 0.;
       STop .SystError[chan][sys] = 0.;
@@ -632,6 +871,7 @@ void TopPlotter::ResetDataMembers(){
     ttbar.acc_syst [ch] = 0.;
 
     ttbar.err_VV   [ch] = 0.;
+    ttbar.err_DY   [ch] = 0.;
     ttbar.err_STop [ch] = 0.;
     ttbar.err_Fake [ch] = 0.;
     ttbar.err_Rare [ch] = 0.;
@@ -648,7 +888,7 @@ void TopPlotter::ResetDataMembers(){
 }
 void TopPlotter::ResetSystematicErrors(){
   for (size_t chan=0; chan<gNCHANNELS; chan++){
-    for (size_t sys=0; sys<gNSYSTERRTypes; sys++){
+    for (size_t sys=1; sys<gNSYSTERRTypesALL; sys++){
       //      Data .SystError[chan][sys] = 0.;
       TTbar.SystError[chan][sys] = 0.;
       STop .SystError[chan][sys] = 0.;
@@ -681,6 +921,7 @@ void TopPlotter::ResetSystematicErrors(){
     ttbar.acc_syst [ch] = 0.;
 
     ttbar.err_VV   [ch] = 0.;
+    ttbar.err_DY   [ch] = 0.;
     ttbar.err_STop [ch] = 0.;
     ttbar.err_Fake [ch] = 0.;
     ttbar.err_Rare [ch] = 0.;
@@ -714,6 +955,10 @@ void TopPlotter::PrintSystematicErrors(){
 		      ttbar.err_VV[Elec],  100 * ttbar.err_VV[Elec] / ttbar.xsec[Elec],
 		      ttbar.err_VV[Muon],  100 * ttbar.err_VV[Muon] / ttbar.xsec[Muon],
 		      ttbar.err_VV[ElMu],  100 * ttbar.err_VV[ElMu] / ttbar.xsec[ElMu])<< endl;
+  fOUTSTREAM2 << Form(" DY                    | %4.2f (%3.2f) | %4.2f (%3.2f) | %4.2f (%3.2f) ", 
+		      ttbar.err_DY[Elec],  100 * ttbar.err_DY[Elec] / ttbar.xsec[Elec],
+		      ttbar.err_DY[Muon],  100 * ttbar.err_DY[Muon] / ttbar.xsec[Muon],
+		      ttbar.err_DY[ElMu],  100 * ttbar.err_DY[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM2 << Form(" STop                  | %4.2f (%3.2f) | %4.2f (%3.2f) | %4.2f (%3.2f) ", 
 		      ttbar.err_STop[Elec],  100 * ttbar.err_STop[Elec] / ttbar.xsec[Elec],
 		      ttbar.err_STop[Muon],  100 * ttbar.err_STop[Muon] / ttbar.xsec[Muon],
@@ -953,9 +1198,16 @@ void TopPlotter::PrintYieldsWithMC(){
   }
 }
 
-void TopPlotter::DrawKinematicPlotsWithMC(Int_t onechan, Int_t onevar, Int_t onecut){
-  if (gUseTTMadSpin) fOutputSubDir = "KinematicHistos_MC_MadSpin/";
-  else               fOutputSubDir = "KinematicHistos_MC_Madgraph/";
+void TopPlotter::DrawKinematicPlots(Bool_t DD, Int_t onechan, Int_t onevar, Int_t onecut){
+
+  if (DD) {
+    if (gUseTTMadSpin) fOutputSubDir = "KinematicHistos_DD_MadSpin/";
+    else               fOutputSubDir = "KinematicHistos_DD_Madgraph/";
+  }
+  else {
+    if (gUseTTMadSpin) fOutputSubDir = "KinematicHistos_MC_MadSpin/";
+    else               fOutputSubDir = "KinematicHistos_MC_Madgraph/";
+  }
 
   gSystem->mkdir(fOutputDir+fOutputSubDir, kTRUE);
   TString figname = "";
@@ -1010,28 +1262,32 @@ void TopPlotter::DrawKinematicPlotsWithMC(Int_t onechan, Int_t onevar, Int_t one
       for (Int_t cut=0; cut<iNCUTS; cut++){
 	if (onecut > -1 && onecut != cut) continue; //print only one
 	
-//	TTbar.KinHistos[ch][cut][var]->Scale(fLumiNorm);
-//	STop .KinHistos[ch][cut][var]->Scale(fLumiNorm);
-//	DY   .KinHistos[ch][cut][var]->Scale(fLumiNorm);
-//	VV   .KinHistos[ch][cut][var]->Scale(fLumiNorm);
-//	Rare .KinHistos[ch][cut][var]->Scale(fLumiNorm);
-//	Fake .KinHistos[ch][cut][var]->Scale(fLumiNorm);
-
+	if (DD){
+	  if (gNCHANNELS+1) {
+	    DY   .KinHistos[ch][cut][var]->Scale((DD_DY.Yields[Muon][cut]+DD_DY.Yields[Muon][cut])/(DY   .Yields[Elec][cut]+DY   .Yields[Elec][cut]));
+	    Fake.KinHistos[ch][cut][var]->Scale((DD_NonW.Yields[Muon][cut]+DD_NonW.Yields[Elec][cut])/(Fake .Yields[Elec][cut]+Fake .Yields[Elec][cut]));
+	  }
+	  else {
+	    DY   .KinHistos[ch][cut][var]->Scale(DD_DY.Yields[ch][cut]/DY.Yields[ch][cut]);
+	    Fake .KinHistos[ch][cut][var]->Scale(DD_NonW.Yields[ch][cut]/Fake.Yields[ch][cut]);
+	  }
+	}
+	
 	MC[ch][cut][var] = new THStack("MC_"+gChanLabel[ch]+sCut[cut]+KinVarName[var],"");
 	
 	Total.KinHistos[ch][cut][var] = (TH1F*)TTbar.KinHistos[ch][cut][var]->Clone(); 
 	Total.KinHistos[ch][cut][var]->Add(    STop .KinHistos[ch][cut][var]);
 	Total.KinHistos[ch][cut][var]->Add(    DY   .KinHistos[ch][cut][var]);
+	Total.KinHistos[ch][cut][var]->Add(    Fake .KinHistos[ch][cut][var]);
 	Total.KinHistos[ch][cut][var]->Add(    VV   .KinHistos[ch][cut][var]);
 	Total.KinHistos[ch][cut][var]->Add(    Rare .KinHistos[ch][cut][var]);
-	Total.KinHistos[ch][cut][var]->Add(    Fake .KinHistos[ch][cut][var]);
-	
+		
 	MC[ch][cut][var]->Add(TTbar.KinHistos[ch][cut][var]);  
 	MC[ch][cut][var]->Add(STop .KinHistos[ch][cut][var]);  
 	MC[ch][cut][var]->Add(DY   .KinHistos[ch][cut][var]);  
+	MC[ch][cut][var]->Add(Fake .KinHistos[ch][cut][var]);  
 	MC[ch][cut][var]->Add(VV   .KinHistos[ch][cut][var]);  
 	MC[ch][cut][var]->Add(Rare .KinHistos[ch][cut][var]);  
-	MC[ch][cut][var]->Add(Fake .KinHistos[ch][cut][var]);  
 	
 	plot->cd();
 	
@@ -1148,13 +1404,13 @@ void TopPlotter::DrawNbjetsNjets(bool DD){
   leg->SetTextFont(62); // Events in the leg!
   leg->SetTextSize(0.04);
   
-  leg->AddEntry(Data .KinHistos[0][0][0], "Data", "PL");
-  leg->AddEntry(Rare .KinHistos[0][0][0], "t#bar{t}V, VVV", "F");
-  leg->AddEntry(VV   .KinHistos[0][0][0], "VV", "F");
-  leg->AddEntry(Fake .KinHistos[0][0][0], "Non W/Z", "F");
-  leg->AddEntry(STop .KinHistos[0][0][0], "Single Top", "F");
+  leg->AddEntry(Data .KinHistos[0][0][0], "Data",                 "PL");
+  leg->AddEntry(Rare .KinHistos[0][0][0], "t#bar{t}V, VVV",        "F");
+  leg->AddEntry(VV   .KinHistos[0][0][0], "VV",                    "F");
+  leg->AddEntry(Fake .KinHistos[0][0][0], "Non W/Z",               "F");
+  leg->AddEntry(STop .KinHistos[0][0][0], "Single Top",            "F");
   leg->AddEntry(DY   .KinHistos[0][0][0], "Z/\\gamma* l^{+}l^{-}", "F");
-  leg->AddEntry(TTbar.KinHistos[0][0][0],"t#bar{t}", "F");
+  leg->AddEntry(TTbar.KinHistos[0][0][0], "t#bar{t}",              "F");
   
   TCanvas *c1 = new TCanvas("c1","Plot");
   c1->Divide(1,2);
@@ -1183,33 +1439,32 @@ void TopPlotter::DrawNbjetsNjets(bool DD){
 	if (sys >= gNSYST) syst = 0;
 	else               syst = sys;
 	
-	Total.SysHistos[ch][cut][sys] = (TH1F*)TTbar.SysHistos[ch][cut][sys ]->Clone();
-	Total.SysHistos[ch][cut][sys]->Add(    STop .SysHistos[ch][cut][syst]);
-	Total.SysHistos[ch][cut][sys]->Add(  DY   .SysHistos[ch][cut][syst]);
+	Total.NBtagsNJets[ch][cut][sys] = (TH1F*)TTbar.NBtagsNJets[ch][cut][sys ]->Clone();
+	Total.NBtagsNJets[ch][cut][sys]->Add(    STop .NBtagsNJets[ch][cut][syst]);
 	if (DD) {
-	  //	  Total.SysHistos[ch][cut][sys]->Add(  DY   .SysHistos[ch][cut][syst], DY_SF[ch]);
-	  Total.SysHistos[ch][cut][sys]->Add(DD_NonW.SysHistos[ch][cut][syst]);
+	  DY   .NBtagsNJets[ch][cut][syst]->Scale(DD_DY.Yields[ch][cut]/DY.Yields[ch][cut]);
+	  Total.NBtagsNJets[ch][cut][sys]->Add(  DY   .NBtagsNJets[ch][cut][syst]);
+	  Total.NBtagsNJets[ch][cut][sys]->Add(DD_NonW.NBtagsNJets[ch][cut][syst]);
  	}
 	else    {
-	  Total.SysHistos[ch][cut][sys]->Add(  Fake .SysHistos[ch][cut][syst]);
+	  Total.NBtagsNJets[ch][cut][sys]->Add(  DY   .NBtagsNJets[ch][cut][syst]);
+	  Total.NBtagsNJets[ch][cut][sys]->Add(  Fake .NBtagsNJets[ch][cut][syst]);
 	}
-	Total.SysHistos[ch][cut][sys]->Add(    VV   .SysHistos[ch][cut][syst]);
-	Total.SysHistos[ch][cut][sys]->Add(    Rare .SysHistos[ch][cut][syst]);
+	Total.NBtagsNJets[ch][cut][sys]->Add(    VV   .NBtagsNJets[ch][cut][syst]);
+	Total.NBtagsNJets[ch][cut][sys]->Add(    Rare .NBtagsNJets[ch][cut][syst]);
 	
 	MC[ch][cut][sys] = new THStack("MC_"+gChanLabel[ch]+sCut[cut]+SystName[sys],"");
-	MC[ch][cut][sys]->Add(TTbar.SysHistos[ch][cut][sys ]);  
-	MC[ch][cut][sys]->Add(STop .SysHistos[ch][cut][syst]);  
-	MC[ch][cut][sys]->Add(DY     .SysHistos[ch][cut][syst]);
+	MC[ch][cut][sys]->Add(TTbar.NBtagsNJets[ch][cut][sys ]);  
+	MC[ch][cut][sys]->Add(STop .NBtagsNJets[ch][cut][syst]);  
+	MC[ch][cut][sys]->Add(DY   .NBtagsNJets[ch][cut][syst]);
 	if (DD) { 
-	  //	  DY.SysHistos[ch][cut][syst]->Scale(DY_SF[ch]);
-	  MC[ch][cut][sys]->Add(DD_NonW.SysHistos[ch][cut][syst]);
+	  MC[ch][cut][sys]->Add(DD_NonW.NBtagsNJets[ch][cut][syst]);
 	}
 	else    { 
-	  //	  MC[ch][cut][sys]->Add(DY  .SysHistos[ch][cut][syst]);  
-	  MC[ch][cut][sys]->Add(Fake.SysHistos[ch][cut][syst]);
+	  MC[ch][cut][sys]->Add(Fake.NBtagsNJets[ch][cut][syst]);
 	}
-	MC[ch][cut][sys]->Add(VV   .SysHistos[ch][cut][syst]);  
-	MC[ch][cut][sys]->Add(Rare .SysHistos[ch][cut][syst]);  
+	MC[ch][cut][sys]->Add(VV   .NBtagsNJets[ch][cut][syst]);  
+	MC[ch][cut][sys]->Add(Rare .NBtagsNJets[ch][cut][syst]);  
 
 	plot->cd();
 
@@ -1224,21 +1479,21 @@ void TopPlotter::DrawNbjetsNjets(bool DD){
 	MC[ch][cut][sys]->GetXaxis()->SetLabelSize(0.0);
 	MC[ch][cut][sys]->GetXaxis()->SetTitle("");
 	
-	Data.KinHistos[ch][cut][syst]->Sumw2();
-	Data.SysHistos[ch][cut][syst]->SetMarkerStyle(20);
-	Data.SysHistos[ch][cut][syst]->Draw("SAME");
+	Data.NBtagsNJets[ch][cut][syst]->Sumw2();
+	Data.NBtagsNJets[ch][cut][syst]->SetMarkerStyle(20);
+	Data.NBtagsNJets[ch][cut][syst]->Draw("SAME");
 	
 	leg->Draw("SAME");
 	
-	float maxh = Data.SysHistos[ch][cut][syst]->GetMaximum();
+	float maxh = Data.NBtagsNJets[ch][cut][syst]->GetMaximum();
 	if (maxh < MC[ch][cut][sys]->GetMaximum()) maxh = MC[ch][cut][sys]->GetMaximum();
 	MC[ch][cut][sys]->SetMaximum(1.7*maxh);
 
 	ratio->cd();
 	
 	TH1F *H_Ratio;
-	H_Ratio = (TH1F*)Data.SysHistos[ch][cut][syst]->Clone();
-	H_Ratio->Divide(Total.SysHistos[ch][cut][sys]);
+	H_Ratio = (TH1F*)Data.NBtagsNJets[ch][cut][syst]->Clone();
+	H_Ratio->Divide(Total.NBtagsNJets[ch][cut][sys]);
 	
 	H_Ratio->SetFillStyle(1001);
 	H_Ratio->SetLineWidth(1);
@@ -1295,209 +1550,344 @@ void TopPlotter::SaveHistosForLH(bool DD){
   
   TFile *hfile = new TFile(filename,"RECREATE");
   
-  TH1F *fHData;
-  TH1F *fHTTbar[gNALLSYST];
-  TH1F *fHStop [gNALLSYST];
-  TH1F *fHDY   [gNALLSYST];
-  TH1F *fHVV   [gNALLSYST];
-  TH1F *fHRare [gNALLSYST];
-  TH1F *fHFake [gNALLSYST];
+  TH1F *fHNBNJ_Data ;
+  TH1F *fHNBNJ_TTbar[gNALLSYST];
+  TH1F *fHNBNJ_Stop [gNALLSYST];
+  TH1F *fHNBNJ_DY   [gNALLSYST];
+  TH1F *fHNBNJ_VV   [gNALLSYST];
+  TH1F *fHNBNJ_Rare [gNALLSYST];
+  TH1F *fHNBNJ_Fake [gNALLSYST];
   
-  fHData = (TH1F*) Data.SysHistos[ElMu][iDilepton][0]->Clone("NJetsNBjets__DATA");
-  fHData->Write();
+  TH1F *fHMll_Data ;
+  TH1F *fHMll_TTbar[gNALLSYST];
+  TH1F *fHMll_Stop [gNALLSYST];
+  TH1F *fHMll_DY   [gNALLSYST];
+  TH1F *fHMll_VV   [gNALLSYST];
+  TH1F *fHMll_Rare [gNALLSYST];
+  TH1F *fHMll_Fake [gNALLSYST];
+  
+  fHNBNJ_Data = (TH1F*) Data.NBtagsNJets[ElMu][iDilepton][0]->Clone("NJetsNBjets__DATA");
+  fHNBNJ_Data->Write();
+  fHMll_Data  = (TH1F*) Data.InvMass    [ElMu][iDilepton][0]->Clone("InvMass__DATA");
+  fHMll_Data ->Write();
+  
   for (size_t sys=0; sys<gNALLSYST; sys++){
     Int_t syst = sys;
     if (sys < gNSYST) syst = sys;
     else              syst = 0; 
     
-    fHTTbar[sys ] = (TH1F*)TTbar.SysHistos[ElMu][iDilepton][sys ]->Clone("NJetsNBjets__"+TTbar.name + sysname[sys]);
-    fHStop [syst] = (TH1F*)STop .SysHistos[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+STop .name + sysname[sys]);
-    fHDY   [syst] = (TH1F*)DY   .SysHistos[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+DY   .name + sysname[sys]);
-    fHVV   [syst] = (TH1F*)VV   .SysHistos[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+VV   .name + sysname[sys]);
-    if (DD) {
-      fHFake[syst] = (TH1F*)DD_NonW.SysHistos[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
-    } else {
-      fHFake[syst] = (TH1F*)  Fake.SysHistos[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
-    }
-    fHRare [syst] = (TH1F*)Rare .SysHistos[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Rare .name + sysname[sys]);
+    fHNBNJ_TTbar[sys ] = (TH1F*)TTbar.NBtagsNJets[ElMu][iDilepton][sys ]->Clone("NJetsNBjets__"+TTbar.name + sysname[sys]);
+    fHNBNJ_Stop [syst] = (TH1F*)STop .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+STop .name + sysname[sys]);
+    fHNBNJ_DY   [syst] = (TH1F*)DY   .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+DY   .name + sysname[sys]);
+    fHNBNJ_VV   [syst] = (TH1F*)VV   .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+VV   .name + sysname[sys]);
+
+//    fHNBNJ_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__ww"+sysname[sys]);
+//    fHNBNJ_WZ   [syst] = (TH1F*)S[WZ]                .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__wz"+sysname[sys]);
+//    fHNBNJ_ZZ   [syst] = (TH1F*)S[ZZ]                .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__zz"+sysname[sys]);
     
-    fHTTbar[sys ]->Write();
-    fHStop [syst]->Write();
-    fHDY   [syst]->Write();
-    fHVV   [syst]->Write();
-    fHRare [syst]->Write();
-    fHFake [syst]->Write();
+    if (DD) {
+      fHNBNJ_Fake[syst] = (TH1F*)DD_NonW.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
+    } else {
+      fHNBNJ_Fake[syst] = (TH1F*)  Fake.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
+    }
+    fHNBNJ_Rare [syst] = (TH1F*)Rare .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Rare .name + sysname[sys]);
+    
+    fHNBNJ_TTbar[sys ]->Write();
+    fHNBNJ_Stop [syst]->Write();
+    fHNBNJ_DY   [syst]->Write();
+    fHNBNJ_VV   [syst]->Write();
+//    fHNBNJ_WW   [syst]->Write();
+//    fHNBNJ_WZ   [syst]->Write();
+//    fHNBNJ_ZZ   [syst]->Write();
+    fHNBNJ_Rare [syst]->Write();
+    fHNBNJ_Fake [syst]->Write();
+  
+    fHMll_TTbar[sys ] = (TH1F*)TTbar.InvMass[ElMu][iDilepton][sys ]->Clone("InvMass__"+TTbar.name + sysname[sys]);
+    fHMll_Stop [syst] = (TH1F*)STop .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+STop .name + sysname[sys]);
+    fHMll_DY   [syst] = (TH1F*)DY   .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+DY   .name + sysname[sys]);
+    fHMll_VV   [syst] = (TH1F*)VV   .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+VV   .name + sysname[sys]);
+
+//    fHMll_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].InvMass[ElMu][iDilepton][syst]->Clone("InvMass__ww"+sysname[sys]);
+//    fHMll_WZ   [syst] = (TH1F*)S[WZ]                .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__wz"+sysname[sys]);
+//    fHMll_ZZ   [syst] = (TH1F*)S[ZZ]                .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__zz"+sysname[sys]);
+    
+    if (DD) {
+      fHMll_Fake[syst] = (TH1F*)DD_NonW.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
+    } else {
+      fHMll_Fake[syst] = (TH1F*)  Fake.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
+    }
+    fHMll_Rare [syst] = (TH1F*)Rare .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Rare .name + sysname[sys]);
+    
+    fHMll_TTbar[sys ]->Write();
+    fHMll_Stop [syst]->Write();
+    fHMll_DY   [syst]->Write();
+    fHMll_VV   [syst]->Write();
+//    fHMll_WW   [syst]->Write();
+//    fHMll_WZ   [syst]->Write();
+//    fHMll_ZZ   [syst]->Write();
+    fHMll_Rare [syst]->Write();
+    fHMll_Fake [syst]->Write();
   }
   hfile->Close();
 }
 void TopPlotter::CalculateSystematicErrors(Categories &C, Int_t cut){
   
-  // SF ID and Iso systematics.. (Still hard-coded).
-  if (C.name != "Total"){
-    C.SystError[Muon][SFIDISO]  = (2.39/100.0)/(0.999); // * 3);
-    C.SystError[Muon][SFTrig]   = (1.25/100.0)/(0.967); // * 2);
-
-    C.SystError[Elec][SFIDISO]  = (2.34/100.0)/(0.980); // * 3);
-    C.SystError[Elec][SFTrig]   = (1.65/100.0)/(0.974); // * 2);
-
-    C.SystError[ElMu][SFIDISO]  = (1.67/100.0)/(0.990); // * 3);
-    C.SystError[ElMu][SFTrig]   = (1.44/100.0)/(0.953); // * 2);
-  }
+  // SF ID and Iso systematics.. 
+  C.SystError[Muon][SFTrig]   = 0.01; //(1.25/100.0)/(0.967); // * 2);
+  C.SystError[Elec][SFTrig]   = 0.01; //(1.65/100.0)/(0.974); // * 2);
+  C.SystError[ElMu][SFTrig]   = 0.01; //(1.44/100.0)/(0.953); // * 2);
   
-  // Rest 
   for (size_t ch=0; ch<gNCHANNELS; ch++){
-    if (C.name == "Total"){
-      if (STop.Yields_syst[ch][cut][0] == 0) { 
-	cout << "[ERROR]: Please Make sure you're calculating Systematics correctly" << endl;
-	return;
-      }
-      C.Yields_syst[ch][cut][0]  = STop   .Yields_syst[ch][cut][0] * STop   .Yields_syst[ch][cut][0];
-      C.Yields_syst[ch][cut][0] += VV     .Yields_syst[ch][cut][0] * VV     .Yields_syst[ch][cut][0];
-      C.Yields_syst[ch][cut][0] += DY     .Yields_syst[ch][cut][0] * DY     .Yields_syst[ch][cut][0];
-      C.Yields_syst[ch][cut][0] += Rare   .Yields_syst[ch][cut][0] * Rare   .Yields_syst[ch][cut][0];
-      C.Yields_syst[ch][cut][0] += Fake   .Yields_syst[ch][cut][0] * Fake   .Yields_syst[ch][cut][0];
-      C.Yields_syst[ch][cut][0] += DD_NonW.Yields_syst[ch][cut][0] * DD_NonW.Yields_syst[ch][cut][0];
+    if (C.name == "ttbar"){
+      C.SystError[ch][Q2]       = TMath::Max(TMath::Abs(S[TTJets_scaleup].Yields[ch][cut]   - 
+							S[TTJets_MadSpin].Yields[ch][cut]),
+					     TMath::Abs(S[TTJets_scaledown].Yields[ch][cut] - 
+							S[TTJets_MadSpin].Yields[ch][cut])
+					     ) / (S[TTJets_MadSpin].Yields[ch][cut]);
       
-      C.Yields_syst[ch][cut][0]  = TMath::Sqrt(C.Yields_syst[ch][cut][0]);
+      C.SystError[ch][TopPt]    = 0.; 
+//SANTI      C.SystError[ch][TopPt]    = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][TopPtUp] - 
+//SANTI							C.Yields[ch][cut]),
+//SANTI					     TMath::Abs(C.Yields_syst[ch][cut][TopPtDown] - 
+//SANTI							C.Yields[ch][cut])
+//SANTI					     ) / C.Yields[ch][cut];
+      C.SystError[ch][Matching] = TMath::Max(TMath::Abs(S[TTJets_matchingup].Yields[ch][cut]   - 
+							S[TTJets_MadSpin].Yields[ch][cut]),
+					     TMath::Abs(S[TTJets_matchingdown].Yields[ch][cut] - 
+							S[TTJets_MadSpin].Yields[ch][cut])
+					     ) / (S[TTJets_MadSpin].Yields[ch][cut]);
     }
-    else {
-      if (C.name == "TTbar"){
-	C.SystError[ch][Q2]       = TMath::Max(TMath::Abs(S[TTJets_scaleup].Yields[ch][cut]   - 
-							  S[TTJets_MadSpin].Yields[ch][cut]),
-					       TMath::Abs(S[TTJets_scaledown].Yields[ch][cut] - 
-							  S[TTJets_MadSpin].Yields[ch][cut])
-					       ) / (2 * S[TTJets_MadSpin].Yields[ch][cut]);
-
-//SANTI  	cout << gChanLabel[ch] + " (SCALE)  = ";
-//SANTI  	cout << 100 * (S[TTJets_scaleup].Yields[ch][iDilepton]   - S[TTJets_MadSpin].Yields[ch][iDilepton]) / S[TTJets_MadSpin].Yields[ch][iDilepton] << " (up) "   ;
-//SANTI  	cout << 100 * (S[TTJets_scaledown].Yields[ch][iDilepton] - S[TTJets_MadSpin].Yields[ch][iDilepton]) / S[TTJets_MadSpin].Yields[ch][iDilepton] << " (down) " ;
-//SANTI  	cout << endl;
-//SANTI  	
-//SANTI  	cout << gChanLabel[ch] + " (MATCHING) = ";
-//SANTI  	cout << 100 * (S[TTJets_matchingup].Yields[ch][iDilepton]   - S[TTJets_MadSpin].Yields[ch][iDilepton]) / S[TTJets_MadSpin].Yields[ch][iDilepton] << " (up) "   ;
-//SANTI  	cout << 100 * (S[TTJets_matchingdown].Yields[ch][iDilepton] - S[TTJets_MadSpin].Yields[ch][iDilepton]) / S[TTJets_MadSpin].Yields[ch][iDilepton] << " (down) " ;
-//SANTI  	cout << endl;
-
-	C.SystError[ch][Matching] = TMath::Max(TMath::Abs(S[TTJets_matchingup].Yields[ch][cut]   - 
-							  S[TTJets_MadSpin].Yields[ch][cut]),
-					       TMath::Abs(S[TTJets_matchingdown].Yields[ch][cut] - 
-							  S[TTJets_MadSpin].Yields[ch][cut])
-					       ) / (2 * S[TTJets_MadSpin].Yields[ch][cut]);
-      }
-      else {
-	C.SystError[ch][PU]       = 0.;
-	C.SystError[ch][BR]       = 0.;
-	C.SystError[ch][Hadro]    = 0.;
-      }
-      
-      C.SystError[ch][les]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][LESUp] - C.Yields[ch][cut]), 
-					     TMath::Abs(C.Yields_syst[ch][cut][LESDown] - C.Yields[ch][cut])
-					     ) / C.Yields[ch][cut];
-      C.SystError[ch][jes]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][JESUp] - C.Yields[ch][cut]), 
-					     TMath::Abs(C.Yields_syst[ch][cut][JESDown] - C.Yields[ch][cut])
-					     ) / C.Yields[ch][cut];
-      C.SystError[ch][jer]      = (TMath::Abs(C.Yields_syst[ch][cut][JER] - C.Yields[ch][cut])) / C.Yields[ch][cut];
-      
-      C.SystError[ch][btag]     = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][BtagUp] - C.Yields[ch][cut]), 
-					     TMath::Abs(C.Yields_syst[ch][cut][BtagDown] - C.Yields[ch][cut])
-					     ) / C.Yields[ch][cut];
-    }
+    C.SystError[ch][les]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][LESUp] - C.Yields[ch][cut]), 
+					   TMath::Abs(C.Yields_syst[ch][cut][LESDown] - C.Yields[ch][cut])
+					   ) / C.Yields[ch][cut];
+    C.SystError[ch][jes]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][JESUp] - C.Yields[ch][cut]), 
+					   TMath::Abs(C.Yields_syst[ch][cut][JESDown] - C.Yields[ch][cut])
+					   ) / C.Yields[ch][cut];
+    C.SystError[ch][jer]      = (TMath::Abs(C.Yields_syst[ch][cut][JER] - C.Yields[ch][cut])) / C.Yields[ch][cut];
     
-    if (C.name != "Total"){
-      for (size_t sys=0; sys<gNSYSTERRTypes; sys++){ 
-	C.Yields_syst[ch][cut][0] += C.SystError[ch][sys] *  C.SystError[ch][sys];
-      }
-      C.Yields_syst[ch][cut][0] = C.Yields[ch][cut] * TMath::Sqrt(C.Yields_syst[ch][cut][0]);
+    C.SystError[ch][btag]     = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][BtagUp] - C.Yields[ch][cut]), 
+					   TMath::Abs(C.Yields_syst[ch][cut][BtagDown] - C.Yields[ch][cut])
+					   ) / C.Yields[ch][cut];
+    C.SystError[ch][mistag]   = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][MisTagUp] - C.Yields[ch][cut]), 
+					   TMath::Abs(C.Yields_syst[ch][cut][MisTagDown] - C.Yields[ch][cut])
+					   ) / C.Yields[ch][cut];
+    
+    if (C.name == "vv"  ) C.SystError[ch][vv]   = 0.20;
+    if (C.name == "rare") C.SystError[ch][rare] = 0.30;
+    if (C.name == "stop") C.SystError[ch][stop] = 0.10;
+    
+    for (size_t sys=0; sys<gNSYSTERRTypesALL; sys++){ 
+      C.Yields_syst[ch][cut][0] += C.SystError[ch][sys] *  C.SystError[ch][sys];
     }
+    C.Yields_syst[ch][cut][0] = C.Yields[ch][cut] * TMath::Sqrt(C.Yields_syst[ch][cut][0]);
   }
   return;
+}
+void TopPlotter::CalculateSystematicErrorsWithXSec(Categories &C, Int_t cut){
+  /////////////////////////////////////////////////////////////////////////
+  //   This method calculates the cross-section for each systematic and    
+  //   compare it with the nominal one, the difference is assigned as a    
+  //   systematic uncertainty (for systematics varied up/down)             
+  /////////////////////////////////////////////////////////////////////////
+  fOutputSubDir = "SystematicErrors/";
+  
+  XSection tmp_up, tmp_down; 
+  Float_t obs(0.), bkg(0.), eff(0.);
+  
+  for (Int_t ch = 0; ch<gNCHANNELS; ch++){
+    obs = Data .Yields[ch][cut];
+    bkg = Total.Yields[ch][cut];
+    eff = TTbar.Yields[ch][cut];
+    
+    tmp_up  .xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
+    tmp_down.xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
+    if (C.name == "ttbar") eff = 0.;
+  }
+  
 }
 void TopPlotter::CalculateDYBkg(){
   fOutputSubDir = "DataDriven/";
   gSystem->mkdir(fOutputDir+fOutputSubDir, kTRUE);
 
   TString yieldsfilename = "";
-  Float_t R    [gNCHANNELS];
-  Float_t N_in [gNCHANNELS];
-  Float_t N_out[gNCHANNELS];
-  Float_t k_ll [gNCHANNELS];
-  Float_t SF   [gNCHANNELS];
-    
-  // Calculate R:
-  Int_t low_in = DY.MllHistos[Muon]->FindBin(76.);
-  Int_t  up_in = DY.MllHistos[Muon]->FindBin(106.);
-  
-  Float_t nout_ee(0.),nin_ee(0.);
-  Float_t nout_mm(0.),nin_mm(0.);
-  nin_mm  = DY.MllHistos[Muon]->Integral(low_in, up_in);
-  nin_ee  = DY.MllHistos[Elec]->Integral(low_in, up_in);
+  Double_t R    [gNCHANNELS][iNCUTS];
+  Double_t R_err[gNCHANNELS][iNCUTS];
+  Double_t N_in [gNCHANNELS];
+  Double_t N_out[gNCHANNELS];
+  Double_t k_ll [gNCHANNELS];
+  Double_t SF   [gNCHANNELS];
 
-  nout_mm = DY.MllHistos[Muon]->Integral()-nin_mm;
-  nout_ee = DY.MllHistos[Elec]->Integral()-nin_ee;
-  cout << "nin  (MC): "<< nin_mm  << " - " << nin_ee  << endl;
-  cout << "nout (MC): "<< nout_mm << " - " << nout_ee << endl;
-  
-  R    [Muon] = nout_mm / nin_mm;
-  R    [Elec] = nout_ee / nin_ee;
-  cout << "R : " << R[Muon] << " , " << R[Elec] << endl;
+  Double_t N_in_err [gNCHANNELS];
+  Double_t N_out_err[gNCHANNELS];
+  Double_t k_ll_err [gNCHANNELS];
+  Double_t SF_err   [gNCHANNELS];
 
-  N_in [Muon] = Data.MllHistos[Muon]->Integral(low_in, up_in); 
-  N_in [Elec] = Data.MllHistos[Elec]->Integral(low_in, up_in);
-  N_in [ElMu] = Data.MllHistos[ElMu]->Integral(low_in, up_in);
-  cout << "N_in: " << N_in[Muon] << ", " << N_in[Elec] << " , " << N_in[ElMu] << endl;
-  
-  k_ll [Muon] = 1; //TMath::Sqrt(nin_mm / nin_ee  );
-  k_ll [Elec] = 1; //TMath::Sqrt(nin_ee / nin_mm  );
-  cout << "k_ll: " << k_ll[Muon] << ", " << k_ll[Elec] << endl;
-  
-  // CALCULATE DD ESTIMATES... 
-  N_out[Muon] = R[Muon] * (N_in[Muon] - 0.5 * N_in[ElMu] * k_ll[Muon]);
-  N_out[Elec] = R[Elec] * (N_in[Elec] - 0.5 * N_in[ElMu] * k_ll[Elec]);
-  
-  cout << "N_out: "<< N_out[Muon] << ", " << N_out[Elec] << endl;
-  cout << "nout / N_out: "<< (float) nout_mm / N_out[Muon] << ", " << (float) nout_ee / N_out[Elec] << endl;
-  
-  SF   [Muon] = nout_mm / N_out[Muon];
-  SF   [Elec] = nout_ee / N_out[Elec];
-  SF   [ElMu] = TMath::Sqrt(SF[Elec] * SF[Muon]);
-  cout << "SF: "<< SF[Muon] << ", " << SF[Elec] << ", " << SF[ElMu] << endl;  
-
-  iCut cut = i1btag;
   yieldsfilename = fOutputDir + fOutputSubDir + "DY.txt";
   fOUTSTREAM.open(yieldsfilename, ios::trunc);
-  fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
-  fOUTSTREAM << "                  |       El/El      |       Mu/Mu      |       El/Mu      ||" << endl;
-  fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
-  fOUTSTREAM << Form(" Drell-Yan        | %7.1f +/- %4.1f | %7.1f +/- %4.1f | %7.1f +/- %4.1f ||",  
-		     DY.Yields[Elec][cut], DY.Yields_stat[Elec][cut], 
-		     DY.Yields[Muon][cut], DY.Yields_stat[Muon][cut], 
-		     DY.Yields[ElMu][cut], DY.Yields_stat[ElMu][cut]) << endl;
-  fOUTSTREAM << Form(" Drell-Yan (DD)   | %7.1f +/- %4.1f | %7.1f +/- %4.1f | %7.1f +/- %4.1f ||",  
-		     DY.Yields[Elec][cut] * SF[Elec], DY.Yields_stat[Elec][cut] * SF[Elec], 
-		     DY.Yields[Muon][cut] * SF[Muon], DY.Yields_stat[Muon][cut] * SF[Muon], 
-		     DY.Yields[ElMu][cut] * SF[ElMu], DY.Yields_stat[ElMu][cut] * SF[ElMu]) << endl;
-  fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
-  fOUTSTREAM << Form(" R(out/in)        | %5.3f           | %5.3f           |                 ||",
-		     R[Elec], R[Muon]) << endl;
-  fOUTSTREAM << Form(" SF (DD/MC)       | %5.3f           | %5.3f           | %5.3f           ||",
-		     SF[Elec], SF[Muon], SF[ElMu]) << endl;
-  fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
-  fOUTSTREAM << endl;
+
+  for (size_t cut=0; cut<iNCUTS; cut++){    
+    if (cut == iZVeto) continue;
+    // Calculate R:
+    Int_t low_in = DY.MllHistos[Muon][cut]->FindBin(76.);
+    Int_t  up_in = DY.MllHistos[Muon][cut]->FindBin(106.);
+    
+    Double_t nout_ee(0.),nin_ee(0.),nout_err_ee(0.),nin_err_ee(0.);
+    Double_t nout_mm(0.),nin_mm(0.),nout_err_mm(0.),nin_err_mm(0.);
+    nin_mm  = DY.MllHistos[Muon][cut]->Integral(low_in, up_in); nin_err_mm = TMath::Sqrt(nin_mm);
+    nin_ee  = DY.MllHistos[Elec][cut]->Integral(low_in, up_in); nin_err_mm = TMath::Sqrt(nin_ee); 
+    
+    nout_mm = DY.MllHistos[Muon][cut]->Integral(0, 200)-nin_mm; nout_err_mm = TMath::Sqrt(nout_mm);
+    nout_ee = DY.MllHistos[Elec][cut]->Integral(0, 200)-nin_ee; nout_err_ee = TMath::Sqrt(nout_ee);
+    
+    R    [Muon][cut] = nout_mm / nin_mm;
+    R    [Elec][cut] = nout_ee / nin_ee;
+    R_err[Muon][cut] = (nout_err_mm/nout_mm + nin_err_mm/nin_mm) * R[Muon][cut];
+    R_err[Elec][cut] = (nout_err_ee/nout_ee + nin_err_ee/nin_ee) * R[Elec][cut];
+    
+
+    R_err[Muon][cut] = TMath::Sqrt(R_err[Muon][cut]*R_err[Muon][cut] + 0.5*R[Muon][cut]*0.5*R[Muon][cut]);    
+    R_err[Elec][cut] = TMath::Sqrt(R_err[Elec][cut]*R_err[Elec][cut] + 0.5*R[Elec][cut]*0.5*R[Elec][cut]);
+
+    N_in [Muon] = Data.MllHistos[Muon][cut]->IntegralAndError(low_in, up_in, N_in_err[Muon]); 
+    N_in [Elec] = Data.MllHistos[Elec][cut]->IntegralAndError(low_in, up_in, N_in_err[Elec]);
+    N_in [ElMu] = Data.MllHistos[ElMu][cut]->IntegralAndError(low_in, up_in, N_in_err[ElMu]);
   
-  fOUTSTREAM << endl;
+    k_ll [Muon] = TMath::Sqrt(nin_mm / nin_ee  );  
+    k_ll [Elec] = TMath::Sqrt(nin_ee / nin_mm  );
+    
+    k_ll_err[Muon] = 0.5*(nin_err_mm/nin_mm + nin_err_ee/nin_ee);
+    k_ll_err[Elec] = 0.5*(nin_err_ee/nin_ee + nin_err_mm/nin_mm);
+    
+    // CALCULATE DD ESTIMATES... 
+    N_out[Muon] = R[Muon][cut] * (N_in[Muon] - 0.5 * N_in[ElMu] * k_ll[Muon]);
+    N_out[Elec] = R[Elec][cut] * (N_in[Elec] - 0.5 * N_in[ElMu] * k_ll[Elec]);
+    
+    Double_t tmperr1 =  N_in_err[Elec]/N_in[Elec];
+    Double_t tmperr2 =  N_in_err[ElMu]/N_in[ElMu] + k_ll_err[Elec]/k_ll[Elec];
+    N_out_err[Elec] = R_err[Elec][cut]/R[Elec][cut]*(tmperr1 + 0.5*tmperr2) * N_out[Elec];
+    
+    tmperr1 =  N_in_err[Muon]/N_in[Muon];
+    tmperr2 =  N_in_err[ElMu]/N_in[ElMu] + k_ll_err[Muon]/k_ll[Muon];
+    N_out_err[Muon] = R_err[Muon][cut]/R[Muon][cut]*(tmperr1 + 0.5*tmperr2) * N_out[Muon];
+    
+    SF   [Muon] = N_out[Muon] / nout_mm;  
+    SF   [Elec] = N_out[Elec] / nout_ee;
+    SF   [ElMu] = TMath::Sqrt(SF[Elec] * SF[Muon]);
+
+    SF_err[Muon] = (N_out_err[Muon]/N_out[Muon] + nout_err_mm/nout_mm) * SF[Muon];  
+    SF_err[Elec] = (N_out_err[Elec]/N_out[Elec] + nout_err_ee/nout_ee) * SF[Elec];  
+    SF_err[ElMu] = 0.5*SF[ElMu]*(SF_err[Elec]/SF[Elec] + SF_err[Muon]/SF[Muon]);
+    
+    fOUTSTREAM << " Estimation for " + sCut[cut] << endl;
+    fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
+    fOUTSTREAM << "                  |       El/El      |       Mu/Mu      |       El/Mu      ||" << endl;
+    fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
+    fOUTSTREAM << Form(" N_in             | %7.1f +/- %4.1f | %7.1f +/- %4.1f |                  ||",   		       
+		       N_in[Elec], N_in_err[Elec], 
+		       N_in[Muon], N_in_err[Muon]) << endl;
+    fOUTSTREAM << Form(" N_out            | %7.1f +/- %4.1f | %7.1f +/- %4.1f |                  ||",   		       
+		       N_out[Elec], N_out_err[Elec], 
+		       N_out[Muon], N_out_err[Muon]) << endl;
+    fOUTSTREAM << Form(" k_ll             | %6.3f +/- %4.3f | %6.3f +/- %4.3f |                  ||",   		       
+		       k_ll[Elec], k_ll_err[Elec], 
+		       k_ll[Muon], k_ll_err[Muon]) << endl;
+    fOUTSTREAM << Form(" R(out/in)        | %6.3f +/- %4.3f | %6.3f +/- %4.3f |                  ||",
+		       R[Elec][cut], R_err[Elec][cut], 
+		       R[Muon][cut], R_err[Muon][cut]) << endl;
+    fOUTSTREAM << Form(" SF (DD/MC)       | %6.3f +/- %4.3f | %6.3f +/- %4.3f | %6.3f +/- %4.3f ||",
+		       SF[Elec], SF_err[Elec], SF[Muon], SF_err[Muon], SF[ElMu], SF_err[ElMu]) << endl;
+    fOUTSTREAM << "-----------------------------------------------------------------------------" <<  endl;  
+    fOUTSTREAM << Form(" Drell-Yan        | %7.1f +/- %4.1f | %7.1f +/- %4.1f | %7.1f +/- %4.1f ||",  
+		       DY.Yields[Elec][cut], DY.Yields_stat[Elec][cut], 
+		       DY.Yields[Muon][cut], DY.Yields_stat[Muon][cut], 
+		       DY.Yields[ElMu][cut], DY.Yields_stat[ElMu][cut]) << endl;
+    fOUTSTREAM << Form(" Drell-Yan (DD)   | %7.1f +/- %4.1f | %7.1f +/- %4.1f | %7.1f +/- %4.1f ||",  
+		       DY.Yields[Elec][cut] * SF[Elec], DY.Yields_stat[Elec][cut] * SF[Elec], 
+		       DY.Yields[Muon][cut] * SF[Muon], DY.Yields_stat[Muon][cut] * SF[Muon], 
+		       DY.Yields[ElMu][cut] * SF[ElMu], DY.Yields_stat[ElMu][cut] * SF[ElMu]) << endl;
+    fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
+    fOUTSTREAM << endl;
+    
+    fOUTSTREAM << endl;
+  }
   fOUTSTREAM.close();
-  
+  gSystem->Exec("cat "+yieldsfilename);
+
   DY_SF[Elec] = SF[Elec];
   DY_SF[Muon] = SF[Muon];
   DY_SF[ElMu] = SF[ElMu];
+
+  /// DRAW R
+  gROOT->SetStyle("Plain");
+  gStyle->SetOptFit(1000);
+  gStyle->SetOptStat("emruo");
+  gStyle->SetOptStat(kFALSE);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadTickX(1);
+
+  Double_t x    [iNCUTS] = {1, 2, 3, 4, 5};
+  Double_t x_err[iNCUTS] = {0., 0., 0., 0., 0.};
+  
+  R[Elec][iZVeto] = R[Elec][iDilepton];
+  R[Muon][iZVeto] = R[Muon][iDilepton];
+  TGraphErrors *el = new TGraphErrors(iNCUTS, x, R[Elec], x_err, R_err[Elec]);
+  TGraphErrors *mu = new TGraphErrors(iNCUTS, x, R[Muon], x_err, R_err[Muon]);
+  
+  el->SetMarkerStyle(20);
+  el->SetMarkerColor(kRed);
+  el->SetLineColor(kRed);
+  el->SetMaximum(0.20);
+  el->SetMinimum(0.00);
+  mu->SetMarkerStyle(20);
+  mu->SetMarkerColor(kBlue);
+  mu->SetLineColor(kBlue);
+
+  TLegend *leg = new TLegend(0.73,0.73,0.90,0.89);
+  leg->SetFillColor(0);
+  leg->SetLineColor(1);
+  //leg->SetLineWidth(4);
+  leg->SetTextFont(62); // Events in the leg!
+  leg->SetTextSize(0.04);
+  
+  leg->AddEntry(el, "R (ee) ", "PL");
+  leg->AddEntry(mu, "R (#mu#mu)", "PL");
+  
+  TCanvas *c1 = new TCanvas("c1","", 800, 600);
+  c1->cd();
+  el->Draw("AP");
+  mu->Draw("P SAME");
+  leg->Draw("SAME");
+
+  cout << "ERRORS: " << endl;
+  Float_t mumax =  TMath::MaxElement(mu->GetN(),mu->GetY());
+  Float_t mumin =  TMath::MinElement(mu->GetN(),mu->GetY());
+  Float_t elmax =  TMath::MaxElement(el->GetN(),el->GetY());
+  Float_t elmin =  TMath::MinElement(el->GetN(),el->GetY());
+
+  cout<< elmax <<" - "<< elmin <<" = "<< (elmax-elmin)/el->GetMean(2) << endl;
+  cout<< mumax <<" - "<< mumin <<" = "<< (mumax-mumin)/mu->GetMean(2) << endl;
+  cout<< el->GetMean(2) << "+/-" <<  el->GetRMS(2) << endl;
+  cout<< mu->GetMean(2) << "+/-" <<  mu->GetRMS(2) << endl;
+
+  c1->SaveAs(fOutputDir + fOutputSubDir + "Routin.png");
+  c1->SaveAs(fOutputDir + fOutputSubDir + "Routin.pdf");
+  c1->SaveAs(fOutputDir + fOutputSubDir + "Routin.png");
+    
+  for (size_t chan=0; chan<gNCHANNELS; chan++){
+    for (size_t ct=0; ct<iNCUTS; ct++){
+      DD_DY.Yields     [chan][ct] = DY.Yields     [chan][ct]*DY_SF[chan];
+      DD_DY.Yields_stat[chan][ct] = DY.Yields_stat[chan][ct]*DY_SF[chan];
+      DD_DY.Yields_syst[chan][ct][0] = 0.15*DD_DY.Yields[chan][ct];
+    }
+  }
 }
 void TopPlotter::CalculateNonWZLeptonsBkg(){
   fOutputSubDir = "DataDriven/";
   gSystem->mkdir(fOutputDir+fOutputSubDir, kTRUE);
 
   TString yieldsfilename = "";
-  Float_t R    [gNCHANNELS][iNCUTS];
-  Float_t R_err[gNCHANNELS][iNCUTS];
+  Double_t R    [gNCHANNELS][iNCUTS];
+  Double_t R_err[gNCHANNELS][iNCUTS];
   for (size_t cut=0; cut<iNCUTS; cut++){
     yieldsfilename = fOutputDir + fOutputSubDir + "NonWZ_"+sCut[cut]+".txt";
     fOUTSTREAM.open(yieldsfilename, ios::trunc);
@@ -1508,9 +1898,9 @@ void TopPlotter::CalculateNonWZLeptonsBkg(){
       R_err[ch][cut] = Fake.Yields_stat[ch][cut]*Fake.Yields_stat[ch][cut] / (Fake.SSYields[ch][cut]*Fake.SSYields[ch][cut]) + Fake.SSYields_stat[ch][cut]*Fake.SSYields_stat[ch][cut]*(R[ch][cut] / Fake.SSYields[ch][cut])*(R[ch][cut] / Fake.SSYields[ch][cut]);
       R_err[ch][cut] = TMath::Sqrt(R_err[ch][cut]);
 
-      DD_NonW.Yields[ch][cut]      = R[ch][cut] * Data.SSYields[ch][cut]-Total.SSYields[ch][cut];
-      DD_NonW.Yields_stat[ch][cut] = TMath::Sqrt(TMath::Power(R[ch][cut]*Total.SSYields_stat[ch][cut],2) + TMath::Power(R_err[ch][cut]*(Data.SSYields[ch][cut]-Total.SSYields[Elec][cut]),2));
-      DD_NonW.Yields_syst[ch][cut][0] = TMath::Abs(1 - R[ch][cut])*DD_NonW.Yields[ch][cut];
+      DD_NonW.Yields[ch][cut]         = R[ch][cut] * (Data.SSYields[ch][cut]-Total.SSYields[ch][cut]);
+      DD_NonW.Yields_stat[ch][cut]    = TMath::Sqrt(TMath::Power(R[ch][cut]*Total.SSYields_stat[ch][cut],2) + TMath::Power(R_err[ch][cut]*(Data.SSYields[ch][cut]-Total.SSYields[Elec][cut]),2));
+      DD_NonW.Yields_syst[ch][cut][0] = 0.3*DD_NonW.Yields[ch][cut];  // ASSING a 50% uncertainty.
     }
     
     fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
@@ -1557,7 +1947,7 @@ void TopPlotter::CalculateNonWZLeptonsBkg(){
 		       Fake.Yields[Muon][cut], Fake.Yields_stat[Muon][cut], 
 		       Fake.Yields[ElMu][cut], Fake.Yields_stat[ElMu][cut])
 	       << endl;							  
-    fOUTSTREAM << Form(" R (OS/SS)        | %7.1f +/- %4.1f | %7.1f +/- %4.1f | %7.1f +/- %4.1f ||",  
+    fOUTSTREAM << Form(" R (OS/SS)        | %7.2f +/- %4.2f | %7.2f +/- %4.2f | %7.2f +/- %4.2f ||",  
 		       R[Elec][cut], R_err[Elec][cut], 
 		       R[Muon][cut], R_err[Muon][cut], 
 		       R[ElMu][cut], R_err[ElMu][cut])
@@ -1577,22 +1967,70 @@ void TopPlotter::CalculateNonWZLeptonsBkg(){
 		       DD_NonW.Yields[Elec][cut], DD_NonW.Yields_stat[Elec][cut],
 		       DD_NonW.Yields[Muon][cut], DD_NonW.Yields_stat[Muon][cut],
 		       DD_NonW.Yields[ElMu][cut], DD_NonW.Yields_stat[ElMu][cut])
-      //SANTI		     R[Elec][cut] * Data.SSYields[Elec][cut]-Total.SSYields[Elec][cut], 
-      //SANTI		     TMath::Sqrt(TMath::Power(R[Elec][cut]*Total.SSYields_stat[Elec][cut],2) + 
-      //SANTI		     TMath::Power(R_err[Elec][cut]*(Data.SSYields[Elec][cut]-Total.SSYields[Elec][cut]),2)),
-      //SANTI		     R[Muon][cut] * Data.SSYields[Muon][cut]-Total.SSYields[Muon][cut], 
-      //SANTI		     TMath::Sqrt(TMath::Power(R[Muon][cut]*Total.SSYields_stat[Muon][cut],2) + 
-      //SANTI		     TMath::Power(R_err[Muon][cut]*(Data.SSYields[Muon][cut]-Total.SSYields[Muon][cut]),2)),
-      //SANTI		     R[ElMu][cut] * Data.SSYields[ElMu][cut]-Total.SSYields[ElMu][cut], 
-      //SANTI		     TMath::Sqrt(TMath::Power(R[ElMu][cut]*Total.SSYields_stat[ElMu][cut],2) + 
-      //SANTI		     TMath::Power(R_err[ElMu][cut]*(Data.SSYields[ElMu][cut]-Total.SSYields[ElMu][cut]),2)))
-	       << endl;
+      	       << endl;
     fOUTSTREAM << "-----------------------------------------------------------------------------" << endl;
     fOUTSTREAM << endl;
     
     fOUTSTREAM << endl;
     fOUTSTREAM.close();
+    
+    if (cut == i1btag) gSystem->Exec("cat "+yieldsfilename);
   }
+  // DRAWING STUFF...
+  Double_t x    [iNCUTS] = {1, 2, 3, 4, 5};
+  Double_t x_err[iNCUTS] = {0., 0., 0., 0., 0.};
+  
+  TGraphErrors *elel = new TGraphErrors(iNCUTS, x, R[Elec], x_err, R_err[Elec]);
+  TGraphErrors *mumu = new TGraphErrors(iNCUTS, x, R[Muon], x_err, R_err[Muon]);
+  TGraphErrors *elmu = new TGraphErrors(iNCUTS, x, R[ElMu], x_err, R_err[ElMu]);
+  
+  elel->SetMarkerStyle(20);
+  elel->SetMarkerColor(kRed);
+  elel->SetLineColor(kRed);
+  elel->SetMaximum(2.0);
+  elel->SetMinimum(0.5);
+  mumu->SetMarkerStyle(20);
+  mumu->SetMarkerColor(kBlue);
+  mumu->SetLineColor(kBlue);
+  elmu->SetMarkerStyle(20);
+  elmu->SetMarkerColor(kBlack);
+  elmu->SetLineColor(kBlack);
+
+  TLegend *leg = new TLegend(0.73,0.73,0.90,0.89);
+  leg->SetFillColor(0);
+  leg->SetLineColor(1);
+  //leg->SetLineWidth(4);
+  leg->SetTextFont(62); // Events in the leg!
+  leg->SetTextSize(0.04);
+  
+  leg->AddEntry(elel, "R (ee) ", "PL");
+  leg->AddEntry(mumu, "R (#mu#mu)", "PL");
+  leg->AddEntry(elmu, "R (e#mu)", "PL");
+  
+  TCanvas *c1 = new TCanvas("c1","", 800, 600);
+  c1->cd();
+  elel->Draw("AP");
+  mumu->Draw("P SAME");
+  elmu->Draw("P SAME");
+  leg->Draw("SAME");
+
+  cout << "ERRORS: " << endl;
+  Float_t mumumax =  TMath::MaxElement(mumu->GetN(),mumu->GetY());
+  Float_t mumumin =  TMath::MinElement(mumu->GetN(),mumu->GetY());
+  Float_t elmumax =  TMath::MaxElement(elmu->GetN(),elmu->GetY());
+  Float_t elmumin =  TMath::MinElement(elmu->GetN(),elmu->GetY());
+  Float_t elelmax =  TMath::MaxElement(elel->GetN(),elel->GetY());
+  Float_t elelmin =  TMath::MinElement(elel->GetN(),elel->GetY());
+
+  cout<< elelmax <<" - "<< elelmin <<" = "<< (elelmax-elelmin)/elel->GetMean(2) << endl;
+  cout<< mumumax <<" - "<< mumumin <<" = "<< (mumumax-mumumin)/mumu->GetMean(2) << endl;
+  cout<< elmumax <<" - "<< elmumin <<" = "<< (elmumax-elmumin)/elmu->GetMean(2) << endl;
+
+  c1->SaveAs(fOutputDir + fOutputSubDir + "R_NonW.png");
+  c1->SaveAs(fOutputDir + fOutputSubDir + "R_NonW.pdf");
+  c1->SaveAs(fOutputDir + fOutputSubDir + "R_NonW.png");
+  
+  
   /////////////////////////////////////////////////
   ////  TEMPLATES 
   /////////////////////////////////////////////////
@@ -1600,18 +2038,34 @@ void TopPlotter::CalculateNonWZLeptonsBkg(){
     for (size_t chan=0; chan<gNCHANNELS; chan++){
       for (size_t sys=0; sys<gNSYST; sys++){
 	
-	DD_NonW.SysHistos[chan][cut][sys] = (TH1F*) Fake.SSSysHistos[chan][cut][sys]->Clone();
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    Fake.SSSysHistos[chan][cut][sys], -1);
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    Data.SSSysHistos[chan][cut][sys],  1);
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    STop.SSSysHistos[chan][cut][sys], -1);
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    VV  .SSSysHistos[chan][cut][sys], -1);
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    DY  .SSSysHistos[chan][cut][sys], -1);
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    Rare.SSSysHistos[chan][cut][sys], -1);
-	DD_NonW.SysHistos[chan][cut][sys] ->Add(    STop.SSSysHistos[chan][cut][sys], -1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] = (TH1F*) Fake.SSNBtagsNJets[chan][cut][sys]->Clone();
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    Fake.SSNBtagsNJets[chan][cut][sys], -1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    Data.SSNBtagsNJets[chan][cut][sys],  1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    STop.SSNBtagsNJets[chan][cut][sys], -1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    VV  .SSNBtagsNJets[chan][cut][sys], -1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    DY  .SSNBtagsNJets[chan][cut][sys], -1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    Rare.SSNBtagsNJets[chan][cut][sys], -1);
+	DD_NonW.NBtagsNJets[chan][cut][sys] ->Add(    STop.SSNBtagsNJets[chan][cut][sys], -1);
+
+
+	DD_NonW.InvMass[chan][cut][sys] = (TH1F*) Fake.SSInvMass[chan][cut][sys]->Clone();
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    Fake.SSInvMass[chan][cut][sys], -1);
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    Data.SSInvMass[chan][cut][sys],  1);
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    STop.SSInvMass[chan][cut][sys], -1);
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    VV  .SSInvMass[chan][cut][sys], -1);
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    DY  .SSInvMass[chan][cut][sys], -1);
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    Rare.SSInvMass[chan][cut][sys], -1);
+	DD_NonW.InvMass[chan][cut][sys] ->Add(    STop.SSInvMass[chan][cut][sys], -1);
       }
     }
   }
 }
+//float TopPlotter::GetXSection(Categories &C, Int_t ch, Int_t cut, Int_t sys){
+//  float xsec = 0.;
+//  
+//  xsec = ttbar_TLWG * (Data.Yields[ch][cut] - () 
+//  
+//}
 void TopPlotter::CalculateCrossSection(Bool_t DD){
   // CALCULATE XSECTION without DD calculation (default);
   fOutputSubDir = "XSection/";
@@ -1619,38 +2073,61 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
   iCut cut = i1btag; // //iZVeto; //i2jets; //i1btag;
   const char* scut = sCut[cut].Data();
   if (DD) {
-    if (gUseTTMadSpin) 
-      filename = fOutputDir+fOutputSubDir+Form("Cross_Section_%4.1f_MadSpin_%s_DD.txt",fLumiNorm/1000.,scut);
-    else 
-      filename = fOutputDir+fOutputSubDir+Form("Cross_Section_%4.1f_Madgraph_%s_DD.txt",fLumiNorm/1000.,scut);
+    filename = fOutputDir+fOutputSubDir+Form("Cross_Section_%4.1f_MadSpin_%s_DD.txt",fLumiNorm/1000.,scut);
   }
   else {
-    if (gUseTTMadSpin) 
-      filename = fOutputDir+fOutputSubDir+Form("Cross_Section_%4.1f_MadSpin_%s_MC.txt",fLumiNorm/1000.,scut);
-    else 
-      filename = fOutputDir+fOutputSubDir+Form("Cross_Section_%4.1f_Madgraph_%s_MC.txt",fLumiNorm/1000.,scut);
+    filename = fOutputDir+fOutputSubDir+Form("Cross_Section_%4.1f_MadSpin_%s_MC.txt",fLumiNorm/1000.,scut);
   }
-  
   gSystem->mkdir(fOutputDir+fOutputSubDir, kTRUE);
   
-   
-  // Get Systematic Errors
-  ResetSystematicErrors();
-
-  cout << "Calculating Systematic Errors..." << endl;
-  CalculateSystematicErrors(TTbar, cut);
-  CalculateSystematicErrors(STop , cut);
-  CalculateSystematicErrors(VV   , cut);
-  CalculateSystematicErrors(DY   , cut);
-  CalculateSystematicErrors(Rare , cut);
-  if (!DD) CalculateSystematicErrors(Fake , cut);
-  else {
-    for (Int_t ch = 0; ch<gNCHANNELS; ch++){
-      Total.Yields[ch][cut] -= Fake   .Yields[ch][cut];
+  // FIRST CALCULATE REFERENCE...
+  for (Int_t ch = 0; ch<gNCHANNELS; ch++){
+    Total.Yields[ch][cut]  = STop.Yields[ch][cut];
+    Total.Yields[ch][cut] += VV  .Yields[ch][cut];    
+    Total.Yields[ch][cut] += Rare.Yields[ch][cut];
+    if (DD){
+      Total.Yields[ch][cut] += DD_DY  .Yields[ch][cut];
       Total.Yields[ch][cut] += DD_NonW.Yields[ch][cut];
     }
+    else {
+      Total.Yields[ch][cut] += DY  .Yields[ch][cut];
+      Total.Yields[ch][cut] += Fake.Yields[ch][cut];
+    }
+    
+    ttbar.xsec     [ch] = ttbar_TLWG * (Data.Yields[ch][cut] - Total.Yields[ch][cut]) / TTbar.Yields[ch][cut]; 
+    
+    // statistical error
+    ttbar.xsec_stat[ch] = ttbar.xsec[ch] * TMath::Sqrt(Data.Yields[ch][cut]) / (Data.Yields[ch][cut] - Total.Yields[ch][cut]);
   }
-  CalculateSystematicErrors(Total, cut);
+  
+  // Get Systematic Errors
+  ResetSystematicErrors();
+  
+  
+  cout << "Calculating Systematic Errors..." << endl;
+  CalculateSystematicErrors(TTbar, cut);
+  CalculateSystematicErrors(STop , cut);   
+  CalculateSystematicErrors(VV   , cut);
+  CalculateSystematicErrors(Rare , cut);
+  if (!DD) {
+    CalculateSystematicErrors(Fake , cut);
+    CalculateSystematicErrors(DY   , cut);
+  }
+  
+  for (size_t ch=0; ch<gNCHANNELS; ch++){
+    Total.Yields_syst[ch][cut][0]  = STop .Yields_syst[ch][cut][0] * STop .Yields_syst[ch][cut][0];
+    Total.Yields_syst[ch][cut][0] += VV   .Yields_syst[ch][cut][0] * VV   .Yields_syst[ch][cut][0];
+    Total.Yields_syst[ch][cut][0] += Rare .Yields_syst[ch][cut][0] * Rare .Yields_syst[ch][cut][0];
+    if (!DD){
+      Total.Yields_syst[ch][cut][0] += DY  .Yields_syst[ch][cut][0] * DY  .Yields_syst[ch][cut][0];
+      Total.Yields_syst[ch][cut][0] += Fake.Yields_syst[ch][cut][0] * Fake.Yields_syst[ch][cut][0];
+    }
+    else { 
+      Total.Yields_syst[ch][cut][0]+=DD_NonW.Yields_syst[ch][cut][0]*DD_NonW.Yields_syst[ch][cut][0];
+      Total.Yields_syst[ch][cut][0]+=DD_DY.Yields_syst[ch][cut][0]*DD_DY.Yields_syst[ch][cut][0];
+    }
+    Total.Yields_syst[ch][cut][0]  = TMath::Sqrt(Total.Yields_syst[ch][cut][0]);
+  }
   
   // Get ttbar XSection
   for (Int_t ch = 0; ch<gNCHANNELS; ch++){
@@ -1681,11 +2158,17 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
       TMath::Sqrt((STop .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])) *
      		  (STop .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])));
     if (DD) {
+      ttbar.err_DY   [ch] = ttbar.xsec[ch] * 
+	TMath::Sqrt((DD_DY  .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])) *
+		    (DD_DY  .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])));
       ttbar.err_Fake [ch] = ttbar.xsec[ch] * 
 	TMath::Sqrt((DD_NonW.Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])) *
 		    (DD_NonW.Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])));
     }
     else {
+      ttbar.err_DY   [ch] = ttbar.xsec[ch] * 
+	TMath::Sqrt((DY   .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])) *
+		    (DY   .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])));
       ttbar.err_Fake [ch] = ttbar.xsec[ch] * 
 	TMath::Sqrt((Fake .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])) *
 		    (Fake .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])));
@@ -1693,14 +2176,14 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
     ttbar.err_Rare [ch] = ttbar.xsec[ch] * 
       TMath::Sqrt((Rare .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])) *
 		  (Rare .Yields_syst[ch][cut][0] / (Data.Yields[ch][cut] - Total.Yields[ch][cut])));
-    
     ttbar.err_IDIso[ch] = ttbar.xsec[ch] * TTbar.SystError[ch][SFIDISO];
     ttbar.err_Trig [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][SFTrig];
     ttbar.err_LES  [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][les];
     ttbar.err_JES  [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][jes];
     ttbar.err_JER  [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][jer];
     ttbar.err_Btag [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][btag];
-    ttbar.err_PU   [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][PU];
+    ttbar.err_mtag [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][mistag];
+    ttbar.err_TopPt[ch] = ttbar.xsec[ch] * TTbar.SystError[ch][TopPt];
     ttbar.err_Q2   [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][Q2];
     ttbar.err_Match[ch] = ttbar.xsec[ch] * TTbar.SystError[ch][Matching];
   }
@@ -1715,57 +2198,67 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
   fOUTSTREAM << " Source                |     El/El     |     Mu/Mu     |    El/Mu      " << endl;
   fOUTSTREAM << "-----------------------------------------------------------------------" << endl;
   fOUTSTREAM << Form(" VV                    | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%)  ", 
-		      ttbar.err_VV[Elec],  100 * ttbar.err_VV[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_VV[Muon],  100 * ttbar.err_VV[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_VV[ElMu],  100 * ttbar.err_VV[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_VV[Elec],  100 * ttbar.err_VV[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_VV[Muon],  100 * ttbar.err_VV[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_VV[ElMu],  100 * ttbar.err_VV[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" STop                  | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_STop[Elec],  100 * ttbar.err_STop[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_STop[Muon],  100 * ttbar.err_STop[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_STop[ElMu],  100 * ttbar.err_STop[ElMu] / ttbar.xsec[ElMu])<< endl;
-  fOUTSTREAM << Form(" Fake                  | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_Fake[Elec],  100 * ttbar.err_Fake[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_Fake[Muon],  100 * ttbar.err_Fake[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_Fake[ElMu],  100 * ttbar.err_Fake[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_STop[Elec],  100 * ttbar.err_STop[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_STop[Muon],  100 * ttbar.err_STop[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_STop[ElMu],  100 * ttbar.err_STop[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" Rare                  | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_Rare[Elec],  100 * ttbar.err_Rare[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_Rare[Muon],  100 * ttbar.err_Rare[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_Rare[ElMu],  100 * ttbar.err_Rare[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_Rare[Elec],  100 * ttbar.err_Rare[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_Rare[Muon],  100 * ttbar.err_Rare[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_Rare[ElMu],  100 * ttbar.err_Rare[ElMu] / ttbar.xsec[ElMu])<< endl;
+  fOUTSTREAM << Form(" DY                    | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%)  ", 
+		     ttbar.err_DY[Elec],  100 * ttbar.err_DY[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_DY[Muon],  100 * ttbar.err_DY[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_DY[ElMu],  100 * ttbar.err_DY[ElMu] / ttbar.xsec[ElMu])<< endl;
+  fOUTSTREAM << Form(" Fake                  | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
+		     ttbar.err_Fake[Elec],  100 * ttbar.err_Fake[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_Fake[Muon],  100 * ttbar.err_Fake[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_Fake[ElMu],  100 * ttbar.err_Fake[ElMu] / ttbar.xsec[ElMu])<< endl;
+  fOUTSTREAM << "-----------------------------------------------------------------------" << endl;
   fOUTSTREAM << Form(" Lepton Efficiencies   | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_IDIso[Elec],  100 * ttbar.err_IDIso[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_IDIso[Muon],  100 * ttbar.err_IDIso[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_IDIso[ElMu],  100 * ttbar.err_IDIso[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_IDIso[Elec],  100 * ttbar.err_IDIso[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_IDIso[Muon],  100 * ttbar.err_IDIso[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_IDIso[ElMu],  100 * ttbar.err_IDIso[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" Trigger Efficiencies  | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_Trig[Elec],  100 * ttbar.err_Trig[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_Trig[Muon],  100 * ttbar.err_Trig[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_Trig[Elec],  100 * ttbar.err_Trig[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_Trig[Muon],  100 * ttbar.err_Trig[Muon] / ttbar.xsec[Muon],
 		      ttbar.err_Trig[ElMu],  100 * ttbar.err_Trig[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" Lepton Energy Scale   | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_LES[Elec],  100 * ttbar.err_LES[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_LES[Muon],  100 * ttbar.err_LES[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_LES[ElMu],  100 * ttbar.err_LES[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_LES[Elec],  100 * ttbar.err_LES[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_LES[Muon],  100 * ttbar.err_LES[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_LES[ElMu],  100 * ttbar.err_LES[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" Jet Energy Scale      | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_JES[Elec],  100 * ttbar.err_JES[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_JES[Muon],  100 * ttbar.err_JES[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_JES[ElMu],  100 * ttbar.err_JES[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_JES[Elec],  100 * ttbar.err_JES[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_JES[Muon],  100 * ttbar.err_JES[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_JES[ElMu],  100 * ttbar.err_JES[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" Jet Energy Resolution | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_JER[Elec],  100 * ttbar.err_JER[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_JER[Muon],  100 * ttbar.err_JER[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_JER[ElMu],  100 * ttbar.err_JER[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_JER[Elec],  100 * ttbar.err_JER[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_JER[Muon],  100 * ttbar.err_JER[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_JER[ElMu],  100 * ttbar.err_JER[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" b-tagging             | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_Btag[Elec],  100 * ttbar.err_Btag[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_Btag[Muon],  100 * ttbar.err_Btag[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_Btag[ElMu],  100 * ttbar.err_Btag[ElMu] / ttbar.xsec[ElMu])<< endl;
-  fOUTSTREAM << Form(" Pile Up               | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_PU[Elec],  100 * ttbar.err_PU[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_PU[Muon],  100 * ttbar.err_PU[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_PU[ElMu],  100 * ttbar.err_PU[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_Btag[Elec],  100 * ttbar.err_Btag[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_Btag[Muon],  100 * ttbar.err_Btag[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_Btag[ElMu],  100 * ttbar.err_Btag[ElMu] / ttbar.xsec[ElMu])<< endl;
+  fOUTSTREAM << Form(" mis-tagging           | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
+		     ttbar.err_mtag[Elec],  100 * ttbar.err_mtag[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_mtag[Muon],  100 * ttbar.err_mtag[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_mtag[ElMu],  100 * ttbar.err_mtag[ElMu] / ttbar.xsec[ElMu])<< endl;
+  fOUTSTREAM << "-----------------------------------------------------------------------" << endl;
+  fOUTSTREAM << Form(" Top Pt                | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
+		     ttbar.err_TopPt[Elec],  100 * ttbar.err_TopPt[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_TopPt[Muon],  100 * ttbar.err_TopPt[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_TopPt[ElMu],  100 * ttbar.err_TopPt[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" QCD scale             | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_Q2[Elec],  100 * ttbar.err_Q2[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_Q2[Muon],  100 * ttbar.err_Q2[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_Q2[ElMu],  100 * ttbar.err_Q2[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_Q2[Elec],  100 * ttbar.err_Q2[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_Q2[Muon],  100 * ttbar.err_Q2[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_Q2[ElMu],  100 * ttbar.err_Q2[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << Form(" Matching partons      | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) | %4.2f (%4.2f %%) ", 
-		      ttbar.err_Match[Elec],  100 * ttbar.err_Match[Elec] / ttbar.xsec[Elec],
-		      ttbar.err_Match[Muon],  100 * ttbar.err_Match[Muon] / ttbar.xsec[Muon],
-		      ttbar.err_Match[ElMu],  100 * ttbar.err_Match[ElMu] / ttbar.xsec[ElMu])<< endl;
+		     ttbar.err_Match[Elec],  100 * ttbar.err_Match[Elec] / ttbar.xsec[Elec],
+		     ttbar.err_Match[Muon],  100 * ttbar.err_Match[Muon] / ttbar.xsec[Muon],
+		     ttbar.err_Match[ElMu],  100 * ttbar.err_Match[ElMu] / ttbar.xsec[ElMu])<< endl;
   fOUTSTREAM << "=======================================================================" << endl;
   fOUTSTREAM << endl;
   fOUTSTREAM << endl;
@@ -1773,12 +2266,13 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
   fOUTSTREAM << "============================================================================================================" << endl;
   fOUTSTREAM << "          Source  |            El/El            |            Mu/Mu            |            El/Mu            " << endl;
   fOUTSTREAM << "------------------------------------------------------------------------------------------------------------" << endl;
-  fOUTSTREAM << Form(" Drell-Yan        | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f ", 
-		     DY.Yields[Elec][cut], DY.Yields_stat[Elec][cut], DY.Yields_syst[Elec][cut][0], 
-		     DY.Yields[Muon][cut], DY.Yields_stat[Muon][cut], DY.Yields_syst[Muon][cut][0], 
-		     DY.Yields[ElMu][cut], DY.Yields_stat[ElMu][cut], DY.Yields_syst[ElMu][cut][0])
-	     << endl;
   if (DD) {
+    fOUTSTREAM << Form(" Drell-Yan        | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f ", 
+		       DD_DY.Yields[Elec][cut], DD_DY.Yields_stat[Elec][cut], DD_DY.Yields_syst[Elec][cut][0], 
+		       DD_DY.Yields[Muon][cut], DD_DY.Yields_stat[Muon][cut], DD_DY.Yields_syst[Muon][cut][0], 
+		       DD_DY.Yields[ElMu][cut], DD_DY.Yields_stat[ElMu][cut], DD_DY.Yields_syst[ElMu][cut][0])
+	       << endl;
+
     fOUTSTREAM << Form(" Non W/Z leptons  | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f ",  
 		      DD_NonW.Yields[Elec][cut], DD_NonW.Yields_stat[Elec][cut], DD_NonW.Yields_syst[Elec][cut][0], 
 		      DD_NonW.Yields[Muon][cut], DD_NonW.Yields_stat[Muon][cut], DD_NonW.Yields_syst[Muon][cut][0], 
@@ -1786,6 +2280,11 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
 	       << endl;	
   }
   else {
+    fOUTSTREAM << Form(" Drell-Yan        | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f ", 
+		       DY.Yields[Elec][cut], DY.Yields_stat[Elec][cut], DY.Yields_syst[Elec][cut][0], 
+		       DY.Yields[Muon][cut], DY.Yields_stat[Muon][cut], DY.Yields_syst[Muon][cut][0], 
+		     DY.Yields[ElMu][cut], DY.Yields_stat[ElMu][cut], DY.Yields_syst[ElMu][cut][0])
+	       << endl;
     fOUTSTREAM << Form(" Non W/Z leptons  | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f ",  
 		       Fake.Yields[Elec][cut], Fake.Yields_stat[Elec][cut], Fake.Yields_syst[Elec][cut][0], 
 		       Fake.Yields[Muon][cut], Fake.Yields_stat[Muon][cut], Fake.Yields_syst[Muon][cut][0], 
@@ -1853,7 +2352,6 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
   
   gSystem->Exec("cat "+filename);
 }
-
 void TopPlotter::DrawTopLine(Int_t chan, Float_t y){
 
   TString htitleCMSChannel;
@@ -1883,12 +2381,10 @@ void TopPlotter::DrawTopLine(Int_t chan, Float_t y){
   chtitle->SetTextSizePixels(22);
   chtitle->Draw("SAME");
 }
-TH1F* TopPlotter::GetHisto1D(TString filename, TString histoname) {
+TH1F* TopPlotter::GetHisto1D(TFile *file, TString histoname) {
   
-  TFile* file  = TFile::Open(filename);
   if (!file) {
-    std::cerr << "ERROR: Could not load file" << std::endl
-	      << "                        " << filename << std::endl;
+    std::cerr << "ERROR: Could not load file" << std::endl;
     return 0;
   }
   TH1F* h = (TH1F*) file->Get(histoname)->Clone(histoname);
@@ -1898,16 +2394,14 @@ TH1F* TopPlotter::GetHisto1D(TString filename, TString histoname) {
     return 0;
   }
   h->SetDirectory(0);
-  file->Close();
+  //  file->Close();
   
   return h;
 };
-TH2F* TopPlotter::GetHisto2D(TString filename, TString histoname) {
+TH2F* TopPlotter::GetHisto2D(TFile *file, TString histoname) {
   
-  TFile* file  = TFile::Open(filename);
   if (!file) {
-    std::cerr << "ERROR: Could not load file" << std::endl
-	      << "                        " << filename << std::endl;
+    std::cerr << "ERROR: Could not load file" << std::endl;
     return 0;
   }
   TH2F* h = (TH2F*) file->Get(histoname)->Clone(histoname);
@@ -1917,7 +2411,7 @@ TH2F* TopPlotter::GetHisto2D(TString filename, TString histoname) {
     return 0;
   }
   h->SetDirectory(0);
-  file->Close();
+  //  file->Close();
   
   return h;
 };

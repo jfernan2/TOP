@@ -43,17 +43,25 @@ enum iCut{
 TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag"}; //,"TopD"}; //tag"};
 enum gSystFlag{
   Norm,
+  BtagUp,
+  BtagDown,
+  MisTagUp,
+  MisTagDown,
   JESUp,
   JESDown,
   JER,
-  BtagUp,
-  BtagDown,
   LESUp,
   LESDown,
-  METUp,
-  METDown,
-  PUUp,
-  PUDown,
+//  LepUp,
+//  LepDown,
+//  TrigUp,
+//  TrigDown,
+//  METUp,
+//  METDown,
+//  PUUp,
+//  PUDown,
+  TopPtUp,
+  TopPtDown,
   gNSYST,
   Q2ScaleUp=gNSYST,
   Q2ScaleDown,
@@ -63,39 +71,55 @@ enum gSystFlag{
 };
 TString sysname[gNALLSYST]={
   "",
+  "__btag__plus",
+  "__btag__minus",
+  "__mistag__plus",
+  "__mistag__minus",
   "__jes__plus",
   "__jes__minus",
   "__jer",
-  "__btag__plus",
-  "__btag__minus",
   "__les__plus",
   "__les__minus",
-  "__met__plus",
-  "__met__minus",
-  "__pu__plus",
-  "__pu__minus",
-  "__q2__plus",
+//  "__lep__plus",
+//  "__lep__minus",
+//  "__trig__plus",
+//  "__trig__minus",
+//  "__met__plus",
+//  "__met__minus",
+//  "__pu__plus",
+//  "__pu__minus",
+  "__toppt__plus",
+  "__toppt__minus",
   "__q2__minus",
+  "__q2__plus",
   "__mpts__plus",
   "__mpts__minus"
 };
 TString SystName[gNALLSYST] = {
   "Nominal",
+  "BtagUp",
+  "BtagDown",
+  "MisTagUp",
+  "MisTagDown",
   "JESUp",
   "JESDown",
   "JER",
-  "BtagUp",
-  "BtagDown",
   "LESUp",
   "LESDown",
-  "METUp",
-  "METDown",
-  "PUUp",
-  "PUDown",
+//  "LepUp",
+//  "LepDown",
+//  "TrigUp",
+//  "TrigDown",
+//  "METUp",
+//  "METDown",
+//  "PUUp",
+//  "PUDown",
+  "TopPtUp",
+  "TopPtDown",
   "Q2ScaleUp",
   "Q2ScaleDown",
   "MatchingUp",
-  "MatchingDown",
+  "MatchingDown"
 };
 enum gSystErrType{
   SFIDISO,
@@ -104,16 +128,29 @@ enum gSystErrType{
   jes,
   jer,
   btag,
-  PU,
+  mistag,
+  TopPt,
   Q2,
   Matching,
-  BR,
-  Hadro,
-  gNSYSTERRTypes
+  gNSYSTERRTypes,
+  stop=gNSYSTERRTypes,
+  vv,
+  rare,
+  gNSYSTERRTypesALL
 };
-
-TString SystErrLabel[gNSYSTERRTypes] = {"SFIDISO", "SFTrig","LES","JES","JER","btag","PU","Q2","Matching","BR","Hadro"};
-
+TString SystErrLabel[gNSYSTERRTypesALL] = {"SFIDISO", 
+					   "SFTrig",
+					   "LES",
+					   "JES",
+					   "JER",
+					   "btag",
+					   "mistag",
+					   "TopPt",
+					   "Q2",
+					   "Matching",
+					   "STop",
+					   "VV",
+					   "Rare"};
 enum Samples{
   DoubleElectron        ,
   DoubleMu   	        ,
@@ -161,7 +198,7 @@ TString SampleName[gNSAMPLES] = {
   "ZJets_Madgraph"	  ,
   "Wbb_Madgraph"	  ,
   "WgammaToLNuG"	  ,
-  "WWTo2L2Nu_Madgraph"	  ,
+  "WW"  ,
   "WZ"			  ,
   "ZZ"			  ,
   "TTGJets"		  ,
@@ -213,6 +250,7 @@ class TopPlotter {
   ~TopPlotter(){};
   
   void Init(TString);
+  void Loop();
   void LoadSamples(TString);
   void LoadCategories();
   void ResetDataMembers();
@@ -227,8 +265,12 @@ class TopPlotter {
     TH1F* KinHistos    [gNCHANNELS+1][iNCUTS][gNVARS];
     TH1F* SysHistos    [gNCHANNELS][iNCUTS][gNALLSYST]; 
     TH1F* SSSysHistos  [gNCHANNELS][iNCUTS][gNALLSYST]; 
-    float SystError    [gNCHANNELS][gNSYSTERRTypes];
-    TH1F* MllHistos    [gNCHANNELS];
+    TH1F* NBtagsNJets  [gNCHANNELS][iNCUTS][gNALLSYST]; 
+    TH1F* SSNBtagsNJets[gNCHANNELS][iNCUTS][gNALLSYST]; 
+    TH1F* InvMass      [gNCHANNELS][iNCUTS][gNALLSYST]; 
+    TH1F* SSInvMass    [gNCHANNELS][iNCUTS][gNALLSYST]; 
+    float SystError    [gNCHANNELS][gNSYSTERRTypesALL];
+    TH1F* MllHistos    [gNCHANNELS][iNCUTS];
   };
   
   struct XSection {
@@ -241,6 +283,7 @@ class TopPlotter {
     float acc_syst [gNCHANNELS];
     
     float err_VV   [gNCHANNELS];
+    float err_DY   [gNCHANNELS];
     float err_STop [gNCHANNELS];
     float err_Fake [gNCHANNELS];
     float err_Rare [gNCHANNELS];
@@ -250,6 +293,8 @@ class TopPlotter {
     float err_JES  [gNCHANNELS];
     float err_JER  [gNCHANNELS];
     float err_Btag [gNCHANNELS];
+    float err_mtag [gNCHANNELS];
+    float err_TopPt[gNCHANNELS];
     float err_PU   [gNCHANNELS];
     float err_Q2   [gNCHANNELS];
     float err_Match[gNCHANNELS];
@@ -262,8 +307,9 @@ class TopPlotter {
   void CalculateNonWZLeptonsBkg();
   void CalculateDYBkg();
   void CalculateCrossSection(Bool_t DD = false);
+  void CalculateSystematicErrorsWithXSec(Categories&, Int_t);
   
-  void DrawKinematicPlotsWithMC(Int_t onechan = -1,Int_t onevar = -1, Int_t onecut =-1);
+  void DrawKinematicPlots(Bool_t DD,Int_t onechan = -1,Int_t onevar = -1, Int_t onecut =-1);
   //void DrawKinematicPlotsWithDD(Int_t onechan = -1,Int_t onevar = -1, Int_t onecut =-1);
   void DrawNbjetsNjets(bool);
   void SaveHistosForLH(bool);
@@ -273,8 +319,8 @@ class TopPlotter {
   void SetVerbose(Int_t v)         { fVerbose      = v;   };
   
   void SetupDraw(TH1F*,int, int);
-  TH1F* GetHisto1D(TString, TString);
-  TH2F* GetHisto2D(TString, TString);
+  TH1F* GetHisto1D(TFile*, TString);
+  TH2F* GetHisto2D(TFile*, TString);
   Int_t GetRebin(TH1F*, Int_t);
   void DrawTopLine(Int_t, Float_t=0.93);
 

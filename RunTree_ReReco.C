@@ -42,11 +42,12 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // PROOF mode
   //----------------------------------------------------------------------------
   if      (nSlots == 1) gPAFOptions->SetPAFMode(kSequential); // NO PROOF
-  else if (nSlots < 8 ) gPAFOptions->SetPAFMode(kLite);       // PROOF Lite
+  else if (nSlots <= 8) gPAFOptions->SetPAFMode(kLite);       // PROOF Lite
   else                  gPAFOptions->SetPAFMode(kPoD);        // PoD
   
   gPAFOptions->SetNSlots(nSlots);
 
+    
   //SANTI 
   //  gPAFOptions->proofMode = kSequential;       // No PROOF
   //  gPAFOptions->proofMode = kLite;             // PROOF Lite
@@ -151,7 +152,6 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     G_Event_Weight = dm->GetCrossSection() / dm->GetEventsInTheSample();
     G_IsData = false;
     
-    
     cout << endl;
     cout << "      x-section = " << dm->GetCrossSection()      << endl;
     cout << "        nevents = " << dm->GetEventsInTheSample() << endl;
@@ -162,12 +162,12 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     
   // Output file name
   //----------------------------------------------------------------------------
-  Bool_t G_Use_CSVM = false;
-  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Jun11_Jet30_LH_withFakesAndDY_CSVT/";
-  
+  Bool_t G_Use_CSVM = true; //false;
+  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Oct31_Jet30_Lep20_CSVM/";
+
   //CSVM_METType0I_3rdLepV_FullSyst_Mar20_jet25/";
   gSystem->mkdir(outputDir, kTRUE);
-  
+
   std::ostringstream oss;      
   oss << G_Total_Lumi;
   
@@ -188,9 +188,18 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 
   // Parameters for the analysis
   //----------------------------------------------------------------------------
-  if (!G_IsData) gSystem->AddIncludePath("-D__ISMC");
-  if (DoFR)      gSystem->AddIncludePath("-D__ISFR");
-
+  if (!G_IsData) { 
+    if(gPAFOptions->GetPAFMode() != kSequential) 
+      proof->Exec("gSystem->AddIncludePath(\"-D__ISMC\");"); 
+    else      
+      gSystem->AddIncludePath("-D__ISMC"); 
+  }
+  if (DoFR)      { 
+    gSystem->AddIncludePath("-D__ISFR"); 
+    if(!proof && gPAFOptions->GetPAFMode() != kSequential)
+      proof->Exec("gSystem->AddIncludePath(\"-D__ISFR\");"); 
+  }
+  
   // See packages/InputParameters/InputParameters.h for information on how
   // to use this class.
 
@@ -210,7 +219,9 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   
   // Number of events (Long64_t)
   //----------------------------------------------------------------------------
-  gPAFOptions->SetNEvents(nEvents);
+  if (nSlots==1) gPAFOptions->SetNEvents(100);
+  else           gPAFOptions->SetNEvents(nEvents);
+
   // First event (Long64_t)
   //----------------------------------------------------------------------------
   gPAFOptions->SetFirstEvent(0);

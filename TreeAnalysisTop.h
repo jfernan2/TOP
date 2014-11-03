@@ -40,25 +40,20 @@ enum iCut{
   iMET, 
   i2jets, 
   i1btag, 
-  iTopD,
   iNCUTS
 };
-TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag","TopD"};
+TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag"};
 enum gSystFlag{
   Norm,
+  BtagUp,
+  BtagDown,
+  MisTagUp,
+  MisTagDown,
   JESUp,
   JESDown,
   JER,
-  BtagUp,
-  BtagDown,
   LESUp,
   LESDown,
-  LepUp,
-  LepDown,
-  TrigUp,
-  TrigDown,
-  METUp,
-  METDown,
   PUUp,
   PUDown,
   TopPtUp,
@@ -67,19 +62,21 @@ enum gSystFlag{
 };
 TString SystName[gNSYST] = {
   "Normal",
+  "BtagUp",
+  "BtagDown",
+  "MisTagUp",
+  "MisTagDown",
   "JESUp",
   "JESDown",
   "JER",
-  "BtagUp",
-  "BtagDown",
   "LESUp",
   "LESDown",
-  "LepUp",
-  "LepDown",
-  "TrigUp",
-  "TrigDown",
-  "METUp",
-  "METDown",
+//  "LepUp",
+//  "LepDown",
+//  "TrigUp",
+//  "TrigDown",
+//  "METUp",
+//  "METDown",
   "PUUp",
   "PUDown",
   "TopPtUp",
@@ -233,6 +230,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   int   getNJets();
   int   getNBTags();
   int   getLeadingJet();
+  int   getSecondLeadingJet();
   int   getLeadingJetbTag();
   float getDRClosestJet(TLorentzVector);
   float getDPhiClosestJet(TLorentzVector);
@@ -247,6 +245,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   float getErrPt(float,float);
   float getJERScale(int);
   float getSF(gChannel, int, int);
+  float getLeptonError(gChannel);
   float getTopPtSF();
   float getTopD();
   float getDeltaPhillJet();
@@ -357,17 +356,22 @@ class TreeAnalysisTop: public PAFAnalysis {
   //++ Yields
   TH1F* fHDummy;
   TH1F* fHyields  [gNCHANNELS][gNSYST];
-  TH1F* fHSSyields[gNCHANNELS];
-  
+  TH1F* fHSSyields[gNCHANNELS][gNSYST];
+  TH1F* fHTopPtWeight;
+  TH1F* fHLepSys[gNCHANNELS][iNCUTS];
+
   TH2F* fHDY_InvMassVsNPV   [gNCHANNELS][iNCUTS];
   TH2F* fHDY_InvMassVsMET   [gNCHANNELS][iNCUTS];
   TH2F* fHDY_InvMassVsNjets [gNCHANNELS][iNCUTS];
   TH2F* fHDY_InvMassVsNbtags[gNCHANNELS][iNCUTS];
   TH1F* fHDY_InvMass        [gNCHANNELS][iNCUTS];
-
+  
+  //++ Origin Histos
+//  TH2F* fHSSOrigins[gNCHANNELS][iNCUTS];
+//  TH2F* fHOrigins[gNCHANNELS][iNCUTS];
+  
   //++ Kinematic  
   TH1F* fHMET[gNCHANNELS][iNCUTS];       
-  TH1F* fHInvMass[gNCHANNELS][iNCUTS];   
   TH1F* fHDiLepPt[gNCHANNELS][iNCUTS];   
   TH1F* fHLep0Pt[gNCHANNELS][iNCUTS];    
   TH1F* fHLep1Pt[gNCHANNELS][iNCUTS];    
@@ -379,6 +383,8 @@ class TreeAnalysisTop: public PAFAnalysis {
   TH1F* fHJet1Pt[gNCHANNELS][iNCUTS];    
   TH1F* fHBtagJet0Pt[gNCHANNELS][iNCUTS];
   
+  TH1F* fHInvMass[gNCHANNELS][iNCUTS][gNSYST];   
+  TH1F* fHSSInvMass[gNCHANNELS][iNCUTS][gNSYST];   
   TH1F* fHNBtagsNJets[gNCHANNELS][iNCUTS][gNSYST]; 
   TH1F* fHSSNBtagsNJets[gNCHANNELS][iNCUTS][gNSYST]; 
   TH1F* fHCSVTag[gNCHANNELS][iNCUTS]; 
@@ -410,17 +416,6 @@ class TreeAnalysisTop: public PAFAnalysis {
   std::vector<Double_t>       PtGen_Jet;
   std::vector<Double_t>       PtGen_b;
 
-//SANTI
-//SANTI  Double_t                    missingEt;
-//SANTI  Double_t                    dileptonInvMass;
-//SANTI  Double_t                    var;
-//SANTI  Int_t                       iJet1;
-//SANTI  Int_t                       iJet2;
-//SANTI  Int_t                       iBtagJet1;
-//SANTI  Int_t                       iBtagJet2;
-//SANTI  UInt_t                      nJets;
-//SANTI  UInt_t                      nJetsBtag;
-//SANTI  Double_t                    HT;
   UInt_t                      nGenElec;
   UInt_t                      nGenMuon;
   UInt_t                      nGenTau;
