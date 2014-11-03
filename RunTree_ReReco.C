@@ -92,40 +92,40 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   dm->RedownloadFiles();
   
   // Deal with data samples
-  if (DoFR){
-    cout << "   + FR trees..." << endl;
-    if (sampleName == "DoubleElectron" ||
-	sampleName == "DoubleMu" ||
-	sampleName == "MuEG"){
-      
-      TString datasuffix[] = {
-	"A_876",
-	"B_4412",
-	"C_7016",
-	"D_7360"
-      };
-      const unsigned int nDataSamples = 4;
-      for(unsigned int i = 0; i < nDataSamples; i++) {
-	TString asample = Form("Tree_%s*%s",sampleName.Data(), datasuffix[i].Data());
-	cout << "   + Looking for " << asample << " trees..." << endl;
-	gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/FR/",asample));
-      }
-      G_Event_Weight = 1.;
-      G_IsData = true;
-    }
-    else {
-      dm->LoadDataset(sampleName);
-      G_Event_Weight = dm->GetCrossSection() / dm->GetEventsInTheSample();
-      G_IsData = false;
-      
-      TString asample = Form("Tree_%s*",sampleName.Data());
-      gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/FR/",asample));
-      
-    }
-  }
-  else if ((sampleName == "DoubleElectron" ||
-	    sampleName == "DoubleMu" ||
-	    sampleName == "MuEG") && !DoFR) {
+//  if (DoFR){
+//    cout << "   + FR trees..." << endl;
+//    if (sampleName == "DoubleElectron" ||
+//	sampleName == "DoubleMu" ||
+//	sampleName == "MuEG"){
+//      
+//      TString datasuffix[] = {
+//	"A_876",
+//	"B_4412",
+//	"C_7016",
+//	"D_7360"
+//      };
+//      const unsigned int nDataSamples = 4;
+//      for(unsigned int i = 0; i < nDataSamples; i++) {
+//	TString asample = Form("Tree_%s*%s",sampleName.Data(), datasuffix[i].Data());
+//	cout << "   + Looking for " << asample << " trees..." << endl;
+//	gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/FR/",asample));
+//      }
+//      G_Event_Weight = 1.;
+//      G_IsData = true;
+//    }
+//    else {
+//      dm->LoadDataset(sampleName);
+//      G_Event_Weight = dm->GetCrossSection() / dm->GetEventsInTheSample();
+//      G_IsData = false;
+//      
+//      TString asample = Form("Tree_%s*",sampleName.Data());
+//      gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/FR/",asample));
+//      
+//    }
+//  }
+  if ((sampleName == "DoubleElectron" ||
+       sampleName == "DoubleMu" ||
+       sampleName == "MuEG") && !DoFR) {
     cout << "   + Data..." << endl;
     
     TString datasuffix[] = {
@@ -143,8 +143,22 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     G_Event_Weight = 1.;
     G_IsData = true;
   }
-  // Deal with MC samples
-  else {
+  else if (sampleName == "T2tt_150to250LSP1to100_LeptonFilter") {
+    G_Event_Weight = 36.7994/446023.;  // cross section in pb
+    G_IsData = false;
+    
+    cout << endl;
+    cout << "      x-section = " << 36.7994        << endl;
+    cout << "        nevents = " << 446023.        << endl;
+    cout << " base file name = " << sampleName     << endl;
+    cout << "         weight = " << G_Event_Weight << endl;
+    cout << endl;
+
+    TString asample = Form("Tree_T2tt_150to250LSP1to100_LeptonFilter_*");
+    cout << "   + Looking for " << asample << " trees..." << endl;
+    gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/",asample));
+  }
+  else {   // Deal with MC samples
     dm->LoadDataset(sampleName);
 
     gPAFOptions->AddDataFiles(dm->GetFiles());
@@ -198,6 +212,13 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     gSystem->AddIncludePath("-D__ISFR"); 
     if(!proof && gPAFOptions->GetPAFMode() != kSequential)
       proof->Exec("gSystem->AddIncludePath(\"-D__ISFR\");"); 
+  }
+  if (sampleName == "T2tt_150to250LSP1to100_LeptonFilter"){
+    //cout << "this is a stop sample!!! " << endl;
+    if(gPAFOptions->GetPAFMode() != kSequential)
+      proof->Exec("gSystem->AddIncludePath(\"-D__ISSTOP\");");
+    else
+      gSystem->AddIncludePath("-D__ISSTOP");
   }
   
   // See packages/InputParameters/InputParameters.h for information on how

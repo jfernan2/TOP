@@ -191,6 +191,15 @@ void TreeAnalysisTop::InitialiseKinematicHistos(){
       fHDRLep1Jet[ch][cut]   = CreateH1F("H_DRLep1Jet_"   +gChanLabel[ch]+"_"+sCut[cut], "DeltaRLep1Jet",   1000,0.0, 5.0);
       fHDPhiLep1Jet[ch][cut] = CreateH1F("H_DPhiLep1Jet_" +gChanLabel[ch]+"_"+sCut[cut], "DeltaPhiLep1Jet", 1000,0.0, TMath::Pi());
       fHLep1Iso[ch][cut]     = CreateH1F("H_Lep1Iso_"     +gChanLabel[ch]+"_"+sCut[cut], "Lep1Iso",         1000,0.0, 0.5);
+
+
+      // STOP HISTOGRAMS:
+      fHAbsDelPhiLep[ch][cut] = CreateH1F("H_AbsDelPhiLep_"+gChanLabel[ch]+"_"+sCut[cut],"AbsDelPhiLep" , 66,0, 3.3);
+#ifdef __ISSTOP
+      fHStopMass[ch][cut]     = CreateH1F("H_StopMass_"     +gChanLabel[ch]+"_"+sCut[cut], "StopMass",    500, 0.0, 500);
+      fHChi0Mass[ch][cut]     = CreateH1F("H_Chi0Mass_"     +gChanLabel[ch]+"_"+sCut[cut], "Chi0Mass",    500, 0.0, 500);
+      fHChi0StopMass[ch][cut] = CreateH2F("H2_Chi0StopMass_"+gChanLabel[ch]+"_"+sCut[cut], "Chi0Mass vs StopMass", 34, 81.25, 506.25, 34, -18.75, 406.25);
+#endif
     }
   }
 }
@@ -377,6 +386,16 @@ void TreeAnalysisTop::InsideLoop(){
 #endif
   fHDummy->Fill(0.5);
 
+
+#ifdef __ISSTOP
+  if (gSampleName == "T2tt_150to250LSP1to100_LeptonFilter" &&  
+      (abs(T_Gen_StopMass->at(0)-T_Gen_StopMass->at(1)) >  0.1  ||
+       abs(T_Gen_Chi0Mass->at(0)-T_Gen_Chi0Mass->at(1)) >  0.1  || 
+       abs(T_Gen_StopMass->at(0)-175.)                  >  6.25 ||
+       abs(T_Gen_Chi0Mass->at(0)-1.)                    >  6.25)
+      ) return;
+   #endif
+
   // Init data members
   //----------------------------------------------------------------------------
   SetDataMembers();
@@ -434,6 +453,7 @@ void TreeAnalysisTop::InsideLoop(){
   fHDeltaRLepJet[Muon] -> Fill(minDRmu);
   fHDeltaRLepJet[Elec] -> Fill(minDRel);
 #endif
+
 
   
   // Accept only events with a good vertex
@@ -1337,6 +1357,20 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
     fHDPhiLep0Jet[chan][cut]  ->Fill(getDPhiClosestJet(fHypLepton1.p), EventWeight);
     fHDPhiLep1Jet[chan][cut]  ->Fill(getDPhiClosestJet(fHypLepton2.p), EventWeight);
   }
+
+  fHAbsDelPhiLep[chan][cut]->Fill(abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p))), EventWeight);
+#ifdef __ISSTOP  
+  if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter"){
+    for (size_t t=0; t<T_Gen_StopMass->size(); t++)
+      fHStopMass[chan][cut] ->Fill(T_Gen_StopMass->at(t), EventWeight);
+    for (size_t t=0; t<T_Gen_Chi0Mass->size(); t++)
+      fHChi0Mass[chan][cut] ->Fill(T_Gen_Chi0Mass->at(t), EventWeight);
+    
+    fHChi0StopMass[chan][cut] ->Fill(T_Gen_StopMass->at(0),
+				     T_Gen_Chi0Mass->at(0), EventWeight);
+  }
+#endif
+
 }
 void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sys){
   if (fChargeSwitch){   fHSSyields[chan][sys]->Fill(cut, EventWeight);  }
@@ -1384,7 +1418,11 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
     SetHypLepton2(ind2, Elec);
     if (IsTightMuon(ind1) && IsTightElectron(ind2)){
       EventWeight = gWeight * getSF(ElMu,ind1,ind2) * getTopPtSF();
-      if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
+#ifdef __ISSTOP
+      if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
+	EventWeight = EventWeight * T_Gen_polWeights->at(10);
+#endif
+     if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
 	FillYieldsHistograms(ElMu, iDilepton, sys);
 	if(sys==Norm) FillKinematicHistos(ElMu,iDilepton);
 
@@ -1412,6 +1450,10 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
     SetHypLepton2(ind2, Muon);
     if (IsTightMuon(ind1) && IsTightMuon(ind2)){
       EventWeight = gWeight * getSF(Muon,ind1,ind2)  * getTopPtSF();
+#ifdef __ISSTOP
+      if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
+	EventWeight = EventWeight * T_Gen_polWeights->at(10);
+#endif
       if (PassesMllVeto() && PassesMuonEta2p1(Muon) && Passes3rdLeptonVeto()){
 	FillYieldsHistograms(Muon,iDilepton, sys);
 	if(sys==Norm) FillKinematicHistos(Muon,iDilepton);
@@ -1442,6 +1484,10 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
     
     if (IsTightElectron(ind1) && IsTightElectron(ind2)){
       EventWeight = gWeight * getSF(Elec,ind1,ind2) * getTopPtSF();     
+#ifdef __ISSTOP
+      if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
+	EventWeight = EventWeight * T_Gen_polWeights->at(10);
+#endif
       if (PassesMllVeto() && PassesMuonEta2p1(Elec) && Passes3rdLeptonVeto()){
 	FillYieldsHistograms(Elec,iDilepton, sys);
 	if(sys==Norm) FillKinematicHistos(Elec,iDilepton);
