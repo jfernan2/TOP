@@ -194,7 +194,9 @@ void TreeAnalysisTop::InitialiseKinematicHistos(){
 
 
       // STOP HISTOGRAMS:
-      fHAbsDelPhiLep[ch][cut] = CreateH1F("H_AbsDelPhiLep_"+gChanLabel[ch]+"_"+sCut[cut],"AbsDelPhiLep" , 66,0, 3.3);
+      //      fHAbsDelPhiLep[ch][cut] = CreateH1F("H_AbsDelPhiLep_"+gChanLabel[ch]+"_"+sCut[cut],"AbsDelPhiLep" , 66,0, 3.3);
+      fHAbsDelPhiLep[ch][cut]= CreateH1F("H_AbsDelPhiLep_" +gChanLabel[ch]+"_"+sCut[cut],"AbsDelPhiLep" , 28,-0.2, 1.2);
+
 #ifdef __ISSTOP
       fHStopMass[ch][cut]     = CreateH1F("H_StopMass_"     +gChanLabel[ch]+"_"+sCut[cut], "StopMass",    500, 0.0, 500);
       fHChi0Mass[ch][cut]     = CreateH1F("H_Chi0Mass_"     +gChanLabel[ch]+"_"+sCut[cut], "Chi0Mass",    500, 0.0, 500);
@@ -1358,7 +1360,8 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
     fHDPhiLep1Jet[chan][cut]  ->Fill(getDPhiClosestJet(fHypLepton2.p), EventWeight);
   }
 
-  fHAbsDelPhiLep[chan][cut]->Fill(abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p))), EventWeight);
+  //  fHAbsDelPhiLep[chan][cut]->Fill(abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p))), EventWeight);
+  fHAbsDelPhiLep[chan][cut] ->Fill(TMath::Abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p)))/TMath::Pi(), EventWeight);
 #ifdef __ISSTOP  
   if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter"){
     for (size_t t=0; t<T_Gen_StopMass->size(); t++)
