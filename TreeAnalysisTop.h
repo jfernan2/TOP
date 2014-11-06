@@ -246,6 +246,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   float getJERScale(int);
   float getSF(gChannel, int, int);
   float getLeptonError(gChannel);
+  float getTriggerError(gChannel);
   float getTopPtSF();
   float getTopD();
   float getDeltaPhillJet();
@@ -359,6 +360,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   TH1F* fHSSyields[gNCHANNELS][gNSYST];
   TH1F* fHTopPtWeight;
   TH1F* fHLepSys[gNCHANNELS][iNCUTS];
+  TH1F* fHTrigSys[gNCHANNELS][iNCUTS];
 
   TH2F* fHDY_InvMassVsNPV   [gNCHANNELS][iNCUTS];
   TH2F* fHDY_InvMassVsMET   [gNCHANNELS][iNCUTS];

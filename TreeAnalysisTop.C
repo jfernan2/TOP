@@ -140,21 +140,17 @@ void TreeAnalysisTop::InitialiseYieldsHistos(){
     for (size_t chan=0; chan<gNCHANNELS; chan++){
       for (size_t sys=1; sys<gNSYST; sys++){
 	fHyields[chan][sys]   = CreateH1F("H_Yields_"+gChanLabel[chan]+"_"+SystName[sys],"",iNCUTS,-0.5,iNCUTS-0.5);
-	fHSSyields[chan][sys] = CreateH1F("H_SSYields_"+gChanLabel[ElMu]+"_"+SystName[sys],"", iNCUTS, -0.5, iNCUTS-0.5);
+	fHSSyields[chan][sys] = CreateH1F("H_SSYields_"+gChanLabel[chan]+"_"+SystName[sys],"", iNCUTS, -0.5, iNCUTS-0.5);
       }
     }
   }
   
   for (size_t chan=0; chan<gNCHANNELS; chan++){
     for (size_t cut=0; cut<iNCUTS; cut++){
-      fHLepSys[chan][cut] = CreateH1F("H_LepSys_"+gChanLabel[chan]+"_"+sCut[cut],"LepSys",400, 0, 0.04);
-
-//      fHSSOrigins[chan][cut] = CreateH2F("H2_SSOrigins_"+gChanLabel[chan]+"_"+sCut[cut],12, 0, 12, 12, 0, 12);
-//      fHOrigins[chan][cut] = CreateH2F("H2_Origins_"+gChanLabel[chan]+"_"+sCut[cut],12, 0, 12, 12, 0, 12);
+      fHLepSys [chan][cut] = CreateH1F("H_LepSys_" +gChanLabel[chan]+"_"+sCut[cut],"LepSys" , 400, 0, 0.04);
+      fHTrigSys[chan][cut] = CreateH1F("H_TrigSys_"+gChanLabel[chan]+"_"+sCut[cut],"TrigSys", 400, 0, 0.04);
     }
   }
-
-  
 }
 void TreeAnalysisTop::InitialiseKinematicHistos(){
   //++ Kinematic histograms
@@ -1068,53 +1064,76 @@ float TreeAnalysisTop::getErrPt(float Pt, float Eta) {
 }
 float TreeAnalysisTop::getLeptonError(gChannel chan){
   float err1(0.), err2(0.);
+  int ind1 = fHypLepton1.index; 
+  int ind2 = fHypLepton2.index;
   if (chan==Muon){
-    err1 = 0.0054;
-    err2 = 0.0054;
+    err1 = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
+    err2 = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind2), T_Muon_Eta->at(ind2));
   }
   if (chan==ElMu){
-    err1 = 0.0054;
-    if (TMath::Abs(fHypLepton2.p.Eta()) < 1.5){
-      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.014;
-      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0028;
-      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0014;
-      else                                                          err2 = 0.0041;
-    }
-    else {
-      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.022;
-      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0059;
-      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0030;
-      else                                                          err2 = 0.0053;
-    }
+    err1 = fLeptonSF->GetTightMuonSF    (T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
+    err2 = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
   }
   if (chan==Elec){
-    if (TMath::Abs(fHypLepton1.p.Eta()) < 1.5){
-      if      (fHypLepton1.p.Pt() < 30)                             err1 = 0.014;
-      else if (fHypLepton1.p.Pt() >= 30 && fHypLepton1.p.Pt() < 40) err1 = 0.0028;
-      else if (fHypLepton1.p.Pt() >= 40 && fHypLepton1.p.Pt() < 50) err1 = 0.0014;
-      else                                                          err1 = 0.0041;
-    }
-    else {
-      if      (fHypLepton1.p.Pt() < 30)                             err1 = 0.022;
-      else if (fHypLepton1.p.Pt() >= 30 && fHypLepton1.p.Pt() < 40) err1 = 0.0059;
-      else if (fHypLepton1.p.Pt() >= 40 && fHypLepton1.p.Pt() < 50) err1 = 0.0030;
-      else                                                          err1 = 0.0053;
-    }
-
-    if (TMath::Abs(fHypLepton2.p.Eta()) < 1.5){
-      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.014;
-      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0028;
-      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0014;
-      else                                                          err2 = 0.0041;
-    }
-    else {
-      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.022;
-      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0059;
-      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0030;
-      else                                                          err2 = 0.0053;
-    }
+    err1 = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
+    err2 = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
   }
-  return err1+err2;
+  return TMath::Sqrt(err1*err1+err2*err2);
+}
+//  if (chan==Muon){
+//    err1 = 0.0054;
+//    err2 = 0.0054;
+//  }
+//  if (chan==ElMu){
+//    err1 = 0.0054;
+//    if (TMath::Abs(fHypLepton2.p.Eta()) < 1.5){
+//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.014;
+//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0028;
+//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0014;
+//      else                                                          err2 = 0.0041;
+//    }
+//    else {
+//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.022;
+//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0059;
+//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0030;
+//      else                                                          err2 = 0.0053;
+//    }
+//  }
+//  if (chan==Elec){
+//    if (TMath::Abs(fHypLepton1.p.Eta()) < 1.5){
+//      if      (fHypLepton1.p.Pt() < 30)                             err1 = 0.014;
+//      else if (fHypLepton1.p.Pt() >= 30 && fHypLepton1.p.Pt() < 40) err1 = 0.0028;
+//      else if (fHypLepton1.p.Pt() >= 40 && fHypLepton1.p.Pt() < 50) err1 = 0.0014;
+//      else                                                          err1 = 0.0041;
+//    }
+//    else {
+//      if      (fHypLepton1.p.Pt() < 30)                             err1 = 0.022;
+//      else if (fHypLepton1.p.Pt() >= 30 && fHypLepton1.p.Pt() < 40) err1 = 0.0059;
+//      else if (fHypLepton1.p.Pt() >= 40 && fHypLepton1.p.Pt() < 50) err1 = 0.0030;
+//      else                                                          err1 = 0.0053;
+//    }
+//
+//    if (TMath::Abs(fHypLepton2.p.Eta()) < 1.5){
+//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.014;
+//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0028;
+//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0014;
+//      else                                                          err2 = 0.0041;
+//    }
+//    else {
+//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.022;
+//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0059;
+//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0030;
+//      else                                                          err2 = 0.0053;
+//    }
+//  }
+float TreeAnalysisTop::getTriggerError(gChannel chan){
+  float trig(0.);
+  int ind1 = fHypLepton1.index; 
+  int ind2 = fHypLepton2.index;
+  if (chan==Muon) trig = fLeptonSF->GetDoubleMuSF(T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2));
+  if (chan==ElMu) trig = fLeptonSF->GetMuEGSF    (T_Elec_Eta->at(ind2),T_Muon_Eta->at(ind1));
+  if (chan==Elec) trig = fLeptonSF->GetDoubleElSF(T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2));
+  return trig;
 }
 float TreeAnalysisTop::getSF(gChannel chan, int ind1, int ind2) {
   if (gIsData)              return 1.; //Don't scale data
@@ -1126,21 +1145,18 @@ float TreeAnalysisTop::getSF(gChannel chan, int ind1, int ind2) {
   if (chan == Muon){
     Id   = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
     Id  *= fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind2), T_Muon_Eta->at(ind2));
-    Trig = fLeptonSF->GetDoubleMuSF(T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2)) ;
+    Trig = fLeptonSF->GetDoubleMuSF (T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2)) ;
   } 
   else if (chan == Elec){
-    Id   = fLeptonSF->GetTightElectronIDSF(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
-    Id  *= fLeptonSF->GetTightElectronIDSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
-    Trig = fLeptonSF->GetDoubleElSF(T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2))       ;
+    Id   = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
+    Id  *= fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
+    Trig = fLeptonSF->GetDoubleElSF     (T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2));
   }
   else if (chan == ElMu){
-    Id   = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1))      ;
-    Id  *= fLeptonSF->GetTightElectronIDSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
-    Trig = fLeptonSF->GetMuEGSF(T_Elec_Eta->at(ind2), T_Muon_Eta->at(ind1))          ;
+    Id   = fLeptonSF->GetTightMuonSF    (T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
+    Id  *= fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
+    Trig = fLeptonSF->GetMuEGSF         (T_Elec_Eta->at(ind2),T_Muon_Eta->at(ind1));
   }
-#ifdef DEBUG2
-  cout << "Channel: " << chan << " --> PFSF: " << PUSF << " IDSF: " << Id   << " Trig: " << Trig << endl;
-#endif
   return (PUSF*Id*Trig);
 }
 float TreeAnalysisTop::getTopPtSF(){
@@ -1401,9 +1417,8 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   }
   
   if (!gIsData){
-    Float_t lepsys = getLeptonError(chan);
-    fHLepSys[chan][cut]->Fill(lepsys);
-
+    fHLepSys[chan][cut]->Fill(getLeptonError(chan));
+    fHTrigSys[chan][cut]->Fill(getTriggerError(chan));
 //    // FOR SS ORIGINS
 //    if (fChargeSwitch) fHSSOrigins[chan][cut]->Fill();
 //    else               fHOrigins[chan][cut]  ->Fill();
