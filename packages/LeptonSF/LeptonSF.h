@@ -30,7 +30,7 @@ class LeptonSF {
     return fTightMuonIsoSF->GetBinContent(fTightMuonIsoSF->FindBin(TMath::Abs(eta), pt));
   }
   double GetTightMuonSF   (double pt, double eta) { 
-    return fTightMuonSF->GetBinContent(fTightMuonSF->FindBin(TMath::Abs(eta), pt));
+    return fTightMuonSF->GetBinContent(fTightMuonSF->FindBin(pt,TMath::Abs(eta)));
   }
   
   // Electron SFs
