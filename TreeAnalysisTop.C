@@ -1067,16 +1067,16 @@ float TreeAnalysisTop::getLeptonError(gChannel chan){
   int ind1 = fHypLepton1.index; 
   int ind2 = fHypLepton2.index;
   if (chan==Muon){
-    err1 = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
-    err2 = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind2), T_Muon_Eta->at(ind2));
+    err1 = fLeptonSF->GetTightMuonSF_err(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
+    err2 = fLeptonSF->GetTightMuonSF_err(T_Muon_Pt->at(ind2), T_Muon_Eta->at(ind2));
   }
   if (chan==ElMu){
-    err1 = fLeptonSF->GetTightMuonSF    (T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
-    err2 = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
+    err1 = fLeptonSF->GetTightMuonSF_err    (T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
+    err2 = fLeptonSF->GetTightElectronSF_err(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
   }
   if (chan==Elec){
-    err1 = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
-    err2 = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
+    err1 = fLeptonSF->GetTightElectronSF_err(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
+    err2 = fLeptonSF->GetTightElectronSF_err(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
   }
   return TMath::Sqrt(err1*err1+err2*err2);
 }
@@ -1130,9 +1130,9 @@ float TreeAnalysisTop::getTriggerError(gChannel chan){
   float trig(0.);
   int ind1 = fHypLepton1.index; 
   int ind2 = fHypLepton2.index;
-  if (chan==Muon) trig = fLeptonSF->GetDoubleMuSF(T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2));
-  if (chan==ElMu) trig = fLeptonSF->GetMuEGSF    (T_Elec_Eta->at(ind2),T_Muon_Eta->at(ind1));
-  if (chan==Elec) trig = fLeptonSF->GetDoubleElSF(T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2));
+  if (chan==Muon) trig = fLeptonSF->GetDoubleMuSF_err(T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2));
+  if (chan==ElMu) trig = fLeptonSF->GetMuEGSF_err    (T_Elec_Eta->at(ind2),T_Muon_Eta->at(ind1));
+  if (chan==Elec) trig = fLeptonSF->GetDoubleElSF_err(T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2));
   return trig;
 }
 float TreeAnalysisTop::getSF(gChannel chan, int ind1, int ind2) {
@@ -1162,6 +1162,7 @@ float TreeAnalysisTop::getSF(gChannel chan, int ind1, int ind2) {
 float TreeAnalysisTop::getTopPtSF(){
   // Return SF of the pt pt of the top 
   // Only apply SF if the process is ttbar...
+  return 1;
   if(!gSampleName.Contains("TTJets")) return 1.;
   
   TLorentzVector top;
@@ -1417,8 +1418,8 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   }
   
   if (!gIsData){
-    fHLepSys[chan][cut]->Fill(getLeptonError(chan));
-    fHTrigSys[chan][cut]->Fill(getTriggerError(chan));
+    fHLepSys[chan][cut] ->Fill(getLeptonError(chan), EventWeight);
+    fHTrigSys[chan][cut]->Fill(getTriggerError(chan),EventWeight);
 //    // FOR SS ORIGINS
 //    if (fChargeSwitch) fHSSOrigins[chan][cut]->Fill();
 //    else               fHOrigins[chan][cut]  ->Fill();
@@ -2246,17 +2247,28 @@ int TreeAnalysisTop::getNBTags(){
   int ntags(0);
   
   int btagSys = 0;
-  if (gSysSource == BtagUp)   btagSys =  1;
-  if (gSysSource == BtagDown) btagSys = -1;
-  
+
   for(UInt_t i = 0; i <T_JetAKCHS_Energy->size(); i++) {
     if(!IsGoodJet(i,gJetEtCut)) continue;
     
-    if(gIsData) {
-      if(fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),-999999, JetEt.at(i), 
-			   T_JetAKCHS_Eta->at(i), btagSys)) ntags++;
-    }
-    else {
+        
+    if(gIsData  && (fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),-999999, JetEt.at(i), 
+				      T_JetAKCHS_Eta->at(i), btagSys))) ntags++;
+    
+    if(!gIsData) {
+      if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) == 5 || TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) == 4){
+	if (gSysSource == BtagUp)     btagSys =  1;
+	if (gSysSource == BtagDown)   btagSys = -1;
+	if (gSysSource == MisTagUp)   btagSys =  0;
+	if (gSysSource == MisTagDown) btagSys =  0;
+      }
+      if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 5 || TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 4){
+	if (gSysSource == BtagUp)     btagSys =  0;
+	if (gSysSource == BtagDown)   btagSys =  0;
+	if (gSysSource == MisTagUp)   btagSys =  1;
+	if (gSysSource == MisTagDown) btagSys = -1;
+      }
+      
       if(fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),T_JetAKCHS_Parton_Flavour->at(i), 
 			   JetEt.at(i), T_JetAKCHS_Eta->at(i), btagSys)) ntags++;
     }
