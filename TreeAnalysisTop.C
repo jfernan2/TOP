@@ -127,7 +127,7 @@ void TreeAnalysisTop::InitialiseDYHistos(){
   }
 }
 void TreeAnalysisTop::InitialiseYieldsHistos(){
-  
+  hWeight = CreateH1F("hWeight","",200,0,1);
   //++ Yields histograms
   fHyields[Muon][Norm]    = CreateH1F("H_Yields_"+gChanLabel[Muon],"", iNCUTS, -0.5, iNCUTS-0.5); 
   fHyields[Elec][Norm]   = CreateH1F("H_Yields_"+gChanLabel[Elec],"", iNCUTS, -0.5, iNCUTS-0.5);
@@ -1194,6 +1194,9 @@ void TreeAnalysisTop::FillDYHistograms(){
     SetHypLepton2(ind2, Elec);
     if (IsTightMuon(ind1) && IsTightElectron(ind2)){
       EventWeight = gWeight * getSF(ElMu,ind1,ind2);
+      cout << EventWeight << endl;
+     
+
       Mll = (fHypLepton1.p+fHypLepton2.p).M();
       
       if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
@@ -1437,6 +1440,7 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
     SetHypLepton2(ind2, Elec);
     if (IsTightMuon(ind1) && IsTightElectron(ind2)){
       EventWeight = gWeight * getSF(ElMu,ind1,ind2) * getTopPtSF();
+      hWeight -> Fill(EventWeight,1.);
 #ifdef __ISSTOP
       if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
 	EventWeight = EventWeight * T_Gen_polWeights->at(10);
@@ -1458,6 +1462,14 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
 	    FillYieldsHistograms(ElMu, i1btag, sys);      
 	    if(sys==Norm) FillKinematicHistos(ElMu,i1btag);
 	  }
+	}
+	if (getNBTags() == 1){
+	  FillYieldsHistograms(ElMu, iExact1btag, sys);      
+	  if(sys==Norm) FillKinematicHistos(ElMu,iExact1btag);
+	}
+	if (getNBTags() == 2){
+	  FillYieldsHistograms(ElMu, iExact2btag, sys);      
+	  if(sys==Norm) FillKinematicHistos(ElMu,iExact2btag);
 	}
       }
     }

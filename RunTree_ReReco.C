@@ -84,7 +84,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   ///////////////////////////////
   // INPUT DATA SAMPLE
   //
-  TString userhome = "/mnt_pool/fanae105/user/folgueras/";
+  TString userhome = "/mnt_pool/fanae105/user/sscruz/";
   gROOT->LoadMacro(userhome+"/Utils/DatasetManager/DatasetManager.C+");
   
   cout << ">> Setting datasets..." << endl;
@@ -176,8 +176,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     
   // Output file name
   //----------------------------------------------------------------------------
-  Bool_t G_Use_CSVM = true; //false;
-  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Nov06_Jet30_Lep20_CSVM/";
+  Bool_t G_Use_CSVM = false; //true; //false;
+  TString outputDir = "/mnt_pool/fanae105/user/sscruz/TOP/Nov11_Jet30_Lep20_CSVL/";
 
   //CSVM_METType0I_3rdLepV_FullSyst_Mar20_jet25/";
   gSystem->mkdir(outputDir, kTRUE);

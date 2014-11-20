@@ -1,12 +1,14 @@
 #!/bin/bash
 
 echo "Setting up environment..."
-source /nfs/fanae/root_releases/root.5.34.13.slc5/bin/thisroot.sh
-source /nfs/fanae/PAF_releases/PAF_devel/PAF_setup.sh
-cd /nfs/fanae/user/folgueras/TOP
+#source /nfs/fanae/root_releases/root.5.34.13.slc5/bin/thisroot.sh
+#source /nfs/fanae/PAF_releases/PAF_devel/PAF_setup.sh
+#cd /nfs/fanae/user/sscruz/TOP
 
-echo "Now start PoD..." 
-source /opt/PoD/PoD_env.sh
+source /nfs/fanae/user/sscruz/ChargeMiss/MissCode/setup.sh
+
+#echo "Now start PoD..." 
+#source /opt/PoD/PoD_env.sh
 
 resetpaf -a
 
@@ -48,28 +50,28 @@ root -l -b -q RunTree_ReReco.C\(\"ZJets_Madgraph\",30,true\)
 resetpaf -a
 
 ## Single Top
-root -l -b -q RunTree_ReReco.C\(\"DYJets_Madgraph\",15,true\)
-root -l -b -q RunTree_ReReco.C\(\"Wbb_Madgraph\",15,true\)
-root -l -b -q RunTree_ReReco.C\(\"TbarWDilep\",15,true\)
-root -l -b -q RunTree_ReReco.C\(\"TWDilep\",15,true\)
+root -l -b -q RunTree_ReReco.C\(\"DYJets_Madgraph\",20,true\)
+root -l -b -q RunTree_ReReco.C\(\"Wbb_Madgraph\",20,true\)
+root -l -b -q RunTree_ReReco.C\(\"TbarWDilep\",20,true\)
+root -l -b -q RunTree_ReReco.C\(\"TWDilep\",20,true\)
 
-root -l -b -q RunTree_ReReco.C\(\"WgammaToLNuG\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"ZgammaToLLG\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"WWTo2L2Nu_Madgraph\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"WW\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"WZ\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"ZZ\",15,true\)
+root -l -b -q RunTree_ReReco.C\(\"WgammaToLNuG\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"ZgammaToLLG\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"WWTo2L2Nu_Madgraph\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"WW\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"WZ\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"ZZ\",20,true\)
 
-root -l -b -q RunTree_ReReco.C\(\"TTGJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"TTWJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"TTZJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"TTWWJets\",15,true\)
-root -l -b -q RunTree_ReReco.C\(\"WWGJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"WWWJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"WWZJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"WZZJets\",15,true\) 
-root -l -b -q RunTree_ReReco.C\(\"ZZZJets\",15,true\) 
+root -l -b -q RunTree_ReReco.C\(\"TTGJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"TTWJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"TTZJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"TTWWJets\",20,true\)
+root -l -b -q RunTree_ReReco.C\(\"WWGJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"WWWJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"WWZJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"WZZJets\",20,true\) 
+root -l -b -q RunTree_ReReco.C\(\"ZZZJets\",20,true\) 
 
 
 ## stop
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",15,true\)
+root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",20,true\)

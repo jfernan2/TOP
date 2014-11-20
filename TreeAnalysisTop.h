@@ -40,9 +40,11 @@ enum iCut{
   iMET, 
   i2jets, 
   i1btag, 
+  iExact1btag,
+  iExact2btag,
   iNCUTS
 };
-TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag"};
+TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag","Exact1btag","Exact2btag"};
 enum gSystFlag{
   Norm,
   BtagUp,
@@ -356,6 +358,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   
   //++ Yields
   TH1F* fHDummy;
+  TH1F* hWeight;
   TH1F* fHyields  [gNCHANNELS][gNSYST];
   TH1F* fHSSyields[gNCHANNELS][gNSYST];
   TH1F* fHTopPtWeight;
