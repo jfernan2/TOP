@@ -2150,11 +2150,12 @@ bool TreeAnalysisTop::IsVetoElectron(unsigned int iElec){
 }
 bool TreeAnalysisTop::IsMVAIDElectron(unsigned int iElec){
   // MVA ID
-  float sceta = TMath::Abs(T_Elec_SC_Eta->at(iElec));
-  if      (sceta < 0.8                    ) { if (T_Elec_MVA->at(iElec) > 0.94) return true; }
-  else if (sceta >= 0.8   && sceta < 1.479) { if (T_Elec_MVA->at(iElec) > 0.85) return true; }
-  else if (sceta >= 1.479 && sceta < 2.5  ) { if (T_Elec_MVA->at(iElec) > 0.92) return true; }
-  
+  /* float sceta = TMath::Abs(T_Elec_SC_Eta->at(iElec));
+     if      (sceta < 0.8                    ) { if (T_Elec_MVA->at(iElec) > 0.94) return true; }
+     else if (sceta >= 0.8   && sceta < 1.479) { if (T_Elec_MVA->at(iElec) > 0.85) return true; }
+     else if (sceta >= 1.479 && sceta < 2.5  ) { if (T_Elec_MVA->at(iElec) > 0.92) return true; }
+  */
+  if (T_Elec_MVA->at(iElec) > 0.90) return true;
   return false;
 }
 bool TreeAnalysisTop::IsTightElectron(unsigned int iElec){
@@ -2167,7 +2168,7 @@ bool TreeAnalysisTop::IsTightElectron(unsigned int iElec){
   // ISOLATION
   float relIso =  getElecIso(iElec);
 
-  if (relIso > 0.15) return false;
+  if (relIso > 0.1) return false;
   
   return true;
 }
