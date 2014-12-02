@@ -1,12 +1,10 @@
 /*************************************************************
-
 Class Usage:
 
 This class should only be used for upgrading and downgrading 
 if a single operating point is used in an analysis. 
 
 Based on the BTagSFUtil from Michael Segala
-
 *************************************************************/
 
 #include <Riostream.h>
@@ -17,8 +15,8 @@ Based on the BTagSFUtil from Michael Segala
 class BTagSFUtil{
 
  public:
-    
-  BTagSFUtil(TString BTagAlgorithm, TString DataPeriod = "ABCD", int Seed = 0);
+  
+  BTagSFUtil(TString BTagAlgorithm, TString DataPeriod, int Seed = 0);
   ~BTagSFUtil();
     
   
@@ -27,6 +25,7 @@ class BTagSFUtil{
  private:
 
   void GetBTagPayload(TString BTagAlgorithm, TString DataPeriod);
+
 
   float ScaleFactorB(float JetPt, int SystematicFlag);
   float ScaleFactorLight(float JetPt, float JetEta, int SystematicFlag);

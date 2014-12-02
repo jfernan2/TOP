@@ -118,6 +118,37 @@ float BTagSFUtil::TagEfficiencyB(float JetPt, float JetEta) {
     }
   }
 
+  if (TaggerName=="CSVT") {
+    if (30<=JetPt && JetPt<50) {
+      if (JetEta>=1.8) return 0.387812; // 10077.4 0.485376 0.490232
+      else if (JetEta>=1.4) return 0.45759; // 10326.1 0.490268 0.499275
+      else if (JetEta>=1) return 0.474506; // 13698.8 0.426642 0.433902
+      else if (JetEta>=0.6) return 0.534178; // 16772.7 0.385169 0.391619
+      else if (JetEta>=0.2) return 0.547121; // 18426.4 0.366701 0.373442
+      else if (JetEta>=-0.2) return 0.524589; // 9619.12 0.509186 0.514535
+    } else if (50<=JetPt && JetPt<80) {
+      if (JetEta>=1.6) return 0.4476; // 13425.6 0.429146 0.435385
+      else if (JetEta>=1.2) return 0.516362; // 13893.6 0.423965 0.429079
+      else if (JetEta>=0.8) return 0.556665; // 19488.3 0.355857 0.362944
+      else if (JetEta>=0.6) return 0.596254; // 11673.4 0.454121 0.466361
+      else if (JetEta>=0.4) return 0.601248; // 12383.7 0.440001 0.445847
+      else if (JetEta>=0.2) return 0.588598; // 13135.8 0.429353 0.434044
+      else if (JetEta>=0) return 0.577497; // 13479.1 0.425461 0.434786
+    } else if (80<=JetPt && JetPt<120) {
+      if (JetEta>=1.2) return 0.477814; // 14438.7 0.415698 0.422847
+      else if (JetEta>=0.8) return 0.555712; // 12966.6 0.436359 0.443159
+      else if (JetEta>=0.4) return 0.603197; // 16832.3 0.37709 0.384097
+      else if (JetEta>=0) return 0.583599; // 19057.6 0.357092 0.362001
+    } else if (120<=JetPt && JetPt<160) {
+      if (JetEta>=0.6) return 0.51441; // 11410.5 0.467882 0.474973
+      else if (JetEta>=0) return 0.56342; // 10092 0.493696 0.504266
+    } else if (160<=JetPt && JetPt<210) {
+      if (JetEta>=-0.2) return 0.438987; // 7346.99 0.578972 0.589266
+    } else if (210<=JetPt && JetPt<100000) {
+      if (JetEta>=-0.2) return 0.371781; // 2881.77 0.900264 0.921969
+    }
+  }
+
   cout << "BTagSFUtil: Jet pt (" << JetPt << ") or jet eta (" << JetEta << ") out of range!" << endl;
 
   if (TaggerName=="CSVL") return 0.80;
@@ -162,6 +193,23 @@ float BTagSFUtil::TagEfficiencyC(float JetPt, float JetEta) {
       if (JetEta>=-0.2) return 0.197597; // 302.053 2.2911
     } else if (210<=JetPt && JetPt<100000) {
       if (JetEta>=-0.2) return 0.204649; // 276.093 2.42804
+    }
+  }
+
+  if (TaggerName=="CSVT") {
+    if (30<=JetPt && JetPt<50) {
+      if (JetEta>=1.2) return 0.038948; // 1103.6 0.582384 0.649
+      else if (JetEta>=0) return 0.0730094; // 1565.53 0.657502 0.677727
+    } else if (50<=JetPt && JetPt<80) {
+      if (JetEta>=-0.2) return 0.0594221; // 1795.58 0.557916 0.604515
+    } else if (80<=JetPt && JetPt<120) {
+      if (JetEta>=-0.2) return 0.0597343; // 1061.43 0.727429 0.768528
+    } else if (120<=JetPt && JetPt<160) {
+      if (JetEta>=-0.2) return 0.0298142; // 484.451 0.772706 0.912494
+    } else if (160<=JetPt && JetPt<210) {
+      if (JetEta>=-0.2) return 0.0225716; // 302.053 0.854637 1.02596
+    } else if (210<=JetPt && JetPt<100000) {
+      if (JetEta>=-0.2) return 0.0136672; // 276.093 0.698752 0.945059
     }
   }
   
@@ -316,6 +364,25 @@ float BTagSFUtil::TagEfficiencyLight(float JetPt, float JetEta) {
       else if (JetEta>=0.4) return 0.0145154; // 448.404 0.564813
       else if (JetEta>=0.2) return 0.0210017; // 501.926 0.640028
       else if (JetEta>=0) return 0.0180327; // 515.528 0.586074
+    }
+  }
+
+  if (TaggerName=="CSVT") {
+    if (30<=JetPt && JetPt<50) {
+      if (JetEta>=1) return 0.00326464; // 26428.4 0.0350891 0.037114
+      else if (JetEta>=0) return 0.00355733; // 25115.4 0.037568 0.0382523
+    } else if (50<=JetPt && JetPt<80) {
+      if (JetEta>=1) return 0.00169019; // 16558.8 0.0319217 0.0354968
+      else if (JetEta>=-0.2) return 0.00225288; // 15556.8 0.0380119 0.0425972
+    } else if (80<=JetPt && JetPt<120) {
+      if (JetEta>=1) return 0.000915307; // 9073.96 0.0317458 0.0398403
+      else if (JetEta>=-0.2) return 0.00101768; // 8535.11 0.0345128 0.041528
+    } else if (120<=JetPt && JetPt<160) {
+      if (JetEta>=-0.2) return 0.00131949; // 8031.1 0.0405068 0.0509324
+    } else if (160<=JetPt && JetPt<210) {
+      if (JetEta>=-0.2) return 0.00114043; // 4727.13 0.0490893 0.0713493
+    } else if (210<=JetPt && JetPt<100000) {
+      if (JetEta>=0) return 0.000390689; // 4602.99 0.029128 0.0364063
     }
   }
   

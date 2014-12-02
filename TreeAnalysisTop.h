@@ -96,37 +96,33 @@ enum FakeSource{
 };
 class lepton{
  public:
-  lepton(){};
+  lepton(){}
+  lepton(const lepton &l): p(l.p), charge(l.charge), type(l.type), index(l.index){ };
   lepton(TLorentzVector vec, int ch, int ty, int ind){
     p = vec;
     charge = ch;
     type = ty;
     index = ind;
-  };
+  }
   TLorentzVector p;
   int charge;
   int type; // -1(unknown), 0(mu), 1(ele)                                                                                                                                                                                      
   int index;
 };
- 
-struct TLRatios{
-  TH2F *fntight;
-  TH2F *fnloose;
-  TH2F *pntight;
-  TH2F *pnloose;
-   
-  TH1F *fntight_nv;
-  TH1F *fnloose_nv;
-  TH1F *pntight_nv;
-  TH1F *pnloose_nv;
-   
-  TEfficiency *fratio_pt;
-  TEfficiency *pratio_pt;
-  TEfficiency *fratio_eta;
-  TEfficiency *pratio_eta;
-  TEfficiency *fratio_nv;
-  TEfficiency *pratio_nv;
+
+class jet{
+ public:
+  jet(){};
+  jet(TLorentzVector vec, bool btag, int ind){
+    p = vec;
+    isbtag = btag;
+    index = ind;
+  };
+  TLorentzVector p;
+  bool isbtag;
+  int index;
 };
+ 
  
 const int gNMuFPtBins = 6;
 const int gNMuPPtbins = 10;
@@ -186,8 +182,6 @@ class TreeAnalysisTop: public PAFAnalysis {
   virtual ~TreeAnalysisTop() {}
   
   virtual void Initialise();
-  virtual void InitialiseTLRatios();
-  virtual void InitialiseTree();
   virtual void InitialiseYieldsHistos();
   virtual void InitialiseKinematicHistos();
   virtual void InitialiseDYHistos();
@@ -199,7 +193,6 @@ class TreeAnalysisTop: public PAFAnalysis {
 
   // Saving Histograms.
   void WriteHistos();
-  void WriteTLRatios();
   void WriteValidationsHistos(){};
 
   // Counters
@@ -213,9 +206,6 @@ class TreeAnalysisTop: public PAFAnalysis {
   bool PassTriggerMuMu();
   bool PassTriggerEE();
   bool PassTriggerEMu();
-  bool PassSingleMuTrigger();
-  bool PassSingleElTrigger();
-  bool PassesJetPtdPhiCut();
   bool PassesZVeto();
   bool PassesNJetsCut();
   bool PassesMETCut();
@@ -224,15 +214,9 @@ class TreeAnalysisTop: public PAFAnalysis {
   bool Passes3rdLeptonVeto();
   bool PassesMuonEta2p1(gChannel);
   bool PassesTopDCut();
-  
-  int   getNTightMuons();
-  int   getNTightElectrons();
-  int   getNMuons();
-  int   getNElectrons();
+
   int   getNJets();
   int   getNBTags();
-  int   getLeadingJet();
-  int   getSecondLeadingJet();
   int   getLeadingJetbTag();
   float getDRClosestJet(TLorentzVector);
   float getDPhiClosestJet(TLorentzVector);
@@ -254,20 +238,18 @@ class TreeAnalysisTop: public PAFAnalysis {
   float getDeltaPhillJet();
 
   // Lepton selection methods
-  bool IsGoodMuon(unsigned int,float ptcut=20.);
-  bool IsVetoMuon(unsigned int);
-  bool IsLooseMuon(unsigned int);
-  bool IsTightMuon(unsigned int);
+  int  getSelectedLeptons();
+  bool IsVetoMuon(unsigned int, float ptcut=20.);
+  bool IsTightMuon(unsigned int, float ptcut=20.);
   float getMuonIso(int);
-  bool IsGoodElectron(unsigned int,float ptcut=20.);
-  bool IsVetoElectron(unsigned int);  
-  bool IsLooseElectron(unsigned int);  
+  bool IsVetoElectron(unsigned int,float ptcut=20.);
   bool IsMVAIDElectron(unsigned int);
-  bool IsTightElectron(unsigned int);
+  bool IsTightElectron(unsigned int,float ptcut=20.);
   float getElecIso(int);
   float getEACorrection(float);
   std::vector<lepton> SortLeptonsByPt(std::vector<lepton>&);
   
+  int getSelectedJets();
   bool IsGoodJet(unsigned int, float ptcut=30.);
   std::vector<int> CleanedJetIndices(float);
   void SmearJetPts(int);
@@ -278,46 +260,29 @@ class TreeAnalysisTop: public PAFAnalysis {
   //void GetGenMuon();
   //void GetGenElec();
   void SelectedGenLepton();
- 
+  
   ///////////////////////////////////////////////////////////////////////////// 
   //    Selecting Methods
   ///////////////////////////////////////////////////////////////////////////// 
-  int  HasLooseMuons(int&, int&);
-  int  HasLooseMuons();
-  int  HasLooseElectrons(int&, int&);
-  int  HasLooseElectrons();
-  bool IsZMuMuEvent(int&, int&);
-  bool IsSigSupMuEvent(int&);
-  bool IsZElElEvent(int&, int&);
-  bool IsSigSupElEvent(int&);
-  bool IsTTbarElMuEvent(int&, int&);
-  bool IsTTbarElElEvent(int&, int&);
-  bool IsTTbarMuMuEvent(int&, int&);
-  int  IsDileptonEvent(int&, int&);
-  bool IsMuMuEvent(int&, int&);
-  bool IsElMuEvent(int&, int&);
-  bool IsElElEvent(int&, int&);
+  int  IsDileptonEvent();
+  bool IsMuMuEvent();
+  bool IsElMuEvent();
+  bool IsElElEvent();
   ///////////////////////////////////////////////////////////////////////////// 
   //    Filling Methods
   ///////////////////////////////////////////////////////////////////////////// 
-  //  void FillTree(const TLorentzVector& lepton1,const TLorentzVector& lepton2, UInt_t iChannel);
-  void FillAnalysisTree(int);
   void FillYieldsHistograms(gChannel, iCut, gSystFlag);
   void FillYields(gSystFlag sys=Norm);
-  void FillTLRatios();
   void FillDYHistograms();
   void FillKinematicHistos(gChannel,iCut);
   
   ///////////////////////////////////////////////////////////////////////////// 
   //    Set/Reset methods
   ///////////////////////////////////////////////////////////////////////////// 
-  void SetHypLepton1(int, gChannel);
-  void SetHypLepton2(int, gChannel);
-
-  void SetDataMembers();
-  void ResetDataMembers();
+  void SetOriginalObjects();
+  void ResetOriginalObjects();
+  void SetEventObjects();
   void ResetHypLeptons();
-  void ResetAnalysisTree();
   
  protected:
   
@@ -331,13 +296,14 @@ class TreeAnalysisTop: public PAFAnalysis {
   Int_t   gSysSource;
   Int_t   gSysDirection;
   Bool_t  gDoSystStudies;
-  Bool_t  gDoTLRatios;
   Bool_t  gIsData;
   Bool_t  gUseCSVM;
+  Bool_t  gDoSF;
+  Bool_t  gDoDF;
 
   PUWeight *fPUWeight;     //The PU weight utility
-  PUWeight *fPUWeightUp;   //The PU weight utility
-  PUWeight *fPUWeightDown; //The PU weight utility
+  //  PUWeight *fPUWeightUp;   //The PU weight utility
+  //  PUWeight *fPUWeightDown; //The PU weight utility
   BTagSFUtil *fBTagSF;     //The BTag SF utility 
   LeptonSF *fLeptonSF;
   TRandom3 *fRand3;
@@ -351,10 +317,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   //////////////////////////////////////////////////////////////////////////////
   //               Data members
   //////////////////////////////////////////////////////////////////////////////
-  int nGoodVertex;
-
   // HISTOGRAMS
-  TLRatios tlratios[2];
   
   //++ Yields
   TH1F* fHDummy;
@@ -403,13 +366,14 @@ class TreeAnalysisTop: public PAFAnalysis {
   TH1F* fHDRLep1Jet[gNCHANNELS][iNCUTS];
   TH1F* fHDPhiLep1Jet[gNCHANNELS][iNCUTS];
   TH1F* fHLep1Iso[gNCHANNELS][iNCUTS];
-
+  
+  /// STOP
   TH1F* fHAbsDelPhiLep[gNCHANNELS][iNCUTS];
   TH1F* fHStopMass[gNCHANNELS][iNCUTS];
   TH1F* fHChi0Mass[gNCHANNELS][iNCUTS];
   TH2F* fHChi0StopMass[gNCHANNELS][iNCUTS];
-
-
+  TH1F* fHvertices[gNCHANNELS][iNCUTS];
+  
   //++ Gen Info
   TH1F* fHDeltaRLepJet[gNCHANNELS-1];
 
@@ -427,102 +391,36 @@ class TreeAnalysisTop: public PAFAnalysis {
   std::vector<Double_t>       PtGen_Jet;
   std::vector<Double_t>       PtGen_b;
 
-  UInt_t                      nGenElec;
-  UInt_t                      nGenMuon;
-  UInt_t                      nGenTau;
-  UInt_t                      nGenLepton;
-  UInt_t                      nTauElec;
-  UInt_t                      nTauMuon;
-  UInt_t                      nSGenMuon;
-  UInt_t                      nSGenElec;
+  Int_t nGenElec;
+  Int_t nGenMuon;
+  Int_t nGenTau;
+  Int_t nGenLepton;
+  Int_t nTauElec;
+  Int_t nTauMuon;
+  Int_t nSGenMuon;
+  Int_t nSGenElec;
+  
+  Int_t nGoodVertex;
+  Int_t nBtags;
+  Int_t nJets;
+  Int_t nMuon;
+  Int_t nElec;
+  Int_t nLeptons;
+
+  ///// OBJECTS
+  std::vector<lepton> Lepton;
+  std::vector<jet>    Jet;
+  //  std::vector<jet>    Jet15;
   
   std::vector<float> JetEt;
+  std::vector<float> JetPhi;
   std::vector<float> MuPx;
   std::vector<float> MuPy;
   std::vector<float> ElPx;
   std::vector<float> ElPy;
   float MET;
   float MET_Phi;
-
-  ///////////////////////////////////////
-  //    OUTPUT TREE
-  ///////////////////////////////////////
-  TTree      *AnalysisTree;
-
-  // Branches
-  Long64_t    TEvent;
-  int         TLumi;
-  int         TRun;
-  std::string TSName;
-  int         TSType;
-
-  float  TWeight;
-  int    TChannel;
-  int    TSystFlag;
-  int    TTLCat;
-  int    TNPV;
-  float  TMET;
-  float  TMET_Phi;
   
-  int   TNTMus;
-  int   TNTEls;
-  int   TNMus;
-  int   TNEls;
-  float TInvMass;
-  float TLep0Pt;
-  float TLep0Eta;
-  float TLep0Phi;
-  float TLep0Ch;
-  float TLep0Iso;
-  float TLep0Flav;
-  float TLep1Pt;
-  float TLep1Eta;
-  float TLep1Phi;
-  float TLep1Ch;
-  float TLep1Iso;
-  float TLep1Flav;
-
-  int   TNJets;     
-  int   TNbJets;     
-  int   TNbJetsMed;     
-  int   TNJetsBtag; 
-  float THT;
-  float TBtagJet0;  
-  float TBtagJet1;  
-
-  float TJet0Px;    
-  float TJet0Py;    
-  float TJet0Pz;    
-  float TJet0Et;    
-  float TJet0E;    
-  float TJet1Px;    
-  float TJet1Py;    
-  float TJet1Pz;    
-  float TJet1Et;    
-  float TJet1E;    
-
-  float TBtagJet0Px;    
-  float TBtagJet0Py;    
-  float TBtagJet0Pz;    
-  float TBtagJet0Et;    
-  float TBtagJet0E;    
-  float TBtagJet1Px;    
-  float TBtagJet1Py;    
-  float TBtagJet1Pz;    
-  float TBtagJet1Et;    
-  float TBtagJet1E;    
-
-  float TtPx;
-  float TtPy;
-  float TtPz;
-  float TtE;
-
-  float TtbarPx;
-  float TtbarPy;
-  float TtbarPz;
-  float TtbarE;
-
-
   ClassDef(TreeAnalysisTop,0);
 };
 

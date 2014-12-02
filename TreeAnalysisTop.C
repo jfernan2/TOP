@@ -9,7 +9,7 @@ ClassImp(TreeAnalysisTop);
 #endif
 
 const float gJetEtCut = 30.;
-
+//#define DEBUG
 TreeAnalysisTop::TreeAnalysisTop(TTree* tree) : PAFAnalysis(tree) {}
 //------------------------------------------------------------------------------
 // Initialise
@@ -24,9 +24,6 @@ void TreeAnalysisTop::Initialise() {
   fHDummy->TH1::SetDefaultSumw2();
 
   InitialiseYieldsHistos();
-#ifdef __ISFR
-  InitialiseTLRatios();
-#endif
   InitialiseKinematicHistos();
 
 #ifdef __ISMC
@@ -48,10 +45,10 @@ void TreeAnalysisTop::Initialise() {
   PU Reweight
   ***********/
   fPUWeight     = new PUWeight(gLumiForPU,Summer12_53X,"2012");
-#ifdef __ISMC
-  fPUWeightUp   = new PUWeight(18494.9,   Summer12_53X,"2012"); //  18494.9  (5% down)
-  fPUWeightDown = new PUWeight(20441.7,   Summer12_53X,"2012"); //  20441.7  (5% up  )
-#endif
+//#ifdef __ISMC
+//  fPUWeightUp   = new PUWeight(18494.9,   Summer12_53X,"2012"); //  18494.9  (5% down)
+//  fPUWeightDown = new PUWeight(20441.7,   Summer12_53X,"2012"); //  20441.7  (5% up  )
+//#endif
 
   if (gUseCSVM) fBTagSF   = new BTagSFUtil("CSVM","ABCD");//ReReco
   else          fBTagSF   = new BTagSFUtil("CSVT","ABCD");//ReReco 
@@ -68,51 +65,9 @@ void TreeAnalysisTop::Initialise() {
   cout << "Initialise(): Exit" << endl;
 #endif 
 }
-void TreeAnalysisTop::InitialiseTLRatios(){
-#ifdef DEBUG
-  cout << "InitialiseTLRatios(): Enter" << endl;
-#endif 
-  
-  for(size_t l = 0; l < 2; ++l){
-    gChannel c = channels_begin;
-    if      (l == 0) c = Muon;
-    else if (l == 1) c = Elec;
-    
-    TString rootname = gChanLabel[c];
-    tlratios[l].fntight  = CreateH2F(rootname + "_fNTight",  "fNTight",  getNFPtBins(c), getFPtBins(c), getNEtaBins(c), getEtaBins(c)); tlratios[l].fntight ->Sumw2();
-    tlratios[l].fnloose  = CreateH2F(rootname + "_fNLoose",  "fNLoose",  getNFPtBins(c), getFPtBins(c), getNEtaBins(c), getEtaBins(c)); tlratios[l].fnloose ->Sumw2();
-    tlratios[l].pntight  = CreateH2F(rootname + "_pNTight",  "pNTight",  getNPPtBins(c), getPPtBins(c), getNEtaBins(c), getEtaBins(c)); tlratios[l].pntight ->Sumw2();
-    tlratios[l].pnloose  = CreateH2F(rootname + "_pNLoose",  "pNLoose",  getNPPtBins(c), getPPtBins(c), getNEtaBins(c), getEtaBins(c)); tlratios[l].pnloose ->Sumw2();
-    
-    tlratios[l].fntight_nv  = CreateH1F(rootname + "_fNTight_nv",  "fNTight_nv", 18, 0., 36.); tlratios[l].fntight_nv ->Sumw2();
-    tlratios[l].fnloose_nv  = CreateH1F(rootname + "_fNLoose_nv",  "fNLoose_nv", 18, 0., 36.); tlratios[l].fnloose_nv ->Sumw2();
-    tlratios[l].pntight_nv  = CreateH1F(rootname + "_pNTight_nv",  "pNTight_nv", 18, 0., 36.); tlratios[l].pntight_nv ->Sumw2();
-    tlratios[l].pnloose_nv  = CreateH1F(rootname + "_pNLoose_nv",  "pNLoose_nv", 18, 0., 36.); tlratios[l].pnloose_nv ->Sumw2();
-       
-    tlratios[l].fratio_pt  = new TEfficiency(rootname + "_fRatio_pt",  "fRatio_pt",  getNFPtBins(c), getFPtBins(c));
-    tlratios[l].fratio_eta = new TEfficiency(rootname + "_fRatio_eta", "fRatio_eta", getNEtaBins(c), getEtaBins(c));
-    tlratios[l].pratio_pt  = new TEfficiency(rootname + "_pRatio_pt",  "pRatio_pt",  getNPPtBins(c), getPPtBins(c));
-    tlratios[l].pratio_eta = new TEfficiency(rootname + "_pRatio_eta", "pRatio_eta", getNEtaBins(c), getEtaBins(c));
-    tlratios[l].fratio_nv  = new TEfficiency(rootname + "_fRatio_nv",  "fRatio_nv",  18, 0., 36.);
-    tlratios[l].pratio_nv  = new TEfficiency(rootname + "_pRatio_nv",  "pRatio_nv",  18, 0., 36.);
-
-    fOutput->Add(tlratios[l].fratio_pt  );
-    fOutput->Add(tlratios[l].fratio_eta );
-    fOutput->Add(tlratios[l].pratio_pt  );
-    fOutput->Add(tlratios[l].pratio_eta );
-    fOutput->Add(tlratios[l].fratio_nv  );
-    fOutput->Add(tlratios[l].pratio_nv  );
-  }
-  
-#ifdef DEBUG
-  cout << "InitialiseTLRatios(): Exit" << endl;
-#endif 
-}
 void TreeAnalysisTop::InitialiseGenHistos(){
   fHDeltaRLepJet[Muon] = CreateH1F("H_DeltaRLepJet_"+gChanLabel[Muon],"",1000,0.,5.);
-  fHDeltaRLepJet[Elec] = CreateH1F("H_DeltaRLepJet_"+gChanLabel[Elec],"",1000,0.,5.);
-
-  
+  fHDeltaRLepJet[Elec] = CreateH1F("H_DeltaRLepJet_"+gChanLabel[Elec],"",1000,0.,5.);  
 }
 void TreeAnalysisTop::InitialiseDYHistos(){
   for (size_t ch=0; ch<gNCHANNELS; ch++){
@@ -129,15 +84,22 @@ void TreeAnalysisTop::InitialiseDYHistos(){
 void TreeAnalysisTop::InitialiseYieldsHistos(){
   hWeight = CreateH1F("hWeight","",200,0,1);
   //++ Yields histograms
-  fHyields[Muon][Norm]    = CreateH1F("H_Yields_"+gChanLabel[Muon],"", iNCUTS, -0.5, iNCUTS-0.5); 
-  fHyields[Elec][Norm]   = CreateH1F("H_Yields_"+gChanLabel[Elec],"", iNCUTS, -0.5, iNCUTS-0.5);
-  fHyields[ElMu][Norm]   = CreateH1F("H_Yields_"+gChanLabel[ElMu],"", iNCUTS, -0.5, iNCUTS-0.5);
-  fHSSyields[Muon][Norm] = CreateH1F("H_SSYields_"+gChanLabel[Muon],"", iNCUTS, -0.5, iNCUTS-0.5); 
-  fHSSyields[Elec][Norm] = CreateH1F("H_SSYields_"+gChanLabel[Elec],"", iNCUTS, -0.5, iNCUTS-0.5);
-  fHSSyields[ElMu][Norm] = CreateH1F("H_SSYields_"+gChanLabel[ElMu],"", iNCUTS, -0.5, iNCUTS-0.5);
+  if (gDoSF) {
+    fHyields[Muon][Norm]   = CreateH1F("H_Yields_"+gChanLabel[Muon],"", iNCUTS, -0.5, iNCUTS-0.5); 
+    fHyields[Elec][Norm]   = CreateH1F("H_Yields_"+gChanLabel[Elec],"", iNCUTS, -0.5, iNCUTS-0.5);
+    fHSSyields[Muon][Norm] = CreateH1F("H_SSYields_"+gChanLabel[Muon],"", iNCUTS, -0.5, iNCUTS-0.5); 
+    fHSSyields[Elec][Norm] = CreateH1F("H_SSYields_"+gChanLabel[Elec],"", iNCUTS, -0.5, iNCUTS-0.5);
+  }
+  if (gDoDF) {
+    fHyields[ElMu][Norm]   = CreateH1F("H_Yields_"+gChanLabel[ElMu],"", iNCUTS, -0.5, iNCUTS-0.5);
+    fHSSyields[ElMu][Norm] = CreateH1F("H_SSYields_"+gChanLabel[ElMu],"", iNCUTS, -0.5, iNCUTS-0.5);
+  }
   
   if (gDoSystStudies){
     for (size_t chan=0; chan<gNCHANNELS; chan++){
+      if (!gDoSF && chan==Muon) continue;
+      if (!gDoSF && chan==Elec) continue;
+      if (!gDoDF && chan==ElMu) continue;
       for (size_t sys=1; sys<gNSYST; sys++){
 	fHyields[chan][sys]   = CreateH1F("H_Yields_"+gChanLabel[chan]+"_"+SystName[sys],"",iNCUTS,-0.5,iNCUTS-0.5);
 	fHSSyields[chan][sys] = CreateH1F("H_SSYields_"+gChanLabel[chan]+"_"+SystName[sys],"", iNCUTS, -0.5, iNCUTS-0.5);
@@ -146,6 +108,9 @@ void TreeAnalysisTop::InitialiseYieldsHistos(){
   }
   
   for (size_t chan=0; chan<gNCHANNELS; chan++){
+    if (!gDoSF && chan==Muon) continue;
+    if (!gDoSF && chan==Elec) continue;
+    if (!gDoDF && chan==ElMu) continue;
     for (size_t cut=0; cut<iNCUTS; cut++){
       fHLepSys [chan][cut] = CreateH1F("H_LepSys_" +gChanLabel[chan]+"_"+sCut[cut],"LepSys" , 400, 0, 0.04);
       fHTrigSys[chan][cut] = CreateH1F("H_TrigSys_"+gChanLabel[chan]+"_"+sCut[cut],"TrigSys", 400, 0, 0.04);
@@ -155,6 +120,10 @@ void TreeAnalysisTop::InitialiseYieldsHistos(){
 void TreeAnalysisTop::InitialiseKinematicHistos(){
   //++ Kinematic histograms
   for (size_t ch=0; ch<gNCHANNELS; ch++){
+    if (!gDoSF && ch==Muon) continue;
+    if (!gDoSF && ch==Elec) continue;
+    if (!gDoDF && ch==ElMu) continue;
+
     for (size_t cut=0; cut<iNCUTS; cut++){
       fHMET[ch][cut]         = CreateH1F("H_MET_"        +gChanLabel[ch]+"_"+sCut[cut],"MET"       ,  5000,0,500);
       fHDiLepPt[ch][cut]     = CreateH1F("H_DiLepPt_"    +gChanLabel[ch]+"_"+sCut[cut],"DiLepPt"   , 1800,20,200); 
@@ -192,12 +161,15 @@ void TreeAnalysisTop::InitialiseKinematicHistos(){
       // STOP HISTOGRAMS:
       //      fHAbsDelPhiLep[ch][cut] = CreateH1F("H_AbsDelPhiLep_"+gChanLabel[ch]+"_"+sCut[cut],"AbsDelPhiLep" , 66,0, 3.3);
       fHAbsDelPhiLep[ch][cut]= CreateH1F("H_AbsDelPhiLep_" +gChanLabel[ch]+"_"+sCut[cut],"AbsDelPhiLep" , 28,-0.2, 1.2);
+      fHvertices[ch][cut] = CreateH1F("H_Vtx_"+gChanLabel[ch]+"_"+sCut[cut],"", 71, -0.5, 70.5); 
+	    
 
 #ifdef __ISSTOP
       fHStopMass[ch][cut]     = CreateH1F("H_StopMass_"     +gChanLabel[ch]+"_"+sCut[cut], "StopMass",    500, 0.0, 500);
       fHChi0Mass[ch][cut]     = CreateH1F("H_Chi0Mass_"     +gChanLabel[ch]+"_"+sCut[cut], "Chi0Mass",    500, 0.0, 500);
       fHChi0StopMass[ch][cut] = CreateH2F("H2_Chi0StopMass_"+gChanLabel[ch]+"_"+sCut[cut], "Chi0Mass vs StopMass", 34, 81.25, 506.25, 34, -18.75, 406.25);
 #endif
+      
     }
   }
 }
@@ -205,6 +177,10 @@ void TreeAnalysisTop::InitialiseSystematicHistos(){
   
   TString histoname = "";
   for (size_t ch=0; ch<gNCHANNELS; ch++){
+    if (!gDoSF && ch==Muon) continue;
+    if (!gDoSF && ch==Elec) continue;
+    if (!gDoDF && ch==ElMu) continue;
+
     for (size_t cut=0; cut<iNCUTS; cut++){
       for (size_t sys=1; sys<gNSYST; sys++){
 	histoname = "H_NBtagsNJets_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
@@ -223,130 +199,30 @@ void TreeAnalysisTop::InitialiseSystematicHistos(){
     }
   }
 }
-void TreeAnalysisTop::InitialiseTree(){
-#ifdef DEBUG
-  cout << "InitialiseTree(): Enter" << endl;
-#endif 
-  /********************
-     Tree Branches 
-  ********************/ 
-  AnalysisTree = CreateTree("AnalysisTree","TopTree");
-  
-  // Run variables
-  AnalysisTree->Branch("TEvent", &TEvent, "TEvent/L");
-  AnalysisTree->Branch("TLumi",  &TLumi,  "TLumi/I");
-  AnalysisTree->Branch("TRun",   &TRun,   "TRun/I");
-  
-  // Sample variables
-  AnalysisTree->Branch("TSName", &TSName);
-  AnalysisTree->Branch("TSType", &TSType, "TSType/I");
-  
-  // Per-Event variables
-  AnalysisTree->Branch("TSystFlag", &TSystFlag, "TSystFlag/I"); 
-  AnalysisTree->Branch("TWeight",   &TWeight,   "TWeight/F");
-  AnalysisTree->Branch("TChannel",  &TChannel,  "TChannel/I");
-  AnalysisTree->Branch("TTLCat",    &TTLCat,    "TTLCat/I");  //0-TT; 1-TL; 2-LT; 3-LL
-  AnalysisTree->Branch("TNPV",      &TNPV,      "TNPV/I");
-  AnalysisTree->Branch("TMET",      &TMET,      "TMET/F");
-  AnalysisTree->Branch("TMET_Phi",  &TMET_Phi,  "TMET_Phi/F");
-   
-  // Lepton variables
-  AnalysisTree->Branch("TNTMus",   &TNTMus,   "TNTMus/I");
-  AnalysisTree->Branch("TNTEls",   &TNTEls,   "TNTEls/I");
-  AnalysisTree->Branch("TNMus",    &TNMus,    "TNMus/I");
-  AnalysisTree->Branch("TNEls",    &TNEls,    "TNEls/I");
-  AnalysisTree->Branch("TInvMass", &TInvMass, "TInvMass/F");
-  
-  AnalysisTree->Branch("TLep0Pt",  &TLep0Pt,  "TLep0Pt/F");
-  AnalysisTree->Branch("TLep0Eta", &TLep0Eta, "TLep0Eta/F");
-  AnalysisTree->Branch("TLep0Phi", &TLep0Phi, "TLep0Phi/F");
-  AnalysisTree->Branch("TLep0Ch",  &TLep0Ch,  "TLep0Ch/F");
-  AnalysisTree->Branch("TLep0Flav",&TLep0Flav,"TLep0Flav/F");
-  AnalysisTree->Branch("TLep1Pt",  &TLep1Pt,  "TLep1Pt/F");
-  AnalysisTree->Branch("TLep1Eta", &TLep1Eta, "TLep1Eta/F");
-  AnalysisTree->Branch("TLep1Phi", &TLep1Phi, "TLep1Phi/F");
-  AnalysisTree->Branch("TLep1Ch",  &TLep1Ch,  "TLep1Ch/F");
-  AnalysisTree->Branch("TLep1Flav",&TLep0Flav,"TLep1Flav/F");
-
-  // Jet variables
-  AnalysisTree->Branch("TNJets",     &TNJets,     "TNJets/F");
-  AnalysisTree->Branch("TNbJets",    &TNbJets,    "TNbJets/F");
-  AnalysisTree->Branch("TNbJetsMed", &TNbJetsMed, "TNbJetsMed/F");
-  AnalysisTree->Branch("TNJetsBtag", &TNJetsBtag, "TNJetBtag/F");
-  AnalysisTree->Branch("THT",        &THT,        "THT/F");
-  
-  AnalysisTree->Branch("TJet0Px", &TJet0Px, "TJet0Px/F");
-  AnalysisTree->Branch("TJet0Py", &TJet0Py, "TJet0Py/F");
-  AnalysisTree->Branch("TJet0Pz", &TJet0Pz, "TJet0Pz/F");
-  AnalysisTree->Branch("TJet0Et", &TJet0Et, "TJet0Et/F");
-  AnalysisTree->Branch("TJet0E",  &TJet0E,  "TJet0E/F");
-  AnalysisTree->Branch("TJet1Px", &TJet1Px, "TJet1Px/F");
-  AnalysisTree->Branch("TJet1Py", &TJet1Py, "TJet1Py/F");
-  AnalysisTree->Branch("TJet1Pz", &TJet1Pz, "TJet1Pz/F");
-  AnalysisTree->Branch("TJet1Et", &TJet1Et, "TJet1Et/F");
-  AnalysisTree->Branch("TJet1E",  &TJet1E,  "TJet1E/F");
-  
-  AnalysisTree->Branch("TBtagJet0",   &TBtagJet0,   "TBtagJet0/F");
-  AnalysisTree->Branch("TBtagJet1",   &TBtagJet1,   "TBtagJet1/F");
-  AnalysisTree->Branch("TBtagJet0Px", &TBtagJet0Px, "TBtagJet0Px/F");
-  AnalysisTree->Branch("TBtagJet0Py", &TBtagJet0Py, "TBtagJet0Py/F");
-  AnalysisTree->Branch("TBtagJet0Pz", &TBtagJet0Pz, "TBtagJet0Pz/F");
-  AnalysisTree->Branch("TBtagJet0Et", &TBtagJet0Et, "TBtagJet0Et/F");
-  AnalysisTree->Branch("TBtagJet0E",  &TBtagJet0E,  "TBtagJet0E/F");
-  AnalysisTree->Branch("TBtagJet1Px", &TBtagJet1Px, "TBtagJet1Px/F");
-  AnalysisTree->Branch("TBtagJet1Py", &TBtagJet1Py, "TBtagJet1Py/F");
-  AnalysisTree->Branch("TBtagJet1Pz", &TBtagJet1Pz, "TBtagJet1Pz/F");
-  AnalysisTree->Branch("TBtagJet1Et", &TBtagJet1Et, "TBtagJet1Et/F");
-  AnalysisTree->Branch("TBtagJet1E",  &TBtagJet1E,  "TBtagJet1E/F");
-
-  // Top pT reweight
-  AnalysisTree->Branch("TtPx",    &TtPx,    "TtPx/F");
-  AnalysisTree->Branch("TtPy",    &TtPy,    "TtPy/F");
-  AnalysisTree->Branch("TtPz",    &TtPz,    "TtPz/F");
-  AnalysisTree->Branch("TtE" ,    &TtE ,    "TtE/F");
-  AnalysisTree->Branch("TtbarPx", &TtbarPx, "TtbarPx/F");
-  AnalysisTree->Branch("TtbarPy", &TtbarPy, "TtbarPy/F");
-  AnalysisTree->Branch("TtbarPz", &TtbarPz, "TtbarPz/F");
-  AnalysisTree->Branch("TtbarE" , &TtbarE , "TtbarE/F");
-  
-#ifdef DEBUG
-  cout << "InitialiseTree(): Exit" << endl;
-#endif 
-}
-
 //------------------------------------------------------------------------------
 // InsideLoop
 //------------------------------------------------------------------------------
-void TreeAnalysisTop::SetDataMembers(){
-  //ResetAnalysisTree();
+void TreeAnalysisTop::SetOriginalObjects(){
+  // To be called once per event, saving information in tmp vectors
+  // for systematic studies.
   ResetHypLeptons();
-
-  fChargeSwitch = false;
-
-  nGenLepton = 0;
-  nGenElec   = 0;
-  nGenMuon   = 0;
-  nGenTau    = 0;
-  nTauElec   = 0;
-  nTauMuon   = 0;
-
-  PUSF = 1.;
-  EventWeight = 1.;
-  nGoodVertex = 0;
-
-  // Reset to No Systematic calculation
-  gSysSource = Norm;
   
+  // SAVING ORIGINAL VALUES FOR MET, JET, LEPTONS for SYST
   JetEt.clear();
+  JetPhi.clear();
   MuPx.clear();
   MuPy.clear();
   ElPx.clear();
   ElPy.clear();
   MET  = 0.;
+  MET_Phi = 0.;
   
   // Save original values for MET, Jets and Leptons
+  TLorentzVector j;
   for (UInt_t i=0; i<T_JetAKCHS_Et->size(); i++){    
-    JetEt.push_back(T_JetAKCHS_Et->at(i));   
+    j.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Px->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
+    JetEt.push_back(j.Et());
+    JetPhi.push_back(j.Phi());
   }
   for (UInt_t i=0; i<T_Elec_Energy->size(); i++){    
     ElPx.push_back(T_Elec_Px->at(i));
@@ -356,14 +232,52 @@ void TreeAnalysisTop::SetDataMembers(){
     MuPx.push_back(T_Muon_Px->at(i)); 
     MuPy.push_back(T_Muon_Py->at(i));   
   }
+
   MET     = T_METPFType0IxyShift_ET;
   MET_Phi = T_METPFType0IxyShift_Phi;
 }
-void TreeAnalysisTop::ResetDataMembers(){
+void TreeAnalysisTop::SetEventObjects(){
+  //ResetAnalysisTree();
+  ResetHypLeptons();
+  
+  fChargeSwitch = false;
+  
+  // EVENT WEIGHTS
+  PUSF = 1.;
+  EventWeight = 1.;
+
+  // USEFUL COUNTERS
+  nGenLepton = 0;
+  nGenElec   = 0;
+  nGenMuon   = 0;
+  nGenTau    = 0;
+  nTauElec   = 0;
+  nTauMuon   = 0;
+  
+  nGoodVertex = 0;
+  nBtags      = 0;
+  nJets       = 0;
+  nMuon       = 0;
+  nElec       = 0;
+  nLeptons    = 0;
+  
+   
+  //// READ AND SAVE OBJETS...
+  Jet.clear();
+  Lepton.clear();
+  
+  nLeptons = getSelectedLeptons();
+  nJets    = getSelectedJets();
+  nBtags   = getNBTags();
+}
+void TreeAnalysisTop::ResetOriginalObjects(){
   
   // Save original values for MET, Jets and Leptons
+  TLorentzVector j;
   for (UInt_t i=0; i<T_JetAKCHS_Et->size(); i++){    
-    JetEt[i] = T_JetAKCHS_Et->at(i);
+    j.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Px->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
+    JetEt[i]  = j.Et();
+    JetPhi[i] = j.Phi();
   }
   for (UInt_t i=0; i<T_Elec_Energy->size(); i++){
     ElPx[i] = T_Elec_Px->at(i);
@@ -393,11 +307,12 @@ void TreeAnalysisTop::InsideLoop(){
        abs(T_Gen_Chi0Mass->at(0)-1.)                    >  6.25)
       ) return;
    #endif
-
+  
   // Init data members
   //----------------------------------------------------------------------------
-  SetDataMembers();
-  
+  SetOriginalObjects();
+  SetEventObjects();
+
   // Get number of generated leptons 
   //----------------------------------------------------------------------------
 #ifdef __ISMC
@@ -452,18 +367,12 @@ void TreeAnalysisTop::InsideLoop(){
   fHDeltaRLepJet[Elec] -> Fill(minDRel);
 #endif
 
-
-  
   // Accept only events with a good vertex
   //----------------------------------------------------------------------------
   if (SelectedVertexIndex() < 0) return;
   
-  // Fill MiniTrees for further processing...
+  // Fill Yields...
   //----------------------------------------------------------------------------
-#ifdef __ISFR  
-  FillTLRatios();
-#endif
-  //       FillAnalysisTree(0);
   FillYields();
   
   // Get SS Yields...
@@ -485,106 +394,126 @@ void TreeAnalysisTop::InsideLoop(){
   if (gIsData)         return;
   if (!gDoSystStudies) return;
   
-  ResetDataMembers();
+  ////////////////////////////////////////
+  // BTAGGING SYSTEMATICS
+  ////////////////////////////////////////
+  ResetOriginalObjects();
   gSysSource = BtagUp;
+  SetEventObjects();
   FillYields(BtagUp);
-  fChargeSwitch = true;
-  FillYields(BtagUp); /// Get SS yields....
+  fChargeSwitch = true;  
+  FillYields(BtagUp); /* Get SS yields....*/  
   fChargeSwitch = false;
-
-  ResetDataMembers();
+  
+  ResetOriginalObjects();
   gSysSource = BtagDown;
+  SetEventObjects();  
   FillYields(BtagDown);
   fChargeSwitch = true;
   FillYields(BtagDown); /// Get SS yields....
   fChargeSwitch = false;
 
-  ResetDataMembers();
+  ResetOriginalObjects();
   gSysSource = MisTagUp;
+  SetEventObjects();
   FillYields(MisTagUp);
   fChargeSwitch = true;
   FillYields(MisTagUp); /// Get SS yields....
   fChargeSwitch = false;
 
-  ResetDataMembers();
+  ResetOriginalObjects();
   gSysSource = MisTagDown;
+  SetEventObjects();
   FillYields(MisTagDown);
   fChargeSwitch = true;
   FillYields(MisTagDown); /// Get SS yields....
   fChargeSwitch = false;
   
-  ResetDataMembers();
+  ////////////////////////////////////////
+  // JES/JER SYSTEMATICS
+  ////////////////////////////////////////
+  ResetOriginalObjects();
   SmearJetPts(1);
   gSysSource = JESUp;
+  SetEventObjects();
   FillYields(JESUp);
   fChargeSwitch = true;
   FillYields(JESUp); /// Get SS yields....
   fChargeSwitch = false;
   
-  ResetDataMembers();
+  ResetOriginalObjects();
   SmearJetPts(2);
   gSysSource = JESDown;
+  SetEventObjects();
   FillYields(JESDown);
   fChargeSwitch = true;
   FillYields(JESDown); /// Get SS yields....
   fChargeSwitch = false;
  
-  ResetDataMembers();
+  ResetOriginalObjects();
   SmearJetPts(3);
   gSysSource = JER;
+  SetEventObjects();
   FillYields(JER);
   fChargeSwitch = true;
   FillYields(JER); /// Get SS yields....
   fChargeSwitch = false;
-  
-  // LEPTON SCALE
-  ResetDataMembers();
+
+  /////////////////////////////////////////////////////////////
+  // LEPTON SCALE SYSTEMATICS
+  ////////////////////////////////////////////////////
+  ResetOriginalObjects();
   ScaleLeptons(1); //up
   gSysSource = LESUp;
+  SetEventObjects();
   FillYields(LESUp);
   fChargeSwitch = true;
   FillYields(LESUp); /// Get SS yields....
   fChargeSwitch = false;
 
-  ResetDataMembers();
+  ResetOriginalObjects();
   ScaleLeptons(2); //down
   gSysSource = LESDown;
+  SetEventObjects();
   FillYields(LESDown);
   fChargeSwitch = true;
   FillYields(LESDown); /// Get SS yields....
   fChargeSwitch = false;
    
-  // PILE UP UNCERTAINTY
-  ResetDataMembers();
-#ifdef __ISMC
-  PUSF = fPUWeightUp->GetWeight((int)T_Event_nTruePU);
-#endif
-  gSysSource = PUUp;
-  FillYields(PUUp);
-  
-  ResetDataMembers();
-#ifdef __ISMC
-  PUSF = fPUWeightDown->GetWeight((int)T_Event_nTruePU);
-#endif
-  gSysSource = PUDown;
-  FillYields(PUDown);
+//  // PILE UP UNCERTAINTY
+//  ResetOriginalObjects();
+//#ifdef __ISMC
+//  PUSF = fPUWeightUp->GetWeight((int)T_Event_nTruePU);
+//#endif
+//  gSysSource = PUUp;
+//  SetEventObjects();
+//  FillYields(PUUp);
+//  
+//  ResetOriginalObjects();
+//#ifdef __ISMC
+//  PUSF = fPUWeightDown->GetWeight((int)T_Event_nTruePU);
+//#endif
+//  gSysSource = PUDown;
+//  SetEventObjects();
+//  FillYields(PUDown);
   
   
   // TOP PT
-  ResetDataMembers();
+  ResetOriginalObjects();
   gSysSource = TopPtUp;
+  SetEventObjects();
   FillYields(TopPtUp);
   fChargeSwitch = true;
   FillYields(TopPtUp); /// Get SS yields....
   fChargeSwitch = false;
 
-  ResetDataMembers();
+  ResetOriginalObjects();
   gSysSource = TopPtDown;
+  SetEventObjects();
   FillYields(TopPtDown);
   fChargeSwitch = true;
   FillYields(TopPtDown); /// Get SS yields....
   fChargeSwitch = false;
-  
   //
 }// void(InsideLoop)
 //------------------------------------------------------------------------------
@@ -595,10 +524,6 @@ void TreeAnalysisTop::SetDataMembersAtTermination(){
   //  WriteHistos();
 }
 void TreeAnalysisTop::WriteHistos(){
-  WriteTLRatios();
-}
-void TreeAnalysisTop::WriteTLRatios(){
-  
 }
 //------------------------------------------------------------------------------
 // Summary
@@ -623,8 +548,10 @@ void TreeAnalysisTop::GetParameters()
   GetInputParameters()->TheNamedFloat("LumiForPU",     gLumiForPU);
   GetInputParameters()->TheNamedFloat("TotalLumi",     gTotalLumi);
   GetInputParameters()->TheNamedBool ("DoSystStudies", gDoSystStudies);
-  GetInputParameters()->TheNamedBool ("DoFR"         , gDoTLRatios);
   GetInputParameters()->TheNamedBool ("UseCSVM",       gUseCSVM);
+  GetInputParameters()->TheNamedBool ("DoSF"         , gDoSF);
+  GetInputParameters()->TheNamedBool ("DoDF"         , gDoDF);
+  
   //  GetInputParameters()->TheNamedInt("SystDirection", gSysDirection);
 }
 //-----------------------------------------------------------------------------------
@@ -635,111 +562,6 @@ void TreeAnalysisTop::ResetHypLeptons(){
   fHypLepton1 = lepton(vec, 0, -1, -1);
   fHypLepton2 = lepton(vec, 0, -1, -1);
 }
-void TreeAnalysisTop::SetHypLepton1(int index, gChannel chan){
-  TLorentzVector vec(0., 0., 0., 0.);
-  if(chan == Muon){
-    vec.SetPxPyPzE(MuPx.at(index),MuPy.at(index),T_Muon_Pz->at(index),T_Muon_Energy->at(index));
-    fHypLepton1 = lepton(vec, T_Muon_Charge->at(index), 0, index);
-  }
-  else if(chan == Elec){
-    vec.SetPxPyPzE(ElPx.at(index),ElPy.at(index),T_Elec_Pz->at(index),T_Elec_Energy->at(index));
-    fHypLepton1 = lepton(vec, T_Elec_Charge->at(index), 1, index);
-  }
-  else exit(-1);
-}
-void TreeAnalysisTop::SetHypLepton2(int index, gChannel chan){
-  TLorentzVector vec(0., 0., 0., 0.);
-  if(chan == Muon){
-    vec.SetPxPyPzE(MuPx.at(index),MuPy.at(index),T_Muon_Pz->at(index),T_Muon_Energy->at(index));
-    fHypLepton2 = lepton(vec, T_Muon_Charge->at(index), 0, index);
-  }
-  else if(chan == Elec){
-    vec.SetPxPyPzE(ElPx.at(index),ElPy.at(index),T_Elec_Pz->at(index),T_Elec_Energy->at(index));
-    fHypLepton2 = lepton(vec, T_Elec_Charge->at(index), 1, index);
-  }
-  else exit(-1);
-}
-
-void TreeAnalysisTop::ResetAnalysisTree(){
-  // Run variables
-  TEvent = -999;  
-  TLumi  = -999;   
-  TRun   = -999;    
-  
-  // Sample variables
-  TSName = "none";
-  TSType = -999; 
-  
-  // Per-Event variables
-  TSystFlag = -999; 
-  TWeight   = -999;   
-  TChannel  = -999;  
-  TTLCat    = -999;    
-  TNPV      = -999;      
-  TMET      = -999;      
-  TMET_Phi  = -999;  
-   
-  // Lepton variables
-  TNTMus   = -999;   
-  TNTEls   = -999;   
-  TNMus    = -999;    
-  TNEls    = -999;    
-  TInvMass = -999; 
-  
-  TLep0Pt   = -999;  
-  TLep0Eta  = -999; 
-  TLep0Phi  = -999; 
-  TLep0Ch   = -999;  
-  TLep0Flav = -999;
-  TLep1Pt   = -999;  
-  TLep1Eta  = -999; 
-  TLep1Phi  = -999; 
-  TLep1Ch   = -999;  
-  TLep1Flav = -999;
-
-  // Jet variables
-  TNJets     = -999;     
-  TNbJets    = -999;    
-  TNbJetsMed = -999; 
-  TNJetsBtag = -999; 
-  THT        = -999;        
-  
-  TJet0Px = -999; 
-  TJet0Py = -999; 
-  TJet0Pz = -999; 
-  TJet0Et = -999; 
-  TJet0E  = -999;  
-  TJet1Px = -999; 
-  TJet1Py = -999; 
-  TJet1Pz = -999; 
-  TJet1Et = -999; 
-  TJet1E  = -999;  
-  
-  TBtagJet0   = -999;    
-  TBtagJet1   = -999;    
-  TBtagJet0Px = -999;   
-  TBtagJet0Py = -999;   
-  TBtagJet0Pz = -999;   
-  TBtagJet0Et = -999;   
-  TBtagJet0E  = -999;    
-  TBtagJet1Px = -999;   
-  TBtagJet1Py = -999;   
-  TBtagJet1Pz = -999;   
-  TBtagJet1Et = -999;   
-  TBtagJet1E  = -999;   
-
-  // Top pT reweight
-  TtPx = -999;     
-  TtPy = -999;     
-  TtPz = -999;     
-  TtE  = -999;     
-  TtbarPx = -999;  
-  TtbarPy = -999;  
-  TtbarPz = -999;  
-  TtbarE  = -999;   
-
-}
-
 //------------------------------------------------------------------------------
 // SelectedVertexIndex
 //------------------------------------------------------------------------------
@@ -784,217 +606,24 @@ bool TreeAnalysisTop::PassTriggerEMu()
   if (T_Event_RunNumber==191090 ||  T_Event_RunNumber==193112 || T_Event_RunNumber==193116) pass=false; 
   return pass;
 }
-bool TreeAnalysisTop::PassSingleMuTrigger(){
-  if (!gIsData) return true;
-  bool passMu8(false),passMu17(false);
-#ifdef __ISFR
-   passMu8  = (T_HLT_Mu8_v16  || 
-	       T_HLT_Mu8_v17  || 
-	       T_HLT_Mu8_v18);
-   
-   passMu17 = (T_HLT_Mu17_v3  ||
-	       T_HLT_Mu17_v4  ||
-	       T_HLT_Mu17_v5);
-#endif
-  return (passMu8 || passMu17);
-}
-bool TreeAnalysisTop::PassSingleElTrigger(){
-  if (!gIsData) return true;
-  bool passEl8(false), passEl17(false);
-#ifdef __ISFR
-  passEl8  = (T_HLT_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v ||
-	      T_HLT_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Jet30_v);
-  passEl17 = (T_HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v ||
-	      T_HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Jet30_v);
-#endif
-  return (passEl8 || passEl17);
-}
-bool TreeAnalysisTop::PassesJetPtdPhiCut(){
-  
-  vector<int> jetinds;
-  for(unsigned int i = 0; i < T_JetAKCHS_Px->size(); ++i) {
-    if(IsGoodJet(i, 50) ) {
-      jetinds.push_back(i);
-    }
-  }
-  if (jetinds.size() != 1) return false;
-  
-  TLorentzVector jet(T_JetAKCHS_Px    ->at(jetinds[0]),
-		     T_JetAKCHS_Py    ->at(jetinds[0]),
-		     T_JetAKCHS_Pz    ->at(jetinds[0]),
-		     T_JetAKCHS_Energy->at(jetinds[0]));
-  
-  
-  float dphi = jet.DeltaPhi(fHypLepton1.p);
-  if (fabs(dphi) > 2.) return true;
-
-  return false; 
-}
-
-//------------------------------------------------------------------------------
-// SELECTORS
-//------------------------------------------------------------------------------
-int TreeAnalysisTop::HasLooseMuons(int &mu1, int &mu2){
-  // Returns the number of loose muons and fills their indices in mu1 and mu2
-  // Assumes the muons are sorted by pt in the minitree
-  
-  vector<int> loosemus;
-  mu1 = -1;  mu2 = -1;
-  for(unsigned int i = 0; i < T_Muon_Energy->size(); ++i) if(IsLooseMuon(i)) loosemus.push_back(i);
-  if(loosemus.size() > 0) mu1 = loosemus[0];
-  if(loosemus.size() > 1) mu2 = loosemus[1];
-  return loosemus.size();
-}
-int TreeAnalysisTop::HasLooseMuons(){
-  int ind1(-1), ind2(-1);
-  return HasLooseMuons(ind1, ind2);
-}
-int TreeAnalysisTop::HasLooseElectrons(int &el1, int &el2){
-  // Returns the number of loose electrons and fills their indices in el1 and el2
-  // Assumes the electrons are sorted by pt in the minitree
-  vector<int> looseels;
-  el1 = -1;  el2 = -1;
-  for(unsigned int i = 0; i < T_Elec_Energy->size(); ++i) if(IsLooseElectron(i)) looseels.push_back(i);
-  if(looseels.size() > 0) el1 = looseels[0];
-  if(looseels.size() > 1) el2 = looseels[1];
-  return looseels.size();
-}
-int TreeAnalysisTop::HasLooseElectrons(){
-  int ind1(-1), ind2(-1);
-  return HasLooseElectrons(ind1, ind2);
-}
-bool TreeAnalysisTop::IsSigSupMuEvent(int &mu1){
-  int mu2(-1);
-  if(HasLooseMuons(mu1, mu2) < 1) return false;
-  
-  SetHypLepton1(mu1, Muon);
-  if(!PassesJetPtdPhiCut())  return false;
-  if(getMT(mu1,Muon) > 20.)  return false;
-  if(getMET()        > 20.)  return false;
-  
-  int nmus(0);
-  for (unsigned int i=0; i< T_Muon_Energy->size(); ++i){
-    if (IsLooseMuon(i)) nmus++;
-  }
-  
-  if (nmus > 1)                   return false;
-  if (T_Muon_Energy->size() > 1)  return false;
-  
-  return true;
-}
-bool TreeAnalysisTop::IsSigSupElEvent(int &el1){
-  int el2(-1);
-  if(HasLooseElectrons(el1, el2) < 1) return false;
-  
-  SetHypLepton1(el1, Elec);
-  if(!PassesJetPtdPhiCut())  return false;
-  if(getMT(el1,Elec) > 20.)  return false;
-  if(getMET()        > 20.)  return false;
-  
-  int nels(0);
-  for (unsigned int i=0; i< T_Elec_Energy->size(); ++i){
-    if (IsLooseElectron(i)) nels++;
-  }
-  
-  if (nels > 1)                   return false;
-  if (T_Elec_Energy->size() > 1)  return false;
-  
-  return true;
-}
-bool TreeAnalysisTop::IsZMuMuEvent(int &mu1, int &mu2){
-  if(HasLooseMuons(mu1, mu2) < 2)  return false;
-  if(T_Muon_Charge->at(mu1) == T_Muon_Charge->at(mu2)) return false; // os
-  
-  // Z mass window cut
-  TLorentzVector p1, p2;
-  p1.SetPxPyPzE(MuPx.at(mu1), MuPy.at(mu1), T_Muon_Pz->at(mu1), T_Muon_Energy->at(mu1));
-  p2.SetPxPyPzE(MuPx.at(mu2), MuPy.at(mu2), T_Muon_Pz->at(mu2), T_Muon_Energy->at(mu2));
-  
-  double m = (p1+p2).M();
-  if(fabs(91. - m) > 15.) return false;
-  
-  SetHypLepton1(mu1, Muon);
-  SetHypLepton2(mu2, Muon);
-  
-  if(getMET() < 20.) return false;
-  if(getNJets() < 2) return false;
-  return true;
-}
-bool TreeAnalysisTop::IsZElElEvent(int &el1, int &el2){
-  if(HasLooseElectrons(el1, el2) < 2)  return false;
-  if(T_Elec_Charge[el1] == T_Elec_Charge[el2]) return false; // os
-  
-  // Z mass window cut
-  TLorentzVector p1, p2;
-  p1.SetPxPyPzE(ElPx.at(el1), ElPy.at(el1), T_Elec_Pz->at(el1), T_Elec_Energy->at(el1));
-  p2.SetPxPyPzE(ElPx.at(el2), ElPy.at(el2), T_Elec_Pz->at(el2), T_Elec_Energy->at(el2));
-  
-  double m = (p1+p2).M();
-  if(fabs(91. - m) > 15.) return false;
-  
-  SetHypLepton1(el1, Elec);
-  SetHypLepton2(el2, Elec);
-  
-  if(getMET() < 20.) return false;
-  if(getNJets() < 2) return false;
-  return true;
-}
 //////////////////////////////////////////////////////////////////
 /// Get METHODS
 /////////////////////////////////////////////////////////////////
 float TreeAnalysisTop::getHT(){
   float ht(0);
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) if(IsGoodJet(i,gJetEtCut)) ht+=JetEt.at(i);
-  
+  for (unsigned int i=0; i<Jet.size(); i++) ht+=Jet[i].p.Pt();
   return ht;
 }
 float TreeAnalysisTop::getJetPtIndex(unsigned int ind){
-  vector<float> jetpt;
-
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) 
-    if(IsGoodJet(i,gJetEtCut)) jetpt.push_back(JetEt.at(i));
-  
-  if (jetpt.size() <= ind) return -999.;
-  
-  return jetpt[ind];
+  if (Jet.size() <= ind) return -999.;
+  return Jet[ind].p.Pt();
 }
 float TreeAnalysisTop::getBtagJetPtIndex(unsigned int ind){
-  vector<float> jetpt;
-  
-  int btagSys = 0;
-    
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++){ 
-    if (!IsGoodJet(i,gJetEtCut))                                   continue;
-        
-    if(gIsData  && !(fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),-999999, JetEt.at(i), 
-				       T_JetAKCHS_Eta->at(i), btagSys))) continue;
-
-    // Split btag-efficiency and mistag-rate
-    if(!gIsData) {
-      if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) == 5 || TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) == 4){
-	if (gSysSource == BtagUp)     btagSys =  1;
-	if (gSysSource == BtagDown)   btagSys = -1;
-	if (gSysSource == MisTagUp)   btagSys =  0;
-	if (gSysSource == MisTagDown) btagSys =  0;
-      }
-      if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 5 || TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 4){
-	if (gSysSource == BtagUp)     btagSys =  0;
-	if (gSysSource == BtagDown)   btagSys =  0;
-	if (gSysSource == MisTagUp)   btagSys =  1;
-	if (gSysSource == MisTagDown) btagSys = -1;
-      }
-    }
-
-    if(!gIsData && !(fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),T_JetAKCHS_Parton_Flavour->at(i), 
-				       JetEt.at(i), T_JetAKCHS_Eta->at(i), btagSys))) continue;
-
-    jetpt.push_back(JetEt.at(i));
-    
-  }
-
-  if (jetpt.size() <= ind) return -999.;
-  
-  return jetpt[ind];
+  if (Jet.size() <= ind) return -999.;
+  Int_t btagInd = 0;
+  if (ind==0) btagInd = getLeadingJetbTag();
+  else  return -999.;
+  return Jet[btagInd].p.Pt();
 }
 float TreeAnalysisTop::getMT(int ind, gChannel chan){
   // Calculates MT
@@ -1080,52 +709,6 @@ float TreeAnalysisTop::getLeptonError(gChannel chan){
   }
   return TMath::Sqrt(err1*err1+err2*err2);
 }
-//  if (chan==Muon){
-//    err1 = 0.0054;
-//    err2 = 0.0054;
-//  }
-//  if (chan==ElMu){
-//    err1 = 0.0054;
-//    if (TMath::Abs(fHypLepton2.p.Eta()) < 1.5){
-//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.014;
-//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0028;
-//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0014;
-//      else                                                          err2 = 0.0041;
-//    }
-//    else {
-//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.022;
-//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0059;
-//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0030;
-//      else                                                          err2 = 0.0053;
-//    }
-//  }
-//  if (chan==Elec){
-//    if (TMath::Abs(fHypLepton1.p.Eta()) < 1.5){
-//      if      (fHypLepton1.p.Pt() < 30)                             err1 = 0.014;
-//      else if (fHypLepton1.p.Pt() >= 30 && fHypLepton1.p.Pt() < 40) err1 = 0.0028;
-//      else if (fHypLepton1.p.Pt() >= 40 && fHypLepton1.p.Pt() < 50) err1 = 0.0014;
-//      else                                                          err1 = 0.0041;
-//    }
-//    else {
-//      if      (fHypLepton1.p.Pt() < 30)                             err1 = 0.022;
-//      else if (fHypLepton1.p.Pt() >= 30 && fHypLepton1.p.Pt() < 40) err1 = 0.0059;
-//      else if (fHypLepton1.p.Pt() >= 40 && fHypLepton1.p.Pt() < 50) err1 = 0.0030;
-//      else                                                          err1 = 0.0053;
-//    }
-//
-//    if (TMath::Abs(fHypLepton2.p.Eta()) < 1.5){
-//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.014;
-//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0028;
-//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0014;
-//      else                                                          err2 = 0.0041;
-//    }
-//    else {
-//      if      (fHypLepton2.p.Pt() < 30)                             err2 = 0.022;
-//      else if (fHypLepton2.p.Pt() >= 30 && fHypLepton2.p.Pt() < 40) err2 = 0.0059;
-//      else if (fHypLepton2.p.Pt() >= 40 && fHypLepton2.p.Pt() < 50) err2 = 0.0030;
-//      else                                                          err2 = 0.0053;
-//    }
-//  }
 float TreeAnalysisTop::getTriggerError(gChannel chan){
   float trig(0.);
   int ind1 = fHypLepton1.index; 
@@ -1188,45 +771,39 @@ float TreeAnalysisTop::getTopPtSF(){
 void TreeAnalysisTop::FillDYHistograms(){
   float Mll = 0.;
   int ind1(-1),ind2(-1);
-  if (PassTriggerEMu()  && IsElMuEvent(ind1,ind2)){
+  if (PassTriggerEMu()  && IsElMuEvent()){
     // Define Hypothesis Leptons...
-    SetHypLepton1(ind1, Muon);
-    SetHypLepton2(ind2, Elec);
-    if (IsTightMuon(ind1) && IsTightElectron(ind2)){
-      EventWeight = gWeight * getSF(ElMu,ind1,ind2);
-      cout << EventWeight << endl;
-     
-
-      Mll = (fHypLepton1.p+fHypLepton2.p).M();
+    EventWeight = gWeight * getSF(ElMu,ind1,ind2);
+    
+    Mll = (fHypLepton1.p+fHypLepton2.p).M();
+    
+    if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
+      fHDY_InvMassVsNPV   [ElMu][iDilepton]->Fill(nGoodVertex, Mll, EventWeight);
+      fHDY_InvMassVsMET   [ElMu][iDilepton]->Fill(getMET()   , Mll, EventWeight);
+      fHDY_InvMassVsNjets [ElMu][iDilepton]->Fill(getNJets() , Mll, EventWeight);
+      fHDY_InvMassVsNbtags[ElMu][iDilepton]->Fill(getNBTags(), Mll, EventWeight);
+      fHDY_InvMass        [ElMu][iDilepton]->Fill(             Mll, EventWeight);
       
-      if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
-	fHDY_InvMassVsNPV   [ElMu][iDilepton]->Fill(nGoodVertex, Mll, EventWeight);
-	fHDY_InvMassVsMET   [ElMu][iDilepton]->Fill(getMET()   , Mll, EventWeight);
-	fHDY_InvMassVsNjets [ElMu][iDilepton]->Fill(getNJets() , Mll, EventWeight);
-	fHDY_InvMassVsNbtags[ElMu][iDilepton]->Fill(getNBTags(), Mll, EventWeight);
-	fHDY_InvMass        [ElMu][iDilepton]->Fill(             Mll, EventWeight);
+      if (PassesNJetsCut()) {
+	fHDY_InvMassVsNPV   [ElMu][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
+	fHDY_InvMassVsMET   [ElMu][i2jets]->Fill(getMET()   , Mll, EventWeight);
+	fHDY_InvMassVsNjets [ElMu][i2jets]->Fill(getNJets() , Mll, EventWeight);
+	fHDY_InvMassVsNbtags[ElMu][i2jets]->Fill(getNBTags(), Mll, EventWeight);
+	fHDY_InvMass        [ElMu][i2jets]->Fill(             Mll, EventWeight);
 	
-	if (PassesNJetsCut()) {
-	  fHDY_InvMassVsNPV   [ElMu][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
-	  fHDY_InvMassVsMET   [ElMu][i2jets]->Fill(getMET()   , Mll, EventWeight);
-	  fHDY_InvMassVsNjets [ElMu][i2jets]->Fill(getNJets() , Mll, EventWeight);
-	  fHDY_InvMassVsNbtags[ElMu][i2jets]->Fill(getNBTags(), Mll, EventWeight);
-	  fHDY_InvMass        [ElMu][i2jets]->Fill(             Mll, EventWeight);
-
-	  if (PassesMETCut())   {
-	    fHDY_InvMassVsNPV   [ElMu][iMET]->Fill(nGoodVertex, Mll, EventWeight);
-	    fHDY_InvMassVsMET   [ElMu][iMET]->Fill(getMET()   , Mll, EventWeight);
-	    fHDY_InvMassVsNjets [ElMu][iMET]->Fill(getNJets() , Mll, EventWeight);
-	    fHDY_InvMassVsNbtags[ElMu][iMET]->Fill(getNBTags(), Mll, EventWeight);
-	    fHDY_InvMass        [ElMu][iMET]->Fill(             Mll, EventWeight);
-	    
-	    if (PassesNBtagCut()) {
-	      fHDY_InvMassVsNPV   [ElMu][i1btag]->Fill(nGoodVertex, Mll, EventWeight);
-	      fHDY_InvMassVsMET   [ElMu][i1btag]->Fill(getMET()   , Mll, EventWeight);
-	      fHDY_InvMassVsNjets [ElMu][i1btag]->Fill(getNJets() , Mll, EventWeight);
-	      fHDY_InvMassVsNbtags[ElMu][i1btag]->Fill(getNBTags(), Mll, EventWeight);
-	      fHDY_InvMass        [ElMu][i1btag]->Fill(             Mll, EventWeight);
-	    }
+	if (PassesMETCut())   {
+	  fHDY_InvMassVsNPV   [ElMu][iMET]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [ElMu][iMET]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [ElMu][iMET]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[ElMu][iMET]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [ElMu][iMET]->Fill(             Mll, EventWeight);
+	  
+	  if (PassesNBtagCut()) {
+	    fHDY_InvMassVsNPV   [ElMu][i1btag]->Fill(nGoodVertex, Mll, EventWeight);
+	    fHDY_InvMassVsMET   [ElMu][i1btag]->Fill(getMET()   , Mll, EventWeight);
+	    fHDY_InvMassVsNjets [ElMu][i1btag]->Fill(getNJets() , Mll, EventWeight);
+	    fHDY_InvMassVsNbtags[ElMu][i1btag]->Fill(getNBTags(), Mll, EventWeight);
+	    fHDY_InvMass        [ElMu][i1btag]->Fill(             Mll, EventWeight);
 	  }
 	}
       }
@@ -1234,42 +811,38 @@ void TreeAnalysisTop::FillDYHistograms(){
   }
   
   ResetHypLeptons(); 
-  if (PassTriggerMuMu() && IsMuMuEvent(ind1,ind2)){
-    SetHypLepton1(ind1, Muon);
-    SetHypLepton2(ind2, Muon);
+  if (PassTriggerMuMu() && IsMuMuEvent()){
     
-    if (IsTightMuon(ind1) && IsTightMuon(ind2)){
-      EventWeight = gWeight * getSF(Muon,ind1,ind2);
-      Mll = (fHypLepton1.p+fHypLepton2.p).M();
+    EventWeight = gWeight * getSF(Muon,ind1,ind2);
+    Mll = (fHypLepton1.p+fHypLepton2.p).M();
+    
+    if (PassesMllVeto() && PassesMuonEta2p1(Muon) && Passes3rdLeptonVeto()){
+      fHDY_InvMassVsNPV   [Muon][iDilepton]->Fill(nGoodVertex, Mll, EventWeight);
+      fHDY_InvMassVsMET   [Muon][iDilepton]->Fill(getMET()   , Mll, EventWeight);
+      fHDY_InvMassVsNjets [Muon][iDilepton]->Fill(getNJets() , Mll, EventWeight);
+      fHDY_InvMassVsNbtags[Muon][iDilepton]->Fill(getNBTags(), Mll, EventWeight);
+      fHDY_InvMass        [Muon][iDilepton]->Fill(             Mll, EventWeight);
       
-      if (PassesMllVeto() && PassesMuonEta2p1(Muon) && Passes3rdLeptonVeto()){
-	fHDY_InvMassVsNPV   [Muon][iDilepton]->Fill(nGoodVertex, Mll, EventWeight);
-	fHDY_InvMassVsMET   [Muon][iDilepton]->Fill(getMET()   , Mll, EventWeight);
-	fHDY_InvMassVsNjets [Muon][iDilepton]->Fill(getNJets() , Mll, EventWeight);
-	fHDY_InvMassVsNbtags[Muon][iDilepton]->Fill(getNBTags(), Mll, EventWeight);
-	fHDY_InvMass        [Muon][iDilepton]->Fill(             Mll, EventWeight);
+      if (PassesNJetsCut()) {
+	fHDY_InvMassVsNPV   [Muon][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
+	fHDY_InvMassVsMET   [Muon][i2jets]->Fill(getMET()   , Mll, EventWeight);
+	fHDY_InvMassVsNjets [Muon][i2jets]->Fill(getNJets() , Mll, EventWeight);
+	fHDY_InvMassVsNbtags[Muon][i2jets]->Fill(getNBTags(), Mll, EventWeight);
+	fHDY_InvMass        [Muon][i2jets]->Fill(             Mll, EventWeight);
 	
-	if (PassesNJetsCut()) {
-	  fHDY_InvMassVsNPV   [Muon][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
-	  fHDY_InvMassVsMET   [Muon][i2jets]->Fill(getMET()   , Mll, EventWeight);
-	  fHDY_InvMassVsNjets [Muon][i2jets]->Fill(getNJets() , Mll, EventWeight);
-	  fHDY_InvMassVsNbtags[Muon][i2jets]->Fill(getNBTags(), Mll, EventWeight);
-	  fHDY_InvMass        [Muon][i2jets]->Fill(             Mll, EventWeight);
+	if (PassesMETCut())   {
+	  fHDY_InvMassVsNPV   [Muon][iMET]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [Muon][iMET]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [Muon][iMET]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[Muon][iMET]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [Muon][iMET]->Fill(             Mll, EventWeight);
 	  
-	  if (PassesMETCut())   {
-	    fHDY_InvMassVsNPV   [Muon][iMET]->Fill(nGoodVertex, Mll, EventWeight);
-	    fHDY_InvMassVsMET   [Muon][iMET]->Fill(getMET()   , Mll, EventWeight);
-	    fHDY_InvMassVsNjets [Muon][iMET]->Fill(getNJets() , Mll, EventWeight);
-	    fHDY_InvMassVsNbtags[Muon][iMET]->Fill(getNBTags(), Mll, EventWeight);
-	    fHDY_InvMass        [Muon][iMET]->Fill(             Mll, EventWeight);
-	    
-	    if (PassesNBtagCut()) {
-	      fHDY_InvMassVsNPV   [Muon][i1btag]->Fill(nGoodVertex, Mll, EventWeight);
-	      fHDY_InvMassVsMET   [Muon][i1btag]->Fill(getMET()   , Mll, EventWeight);
-	      fHDY_InvMassVsNjets [Muon][i1btag]->Fill(getNJets() , Mll, EventWeight);
-	      fHDY_InvMassVsNbtags[Muon][i1btag]->Fill(getNBTags(), Mll, EventWeight);
-	      fHDY_InvMass        [Muon][i1btag]->Fill(             Mll, EventWeight);
-	    }
+	  if (PassesNBtagCut()) {
+	    fHDY_InvMassVsNPV   [Muon][i1btag]->Fill(nGoodVertex, Mll, EventWeight);
+	    fHDY_InvMassVsMET   [Muon][i1btag]->Fill(getMET()   , Mll, EventWeight);
+	    fHDY_InvMassVsNjets [Muon][i1btag]->Fill(getNJets() , Mll, EventWeight);
+	    fHDY_InvMassVsNbtags[Muon][i1btag]->Fill(getNBTags(), Mll, EventWeight);
+	    fHDY_InvMass        [Muon][i1btag]->Fill(             Mll, EventWeight);
 	  }
 	}
       }
@@ -1277,42 +850,37 @@ void TreeAnalysisTop::FillDYHistograms(){
   }
 
   ResetHypLeptons(); 
-  if (PassTriggerEE()   && IsElElEvent(ind1,ind2)){
-    SetHypLepton1(ind1, Elec);
-    SetHypLepton2(ind2, Elec);
+  if (PassTriggerEE()   && IsElElEvent()){
+    EventWeight = gWeight * getSF(Elec,ind1,ind2);
+    Mll = (fHypLepton1.p+fHypLepton2.p).M();
     
-    if (IsTightElectron(ind1) && IsTightElectron(ind2)){
-      EventWeight = gWeight * getSF(Elec,ind1,ind2);
-      Mll = (fHypLepton1.p+fHypLepton2.p).M();
+    if (PassesMllVeto() && PassesMuonEta2p1(Elec) && Passes3rdLeptonVeto()){
+      fHDY_InvMassVsNPV   [Elec][iDilepton]->Fill(nGoodVertex, Mll, EventWeight);
+      fHDY_InvMassVsMET   [Elec][iDilepton]->Fill(getMET()   , Mll, EventWeight);
+      fHDY_InvMassVsNjets [Elec][iDilepton]->Fill(getNJets() , Mll, EventWeight);
+      fHDY_InvMassVsNbtags[Elec][iDilepton]->Fill(getNBTags(), Mll, EventWeight);
+      fHDY_InvMass        [Elec][iDilepton]->Fill(             Mll, EventWeight);
       
-      if (PassesMllVeto() && PassesMuonEta2p1(Elec) && Passes3rdLeptonVeto()){
-	fHDY_InvMassVsNPV   [Elec][iDilepton]->Fill(nGoodVertex, Mll, EventWeight);
-	fHDY_InvMassVsMET   [Elec][iDilepton]->Fill(getMET()   , Mll, EventWeight);
-	fHDY_InvMassVsNjets [Elec][iDilepton]->Fill(getNJets() , Mll, EventWeight);
-	fHDY_InvMassVsNbtags[Elec][iDilepton]->Fill(getNBTags(), Mll, EventWeight);
-	fHDY_InvMass        [Elec][iDilepton]->Fill(             Mll, EventWeight);
+      if (PassesNJetsCut()) {
+	fHDY_InvMassVsNPV   [Elec][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
+	fHDY_InvMassVsMET   [Elec][i2jets]->Fill(getMET()   , Mll, EventWeight);
+	fHDY_InvMassVsNjets [Elec][i2jets]->Fill(getNJets() , Mll, EventWeight);
+	fHDY_InvMassVsNbtags[Elec][i2jets]->Fill(getNBTags(), Mll, EventWeight);
+	fHDY_InvMass        [Elec][i2jets]->Fill(             Mll, EventWeight);
 	
-	if (PassesNJetsCut()) {
-	  fHDY_InvMassVsNPV   [Elec][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
-	  fHDY_InvMassVsMET   [Elec][i2jets]->Fill(getMET()   , Mll, EventWeight);
-	  fHDY_InvMassVsNjets [Elec][i2jets]->Fill(getNJets() , Mll, EventWeight);
-	  fHDY_InvMassVsNbtags[Elec][i2jets]->Fill(getNBTags(), Mll, EventWeight);
-	  fHDY_InvMass        [Elec][i2jets]->Fill(             Mll, EventWeight);
-
-	  if (PassesMETCut())   {
-	    fHDY_InvMassVsNPV   [Elec][iMET]->Fill(nGoodVertex, Mll, EventWeight);
-	    fHDY_InvMassVsMET   [Elec][iMET]->Fill(getMET()   , Mll, EventWeight);
-	    fHDY_InvMassVsNjets [Elec][iMET]->Fill(getNJets() , Mll, EventWeight);
-	    fHDY_InvMassVsNbtags[Elec][iMET]->Fill(getNBTags(), Mll, EventWeight);
-	    fHDY_InvMass        [Elec][iMET]->Fill(             Mll, EventWeight);
-	    
-	    if (PassesNBtagCut()) {
-	      fHDY_InvMassVsNPV   [Elec][i1btag]->Fill(nGoodVertex, Mll, EventWeight);
-	      fHDY_InvMassVsMET   [Elec][i1btag]->Fill(getMET()   , Mll, EventWeight);
-	      fHDY_InvMassVsNjets [Elec][i1btag]->Fill(getNJets() , Mll, EventWeight);
-	      fHDY_InvMassVsNbtags[Elec][i1btag]->Fill(getNBTags(), Mll, EventWeight);
-	      fHDY_InvMass        [Elec][i1btag]->Fill(             Mll, EventWeight);
-	    }
+	if (PassesMETCut())   {
+	  fHDY_InvMassVsNPV   [Elec][iMET]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [Elec][iMET]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [Elec][iMET]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[Elec][iMET]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [Elec][iMET]->Fill(             Mll, EventWeight);
+	  
+	  if (PassesNBtagCut()) {
+	    fHDY_InvMassVsNPV   [Elec][i1btag]->Fill(nGoodVertex, Mll, EventWeight);
+	    fHDY_InvMassVsMET   [Elec][i1btag]->Fill(getMET()   , Mll, EventWeight);
+	    fHDY_InvMassVsNjets [Elec][i1btag]->Fill(getNJets() , Mll, EventWeight);
+	    fHDY_InvMassVsNbtags[Elec][i1btag]->Fill(getNBTags(), Mll, EventWeight);
+	    fHDY_InvMass        [Elec][i1btag]->Fill(             Mll, EventWeight);
 	  }
 	}
       }
@@ -1321,10 +889,15 @@ void TreeAnalysisTop::FillDYHistograms(){
   ResetHypLeptons();
 }
 void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
+#ifdef DEBUG
+  cout << "Filling KinematicHistos("<<chan<<","<<cut<<")... ";
+  cout << fHypLepton1.index << " , " << fHypLepton2.index << endl;
+#endif
+  
   if (gSysSource != Norm)      return;  //only fill histograms for nominal distributions...
   if (fChargeSwitch == true  ) return;
-  if (fHypLepton1.index == -1) return;
-  if (fHypLepton2.index == -1) return;
+  //  if (fHypLepton1.index == -1) return;
+  //  if (fHypLepton2.index == -1) return;
   
   //++ met info
   fHMET[chan][cut]        ->Fill(getMET(),                                EventWeight);
@@ -1350,10 +923,11 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
 //  if (njets == 3) fHNBtagsNJets[chan][cut][0]->Fill(getNBTags()+10,          EventWeight);
 //  if (njets >= 4) fHNBtagsNJets[chan][cut][0]->Fill(getNBTags()+15,          EventWeight);
 
-//  if (njets > 0)
-//  fHCSVTag[chan][cut] ->Fill(T_JetAKCHS_Tag_CombSVtx->at(getLeadingJet()), EventWeight);
-  if (njets > 1)
-    fHCSVTag[chan][cut] ->Fill(T_JetAKCHS_Tag_CombSVtx->at(getSecondLeadingJet()), EventWeight);
+  int ib = getLeadingJetbTag();
+  if (ib>=0)
+    fHCSVTag[chan][cut] ->Fill(T_JetAKCHS_Tag_CombSVtx->at(ib), EventWeight);
+//  if (njets > 1)
+//    fHCSVTag[chan][cut] ->Fill(T_JetAKCHS_Tag_CombSVtx->at(Jet[1].index), EventWeight);
 
   fHTopD[chan][cut] ->Fill(getTopD(), EventWeight);
   fHDelPhillJet[chan][cut]->Fill(getDeltaPhillJet(), EventWeight);
@@ -1380,8 +954,8 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
     fHDPhiLep1Jet[chan][cut]  ->Fill(getDPhiClosestJet(fHypLepton2.p), EventWeight);
   }
 
-  //  fHAbsDelPhiLep[chan][cut]->Fill(abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p))), EventWeight);
   fHAbsDelPhiLep[chan][cut] ->Fill(TMath::Abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p)))/TMath::Pi(), EventWeight);
+  fHvertices[chan][cut]     ->Fill(nGoodVertex, EventWeight);
 #ifdef __ISSTOP  
   if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter"){
     for (size_t t=0; t<T_Gen_StopMass->size(); t++)
@@ -1393,9 +967,14 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
 				     T_Gen_Chi0Mass->at(0), EventWeight);
   }
 #endif
-
+#ifdef DEBUG
+  cout << " DONE!" << endl;
+#endif
 }
 void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sys){
+#ifdef DEBUG
+  cout << "FillYieldsHistograms("<<chan<<","<<cut<<","<<sys<<")...";
+#endif
   if (fChargeSwitch){   fHSSyields[chan][sys]->Fill(cut, EventWeight);  }
   else {                fHyields[chan][sys]  ->Fill(cut, EventWeight);  }
   
@@ -1428,79 +1007,105 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
 //    else               fHOrigins[chan][cut]  ->Fill();
     
   }
+#ifdef DEBUG
+  cout << " DONE! " << endl;
+#endif
   return;
 }
 void TreeAnalysisTop::FillYields(gSystFlag sys){
-  ResetHypLeptons();
-  
+#ifdef DEBUG
+  cout << "FillYields("<<sys<<")... ";
+#endif
+  ResetHypLeptons();  
   int ind1(-1),ind2(-1);
-  if (PassTriggerEMu()  && IsElMuEvent(ind1,ind2)){
+  if (gDoDF && PassTriggerEMu()  && IsElMuEvent()){
     // Define Hypothesis Leptons...
-    SetHypLepton1(ind1, Muon);
-    SetHypLepton2(ind2, Elec);
-    if (IsTightMuon(ind1) && IsTightElectron(ind2)){
-      EventWeight = gWeight * getSF(ElMu,ind1,ind2) * getTopPtSF();
-      hWeight -> Fill(EventWeight,1.);
-#ifdef __ISSTOP
-      if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
-	EventWeight = EventWeight * T_Gen_polWeights->at(10);
+    EventWeight = gWeight * getSF(ElMu,ind1,ind2) * getTopPtSF();
+    hWeight -> Fill(EventWeight,1.);
+#ifdef DEBUG
+  cout << " pass trigger + emu, ";
 #endif
-     if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
-	FillYieldsHistograms(ElMu, iDilepton, sys);
-	if(sys==Norm) FillKinematicHistos(ElMu,iDilepton);
 
-	FillYieldsHistograms(ElMu, iZVeto, sys);      
-	if(sys==Norm) FillKinematicHistos(ElMu, iZVeto);
-	
-	FillYieldsHistograms(ElMu, iMET, sys);      
-	if(sys==Norm) FillKinematicHistos(ElMu,iMET);
-	
-	if (PassesNJetsCut()) {
-	  FillYieldsHistograms(ElMu, i2jets, sys);      
-	  if(sys==Norm) FillKinematicHistos(ElMu,i2jets);
-	  if (PassesNBtagCut()) {
-	    FillYieldsHistograms(ElMu, i1btag, sys);      
-	    if(sys==Norm) FillKinematicHistos(ElMu,i1btag);
-	  }
+#ifdef __ISSTOP
+    if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
+      EventWeight = EventWeight * T_Gen_polWeights->at(10);
+#endif
+#ifdef __ISMCNLO
+    // 0.115 = Fraction events with negative weight
+    EventWeight = EventWeight * T_Event_weight /(abs(T_Event_weight)*(1.-2.*0.115)); 
+#endif
+
+    if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
+#ifdef DEBUG
+      cout << " pass mll, ";
+#endif
+      FillYieldsHistograms(ElMu, iDilepton, sys);
+      if(sys==Norm) FillKinematicHistos(ElMu,iDilepton);
+      
+      FillYieldsHistograms(ElMu, iZVeto, sys);      
+      if(sys==Norm) FillKinematicHistos(ElMu, iZVeto);
+      
+      FillYieldsHistograms(ElMu, iMET, sys);      
+      if(sys==Norm) FillKinematicHistos(ElMu,iMET);
+      
+      if (PassesNJetsCut()) {
+#ifdef DEBUG
+	cout << " pass njets with njets = "<<getNJets()<<", ";
+#endif
+	FillYieldsHistograms(ElMu, i2jets, sys);      
+	if(sys==Norm) FillKinematicHistos(ElMu,i2jets);
+	if (PassesNBtagCut()) {
+#ifdef DEBUG
+	  cout << " pass nbjets with nbtags = "<<getNBTags()<<", ";
+#endif
+	  FillYieldsHistograms(ElMu, i1btag, sys);      
+	  if(sys==Norm) FillKinematicHistos(ElMu,i1btag);
 	}
-	if (getNBTags() == 1){
-	  FillYieldsHistograms(ElMu, iExact1btag, sys);      
-	  if(sys==Norm) FillKinematicHistos(ElMu,iExact1btag);
-	}
-	if (getNBTags() == 2){
-	  FillYieldsHistograms(ElMu, iExact2btag, sys);      
-	  if(sys==Norm) FillKinematicHistos(ElMu,iExact2btag);
-	}
+      }
+      if (getNBTags() == 1){
+#ifdef DEBUG
+	cout << " pass nbjets=1";
+#endif
+	FillYieldsHistograms(ElMu, iExact1btag, sys);      
+	if(sys==Norm) FillKinematicHistos(ElMu,iExact1btag);
+      }
+      if (getNBTags() == 2){
+#ifdef DEBUG
+	cout << " pass nbjets=2";
+#endif
+	FillYieldsHistograms(ElMu, iExact2btag, sys);      
+	if(sys==Norm) FillKinematicHistos(ElMu,iExact2btag);
       }
     }
   }
+  //  if(!gDoSF) return;
   
   ResetHypLeptons(); 
-  if (PassTriggerMuMu() && IsMuMuEvent(ind1,ind2)){
-    SetHypLepton1(ind1, Muon);
-    SetHypLepton2(ind2, Muon);
-    if (IsTightMuon(ind1) && IsTightMuon(ind2)){
-      EventWeight = gWeight * getSF(Muon,ind1,ind2)  * getTopPtSF();
+  if (gDoSF && PassTriggerMuMu() && IsMuMuEvent()){
+    EventWeight = gWeight * getSF(Muon,ind1,ind2)  * getTopPtSF();
 #ifdef __ISSTOP
-      if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
-	EventWeight = EventWeight * T_Gen_polWeights->at(10);
+    if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
+      EventWeight = EventWeight * T_Gen_polWeights->at(10);
 #endif
-      if (PassesMllVeto() && PassesMuonEta2p1(Muon) && Passes3rdLeptonVeto()){
-	FillYieldsHistograms(Muon,iDilepton, sys);
-	if(sys==Norm) FillKinematicHistos(Muon,iDilepton);
-	if (PassesZVeto())    {
-	  FillYieldsHistograms(Muon,iZVeto, sys);      
-	  if(sys==Norm) FillKinematicHistos(Muon,iZVeto);
-	  if (PassesMETCut())   {
-	    FillYieldsHistograms(Muon,iMET, sys);      
-	    if(sys==Norm) FillKinematicHistos(Muon,iMET);
-	    if (PassesNJetsCut()) {
-	      FillYieldsHistograms(Muon,i2jets, sys);      
-	      if(sys==Norm) FillKinematicHistos(Muon,i2jets);
-	      if (PassesNBtagCut()) {
-		FillYieldsHistograms(Muon,i1btag, sys);      
-		if(sys==Norm) FillKinematicHistos(Muon,i1btag);
-	      }
+#ifdef __ISMCNLO
+    // 0.115 = Fraction events with negative weight
+    EventWeight = EventWeight * T_Event_weight /(abs(T_Event_weight)*(1.-2.*0.115)); 
+#endif
+    if (PassesMllVeto() && PassesMuonEta2p1(Muon) && Passes3rdLeptonVeto()){
+      FillYieldsHistograms(Muon,iDilepton, sys);
+      if(sys==Norm) FillKinematicHistos(Muon,iDilepton);
+      if (PassesZVeto())    {
+	FillYieldsHistograms(Muon,iZVeto, sys);      
+	if(sys==Norm) FillKinematicHistos(Muon,iZVeto);
+	if (PassesMETCut())   {
+	  FillYieldsHistograms(Muon,iMET, sys);      
+	  if(sys==Norm) FillKinematicHistos(Muon,iMET);
+	  if (PassesNJetsCut()) {
+	    FillYieldsHistograms(Muon,i2jets, sys);      
+	    if(sys==Norm) FillKinematicHistos(Muon,i2jets);
+	    if (PassesNBtagCut()) {
+	      FillYieldsHistograms(Muon,i1btag, sys);      
+	      if(sys==Norm) FillKinematicHistos(Muon,i1btag);
 	    }
 	  }
 	}
@@ -1509,138 +1114,42 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
   }
 
   ResetHypLeptons(); 
-  if (PassTriggerEE()   && IsElElEvent(ind1,ind2)){
-    SetHypLepton1(ind1, Elec);
-    SetHypLepton2(ind2, Elec);
-    
-    if (IsTightElectron(ind1) && IsTightElectron(ind2)){
-      EventWeight = gWeight * getSF(Elec,ind1,ind2) * getTopPtSF();     
+  if (gDoSF && PassTriggerEE()   && IsElElEvent()){
+    EventWeight = gWeight * getSF(Elec,ind1,ind2) * getTopPtSF();     
 #ifdef __ISSTOP
-      if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
-	EventWeight = EventWeight * T_Gen_polWeights->at(10);
+    if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
+      EventWeight = EventWeight * T_Gen_polWeights->at(10);
 #endif
-      if (PassesMllVeto() && PassesMuonEta2p1(Elec) && Passes3rdLeptonVeto()){
-	FillYieldsHistograms(Elec,iDilepton, sys);
-	if(sys==Norm) FillKinematicHistos(Elec,iDilepton);
-	if (PassesZVeto())    {
-	  FillYieldsHistograms(Elec,iZVeto, sys);      
-	  if(sys==Norm) FillKinematicHistos(Elec,iZVeto);
-	  if (PassesMETCut())   {
-	    FillYieldsHistograms(Elec,iMET, sys);      
-	    if(sys==Norm) FillKinematicHistos(Elec,iMET);
-	    if (PassesNJetsCut()) {
-	      FillYieldsHistograms(Elec,i2jets, sys);      
-	      if(sys==Norm) FillKinematicHistos(Elec,i2jets);
-	      if (PassesNBtagCut()) {
-		FillYieldsHistograms(Elec,i1btag, sys);      
-		if(sys==Norm) FillKinematicHistos(Elec,i1btag);
-	      }
+#ifdef __ISMCNLO
+    // 0.115 = Fraction events with negative weight
+    EventWeight = EventWeight * T_Event_weight /(abs(T_Event_weight)*(1.-2.*0.115)); 
+#endif
+    if (PassesMllVeto() && PassesMuonEta2p1(Elec) && Passes3rdLeptonVeto()){
+      FillYieldsHistograms(Elec,iDilepton, sys);
+      if(sys==Norm) FillKinematicHistos(Elec,iDilepton);
+      if (PassesZVeto())    {
+	FillYieldsHistograms(Elec,iZVeto, sys);      
+	if(sys==Norm) FillKinematicHistos(Elec,iZVeto);
+	if (PassesMETCut())   {
+	  FillYieldsHistograms(Elec,iMET, sys);      
+	  if(sys==Norm) FillKinematicHistos(Elec,iMET);
+	  if (PassesNJetsCut()) {
+	    FillYieldsHistograms(Elec,i2jets, sys);      
+	    if(sys==Norm) FillKinematicHistos(Elec,i2jets);
+	    if (PassesNBtagCut()) {
+	      FillYieldsHistograms(Elec,i1btag, sys);      
+	      if(sys==Norm) FillKinematicHistos(Elec,i1btag);
 	    }
-	  }	  
-	}
+	  }
+	}	  
       }
     }
   }
   ResetHypLeptons();
-}
-void TreeAnalysisTop::FillAnalysisTree(int flag){
-#ifdef DEBUG2
-  cout << "FillAnalysisTree(): Enter" << endl;
-#endif
-  
-  ResetHypLeptons();
-  
-  TEvent  = T_Event_EventNumber;
-  TLumi   = T_Event_LuminosityBlock;
-  TRun    = T_Event_RunNumber;
-    
-  TSName    = gSampleName;
-  TSType    = -1;  //getSampleType(sampleName);
-  TSystFlag = flag;
-  
-  // Per Event Information
-  TWeight   = EventWeight;
-  TNPV      = nGoodVertex;
-  TMET      = getMET();
-  TMET_Phi  = getMETPhi();
-  
-  TNTMus    = getNTightMuons();
-  TNTEls    = getNTightElectrons();
-  TNMus     = getNMuons();
-  TNEls     = getNElectrons();
-  
-  int ind1(-1),ind2(-1);
-  if      (PassTriggerEMu()  && IsTTbarElMuEvent(ind1,ind2)){
-    TLep0Pt   = fHypLepton1.p.Pt();
-    TLep0Eta  = fHypLepton1.p.Eta();
-    TLep0Phi  = fHypLepton1.p.Phi();
-    TLep0Ch   = fHypLepton1.charge;
-    TLep0Flav = fHypLepton1.type;   
-    TLep1Pt   = fHypLepton2.p.Pt(); 
-    TLep1Eta  = fHypLepton2.p.Eta();
-    TLep1Phi  = fHypLepton2.p.Phi();
-    TLep1Ch   = fHypLepton2.charge; 
-    TLep1Flav = fHypLepton2.type;   
-    TInvMass  = (fHypLepton1.p+fHypLepton2.p).M();
-
-    // Event Classification
-    if ( IsTightMuon(ind1) &&  IsTightElectron(ind2)) TTLCat = 0;
-    if ( IsTightMuon(ind1) && !IsTightElectron(ind2)) TTLCat = 1;
-    if (!IsTightMuon(ind1) &&  IsTightElectron(ind2)) TTLCat = 2;
-    if (!IsTightMuon(ind1) && !IsTightElectron(ind2)) TTLCat = 3;
-
-    // Jet variables:
-    TNJets = getNJets();
-  }
-  else if (PassTriggerMuMu() && IsTTbarMuMuEvent(ind1,ind2)){
-    TLep0Pt   = fHypLepton1.p.Pt();
-    TLep0Eta  = fHypLepton1.p.Eta();
-    TLep0Phi  = fHypLepton1.p.Phi();
-    TLep0Ch   = fHypLepton1.charge;
-    TLep0Flav = fHypLepton1.type;   
-    TLep1Pt   = fHypLepton2.p.Pt(); 
-    TLep1Eta  = fHypLepton2.p.Eta();
-    TLep1Phi  = fHypLepton2.p.Phi();
-    TLep1Ch   = fHypLepton2.charge; 
-    TLep1Flav = fHypLepton2.type;   
-    TInvMass  = (fHypLepton1.p+fHypLepton2.p).M();
-    
-    // Event Classification
-    if ( IsTightMuon(ind1) &&  IsTightMuon(ind2)) TTLCat = 0;
-    if ( IsTightMuon(ind1) && !IsTightMuon(ind2)) TTLCat = 1;
-    if (!IsTightMuon(ind1) &&  IsTightMuon(ind2)) TTLCat = 2;
-    if (!IsTightMuon(ind1) && !IsTightMuon(ind2)) TTLCat = 3;
-  }
-  else if (PassTriggerEE()   && IsTTbarElElEvent(ind1,ind2)){
-    TLep0Pt   = fHypLepton1.p.Pt();
-    TLep0Eta  = fHypLepton1.p.Eta();
-    TLep0Phi  = fHypLepton1.p.Phi();
-    TLep0Ch   = fHypLepton1.charge;
-    TLep0Flav = fHypLepton1.type;   
-    TLep1Pt   = fHypLepton2.p.Pt(); 
-    TLep1Eta  = fHypLepton2.p.Eta();
-    TLep1Phi  = fHypLepton2.p.Phi();
-    TLep1Ch   = fHypLepton2.charge; 
-    TLep1Flav = fHypLepton2.type;   
-    TInvMass  = (fHypLepton1.p+fHypLepton2.p).M();
-    
-    // Event Classification
-    if ( IsTightElectron(ind1) &&  IsTightElectron(ind2)) TTLCat = 0;
-    if ( IsTightElectron(ind1) && !IsTightElectron(ind2)) TTLCat = 1;
-    if (!IsTightElectron(ind1) &&  IsTightElectron(ind2)) TTLCat = 2;
-    if (!IsTightElectron(ind1) && !IsTightElectron(ind2)) TTLCat = 3;
-  }
-  
-  AnalysisTree->Fill();
-#ifdef DEBUG2
-  cout << "FillAnalysisTree(): Exit" << endl;
+#ifdef DEBUG
+  cout << " DONE!"<<endl;
 #endif
 }
-//int TreeAnalysisTop::IsDileptonEvent(int &ind1, int &ind2){
-//  int res = IsLLEvent(ind1, &TreeAnalysisTop::IsTightMuon, ind2, &TreeAnalysisTop::IsTightElectron);
-//  if (res > 0) return res;
-//  return IsLLEvent(ind1, &TreeAnalysisTop::IsLooseMuon, ind2, &TreeAnalysisTop::IsLooseElectron);
-//}
 bool TreeAnalysisTop::PassesMuonEta2p1(gChannel chan){
   if (fHypLepton1.index == -1) return false;
   if (fHypLepton2.index == -1) return false;
@@ -1659,11 +1168,11 @@ bool TreeAnalysisTop::PassesMuonEta2p1(gChannel chan){
   return false;
 }
 bool TreeAnalysisTop::Passes3rdLeptonVeto(){
+  return true; // don't apply third lepton veto...
+  
   // Return false if there are not 2 signal leptons
   if (fHypLepton1.index == -1) return false;
-  if (fHypLepton2.index == -1) return false;
-  
-  return true; // don't apply third lepton veto...
+  if (fHypLepton2.index == -1) return false;  
   
   //  Int_t nvetoleptons = 0;
   for(UInt_t i = 0; i < T_Muon_Pt->size(); ++i){
@@ -1724,101 +1233,31 @@ bool TreeAnalysisTop::PassesMETCut(){
   return true;
 }
 bool TreeAnalysisTop::PassesNBtagCut(){
+  //  cout << "[DEBUG]: calling getNBTags from PassesNBtagCut:" << getNBTags() << endl;
   if (getNBTags() < 1) return false;
   
   return true;
 }
 
-bool TreeAnalysisTop::IsTTbarMuMuEvent(int &ind1, int &ind2){
-#ifdef DEBUG2
-  cout << "IsMuMuEvent()?" << endl;
-#endif
-  int nmus = HasLooseMuons(ind1, ind2);
-  if (nmus < 2) return false;
-  
-  // pick dilepton pair...
-  if (TMath::Abs(IsDileptonEvent(ind1,ind2)) != 1) return false;
-  
-  // Define Hypothesis Leptons...
-  SetHypLepton1(ind1, Muon);
-  SetHypLepton2(ind2, Muon);
-  
-  if (!PassesZVeto())    return false;
-  if (!PassesNJetsCut()) return false;
-  if (!PassesMETCut())   return false;
-  if (!PassesNBtagCut()) return false;
-  
-#ifdef DEBUG2
-  cout << "IsMuMuEvent()?: YES" << endl;
-#endif
-
-  return true;
-}
-bool TreeAnalysisTop::IsTTbarElElEvent(int &ind1, int &ind2){
-#ifdef DEBUG2
-  cout << "IsElElEvent()?" << endl;
-#endif
-  int nels = HasLooseElectrons(ind1, ind2);
-  if (nels < 2) return false;
-  
-  // pick dilepton pair...
-  if (TMath::Abs(IsDileptonEvent(ind1,ind2)) != 2) return false;
-  
-  // Define Hypothesis Leptons...
-  SetHypLepton1(ind1, Elec);
-  SetHypLepton2(ind2, Elec);
-  
-  if (!PassesZVeto()) return false;
-  if (!PassesNJetsCut())       return false;
-  if (!PassesMETCut())         return false;
-  if (!PassesNBtagCut())       return false;
-  
-#ifdef DEBUG2
-  cout << "IsElElEvent()?: YES" << endl;
-#endif
-  return true;
-}
-bool TreeAnalysisTop::IsTTbarElMuEvent(int &ind1, int &ind2){ 
-#ifdef DEBUG2
-  cout << "IsElMuEvent()?" << endl;
-#endif
-  int nmus = HasLooseMuons(ind1, ind2);
-  int nels = HasLooseElectrons(ind2, ind1);
-  if (nmus < 1 || nels < 1) return false;
-  
-  if (TMath::Abs(IsDileptonEvent(ind1,ind2)) != 3) return false;
-  
-  SetHypLepton1(ind1, Muon);
-  SetHypLepton2(ind2, Elec);
-
-  //  if (!PassesZVeto()) return false;
-  if (!PassesNJetsCut())       return false;
-  if (!PassesNBtagCut())       return false;
-    
-#ifdef DEBUG2
-  cout << "IsElMuEvent()?: YES" << endl;
-#endif
-  return true;
-}
-bool TreeAnalysisTop::IsElMuEvent(int &ind1, int &ind2){
+bool TreeAnalysisTop::IsElMuEvent(){
   // if fChargeSwitch, pick SS event.
-  if (fChargeSwitch){      return (IsDileptonEvent(ind1,ind2)  == 3);   }
+  if (fChargeSwitch){      return (IsDileptonEvent()  == 3);   }
 
-  return (IsDileptonEvent(ind1,ind2) == -3);
+  return (IsDileptonEvent() == -3);
 }
-bool TreeAnalysisTop::IsMuMuEvent(int &ind1, int &ind2){
+bool TreeAnalysisTop::IsMuMuEvent(){
   // if fChargeSwitch, pick SS event.
-  if (fChargeSwitch){  return (IsDileptonEvent(ind1,ind2)  == 1); }
+  if (fChargeSwitch){  return (IsDileptonEvent()  == 1); }
   
-  return (IsDileptonEvent(ind1,ind2) == -1);
+  return (IsDileptonEvent() == -1);
 }
-bool TreeAnalysisTop::IsElElEvent(int &ind1, int &ind2){
+bool TreeAnalysisTop::IsElElEvent(){
   // if fChargeSwitch, pick SS event.
-  if (fChargeSwitch){    return (IsDileptonEvent(ind1,ind2)  == 2); }
+  if (fChargeSwitch){    return (IsDileptonEvent()  == 2); }
   
-  return (IsDileptonEvent(ind1,ind2) == -2);
+  return (IsDileptonEvent() == -2);
 }
-int TreeAnalysisTop::IsDileptonEvent(int &ind1, int &ind2){
+int TreeAnalysisTop::IsDileptonEvent(){
   // bool(TreeAnalysisTop::*muonSelector)(unsigned int), 
   // int &ind2, bool(TreeAnalysisTop::*eleSelector)(unsigned int)){
   // Looks for a pair of leptons with given object selectors
@@ -1826,141 +1265,45 @@ int TreeAnalysisTop::IsDileptonEvent(int &ind1, int &ind2){
   //                1 / -1 = mu+mu+ (SS) / mu-mu+ (OS) pair
   //                2 / -2 = e+e+   (SS) / e-e+   (OS) pair
   //                3 / -3 = mu+e+  (SS) / mu-e+  (OS) pair
-  // The indices in the argument given are sorted by pt unless
-  
-  vector<lepton> tmp_Loose;
-  vector<lepton> tmp_Tight;
-
-  // First store all loose leptons in two vectors according to their charges
-  TLorentzVector plep;
-  for(UInt_t i = 0; i < T_Muon_Pt->size(); ++i){
-    if (IsLooseMuon(i) == false) continue;
-    plep.SetPxPyPzE(MuPx.at(i), MuPy.at(i), T_Muon_Pz->at(i), T_Muon_Energy->at(i));
-    lepton tmpLepton(plep, T_Muon_Charge->at(i), 0, i);
-    tmp_Loose.push_back(tmpLepton);
-    
-    if (IsTightMuon(i) == false) continue;
-    tmp_Tight.push_back(tmpLepton);
-  }
-  for(UInt_t i = 0; i < T_Elec_Pt->size(); ++i){
-    if (IsLooseElectron(i) == false) continue;
-    plep.SetPxPyPzE(ElPx.at(i), ElPy.at(i), T_Elec_Pz->at(i), T_Elec_Energy->at(i));
-    lepton tmpLepton(plep, T_Elec_Charge->at(i), 1, i);
-    tmp_Loose.push_back(tmpLepton);
-    
-    if (IsTightElectron(i) == false) continue;
-    tmp_Tight.push_back(tmpLepton);
-  }
-  
-  // Check for at least one loose pair
-  if(tmp_Loose.size() < 2) return 0;
-  
-  /////////////////////////////////////////////////////////////////////////
-  // Sort these vectors by  pt, if there are not two tight leptons use two
-  // loose ones.
-  vector<lepton> Leptons;
-  if (tmp_Tight.size() > 1) Leptons = SortLeptonsByPt(tmp_Tight);
-  else                      Leptons = SortLeptonsByPt(tmp_Loose); 
+#ifdef DEBUG
+  cout << "IsDileptonEvent(): NLeptons =" << Lepton.size()<<", ";
+#endif
+  // Check for at least one tight pair
+  if(Lepton.size() < 2) return 0;
   
   // Proceed to select pair with highest pt
-  vector<lepton> selectedPair;
-  selectedPair.push_back(Leptons[0]);
-  selectedPair.push_back(Leptons[1]);
-  int select = Leptons[0].charge*Leptons[1].charge;
+  int select = Lepton[0].charge*Lepton[1].charge;
   
   /////////////////////////////////////////////////////////////////////////
   int result = 0;
-  if (selectedPair[0].type == 0 && selectedPair[1].type == 0) result = 1; // mu/mu
-  if (selectedPair[0].type == 1 && selectedPair[1].type == 1) result = 2; // el/el
-  if (selectedPair[0].type == 0 && selectedPair[1].type == 1) result = 3; // mu/el
-  if (selectedPair[0].type == 1 && selectedPair[1].type == 0) result = 3; // mu/el
+  if (Lepton[0].type == 0 && Lepton[1].type == 0) result = 1; // mu/mu
+  if (Lepton[0].type == 1 && Lepton[1].type == 1) result = 2; // el/el
+  if (Lepton[0].type == 0 && Lepton[1].type == 1) result = 3; // mu/el
+  if (Lepton[0].type == 1 && Lepton[1].type == 0) result = 3; // mu/el
   
   // Return values, assigning indexes (first is always a muon, second electron):
   if (result == 3) {
-    if      (selectedPair[0].type == 0 && selectedPair[1].type == 1) { 
-      ind1 = selectedPair[0].index;
-      ind2 = selectedPair[1].index;
+    if      (Lepton[0].type == 0 && Lepton[1].type == 1) { 
+      fHypLepton1 = lepton(Lepton[0]);
+      fHypLepton2 = lepton(Lepton[1]);
     }
-    else if (selectedPair[0].type == 1 && selectedPair[1].type == 0){
-      ind1 = selectedPair[1].index;
-      ind2 = selectedPair[0].index;
+    else if (Lepton[0].type == 1 && Lepton[1].type == 0){
+      fHypLepton1 = lepton(Lepton[1]);
+      fHypLepton2 = lepton(Lepton[0]);
     }
   }
   else {
-    ind1 = selectedPair[0].index;
-    ind2 = selectedPair[1].index;
+    fHypLepton1 = lepton(Lepton[0]);
+    fHypLepton2 = lepton(Lepton[1]);
   } 
   
   result *= select; // Add charge to result
   
+#ifdef DEBUG
+  cout << result;
+  cout << " DONE!" << endl;
+#endif
   return result;
-}
-void TreeAnalysisTop::FillTLRatios(){
-  int looseMuInd(-1);
-  if(PassSingleMuTrigger() && IsSigSupMuEvent(looseMuInd)){
-    if( IsTightMuon(looseMuInd) ){
-      tlratios[0].fntight   ->Fill(T_Muon_Pt->at(looseMuInd), TMath::Abs(T_Muon_Eta->at(looseMuInd)), EventWeight);
-      tlratios[0].fntight_nv->Fill(nGoodVertex,                                     EventWeight);
-    }
-    if( IsLooseMuon(looseMuInd) ){
-      tlratios[0].fratio_pt ->Fill(IsTightMuon(looseMuInd), T_Muon_Pt->at(looseMuInd));
-      tlratios[0].fratio_eta->Fill(IsTightMuon(looseMuInd), TMath::Abs(T_Muon_Eta->at(looseMuInd)));
-      tlratios[0].fratio_nv ->Fill(IsTightMuon(looseMuInd), nGoodVertex);
-      
-      tlratios[0].fnloose   ->Fill(T_Muon_Pt->at(looseMuInd), TMath::Abs(T_Muon_Eta->at(looseMuInd)), EventWeight);
-      tlratios[0].fnloose_nv->Fill(nGoodVertex,                                     EventWeight);
-    }
-  }
-  // ZMuMu Control Region
-  int mu1(-1), mu2(-1);
-  if(PassTriggerMuMu() && IsZMuMuEvent(mu1, mu2)){
-    if( IsTightMuon(mu2) ){
-      tlratios[0].pntight   ->Fill(T_Muon_Pt->at(mu2), TMath::Abs(T_Muon_Eta->at(mu2)), EventWeight);
-      tlratios[0].pntight_nv->Fill(nGoodVertex,                       EventWeight);
-    }
-    if( IsLooseMuon(mu2) ){
-      tlratios[0].pratio_pt ->Fill(IsTightMuon(mu2), T_Muon_Pt->at(mu2));
-      tlratios[0].pratio_eta->Fill(IsTightMuon(mu2), TMath::Abs(T_Muon_Eta->at(mu2)));
-      tlratios[0].pratio_nv ->Fill(IsTightMuon(mu2), nGoodVertex);
-      
-      tlratios[0].pnloose->Fill(T_Muon_Pt->at(mu2), TMath::Abs(T_Muon_Eta->at(mu2)), EventWeight);
-      tlratios[0].pnloose_nv->Fill(nGoodVertex,                    EventWeight);
-    }
-  }
-  ResetHypLeptons();
-  
-  // Electron QCD Control region
-  int looseElInd(-1);
-  if(PassSingleElTrigger() && IsSigSupElEvent(looseElInd)){
-    if( IsTightElectron(looseElInd) ){
-      tlratios[1].fntight   ->Fill(T_Elec_Pt->at(looseElInd), TMath::Abs(T_Elec_Eta->at(looseElInd)), EventWeight);
-      tlratios[1].fntight_nv->Fill(nGoodVertex,                                         EventWeight);
-    }
-    if( IsLooseElectron(looseElInd) ){
-      tlratios[1].fratio_pt ->Fill(IsTightElectron(looseElInd), T_Elec_Pt->at(looseElInd));
-      tlratios[1].fratio_eta->Fill(IsTightElectron(looseElInd), TMath::Abs(T_Elec_Eta->at(looseElInd)));
-      tlratios[1].fratio_nv ->Fill(IsTightElectron(looseElInd), nGoodVertex);
-      
-      tlratios[1].fnloose   ->Fill(T_Elec_Pt->at(looseElInd), TMath::Abs(T_Elec_Eta->at(looseElInd)), EventWeight);
-      tlratios[1].fnloose_nv->Fill(nGoodVertex,                                         EventWeight);
-    }
-  }
-  
-  int el1(-1), el2(-1);
-  if(PassTriggerEE() && IsZElElEvent(el1, el2)){
-    if( IsTightElectron(el2) ){
-      tlratios[1].pntight   ->Fill(T_Elec_Pt->at(el2), TMath::Abs(T_Elec_Eta->at(el2)), EventWeight);
-      tlratios[1].pntight_nv->Fill(nGoodVertex,                       EventWeight);
-    }
-    if( IsLooseElectron(el2) ){
-      tlratios[1].pratio_pt ->Fill(IsTightElectron(el2), T_Elec_Pt->at(el2));
-      tlratios[1].pratio_eta->Fill(IsTightElectron(el2), TMath::Abs(T_Elec_Eta->at(el2)));
-      tlratios[1].pratio_nv ->Fill(IsTightElectron(el2), nGoodVertex);
-      
-      tlratios[1].pnloose   ->Fill(T_Elec_Pt->at(el2), TMath::Abs(T_Elec_Eta->at(el2)), EventWeight);
-      tlratios[1].pnloose_nv->Fill(nGoodVertex,                       EventWeight);
-    }
-  }
 }
 //==============================================================================
 // LEPTON SELECTORS
@@ -1971,64 +1314,71 @@ vector<lepton> TreeAnalysisTop::SortLeptonsByPt(vector<lepton>& leptons){
   sort (theLep.begin(), theLep.end(), momentumComparator);
   return theLep;
 }
+int TreeAnalysisTop::getSelectedLeptons(){
+  // Loops over the total number of Muons and Electrons and returns
+  // the Number of Leptons.
+  if (Lepton.size() > 0) {
+    cout << "[WARNING]: you have called this function previously... RESETTING..."<<endl;
+    Lepton.clear();
+  }
+  vector<lepton> tmp_lepton;
+
+  nMuon = 0;
+  TLorentzVector lep;
+  for (UInt_t i=0; i<T_Muon_Pt->size();i++){
+    if (IsTightMuon(i) == false) continue;
+    lep.SetPxPyPzE(MuPx.at(i), MuPy.at(i), T_Muon_Pz->at(i), T_Muon_Energy->at(i));
+    lepton tmpLepton(lep,T_Muon_Charge->at(i), 0, i);
+    tmp_lepton.push_back(tmpLepton);
+    nMuon++;
+  }
+  
+  nElec = 0;
+  for (UInt_t i=0; i<T_Elec_Pt->size();i++){
+    if (IsTightElectron(i) == false) continue;
+    lep.SetPxPyPzE(ElPx.at(i), ElPy.at(i), T_Elec_Pz->at(i), T_Elec_Energy->at(i));
+    lepton tmpLepton(lep,T_Elec_Charge->at(i), 1, i);
+    tmp_lepton.push_back(tmpLepton);
+    nElec++;
+  }
+  
+  Lepton = SortLeptonsByPt(tmp_lepton);
+  return Lepton.size();
+}
 //------------------------------------------------------------------------------
 // Muon Selectors
 //------------------------------------------------------------------------------
-int  TreeAnalysisTop::getNTightMuons(){
-  int nMus = 0;
-  for (UInt_t i=0; i<T_Muon_Energy->size(); i++) {
-    if (!IsTightMuon(i)) nMus++;
-  }
-  return nMus;
-}
-int  TreeAnalysisTop::getNMuons(){
-  int nMus = 0;
-  for (UInt_t i=0; i<T_Muon_Energy->size(); i++) {
-    if (!IsGoodMuon(i,10)) nMus++;
-  }
-  return nMus;
-}
-bool TreeAnalysisTop::IsGoodMuon(unsigned int iMuon, float ptcut){
-  if (T_Muon_Pt->at(iMuon) < ptcut)      return false;
-  if (TMath::Abs(T_Muon_Eta->at(iMuon)) > 2.4) return false;
-  
-  return true;
-}
-bool TreeAnalysisTop::IsVetoMuon(unsigned int iMuon){
-  if (T_Muon_Pt->at(iMuon) < 20)               return false;
-  if (TMath::Abs(T_Muon_Eta->at(iMuon)) > 2.4) return false;
+bool TreeAnalysisTop::IsVetoMuon(unsigned int iMuon, float ptcut){
+  TLorentzVector lep;
+  lep.SetPxPyPzE(MuPx.at(iMuon), MuPy.at(iMuon), T_Muon_Pz->at(iMuon), T_Muon_Energy->at(iMuon));
+  if (lep.Pt() < ptcut)            return false;
+  if (TMath::Abs(lep.Eta()) > 2.4) return false;
   
   if (T_Muon_IsGlobalMuon->at(iMuon) == 0 && T_Muon_IsTrackerMuonArbitrated->at(iMuon) == 0) return false;
   
-  float relIso = (T_Muon_chargedHadronIsoR04->at(iMuon) + max(0.0 , T_Muon_neutralHadronIsoR04->at(iMuon) + T_Muon_photonIsoR04->at(iMuon)- 0.5*T_Muon_sumPUPtR04->at(iMuon)))/T_Muon_Pt->at(iMuon);
+  float relIso = (T_Muon_chargedHadronIsoR04->at(iMuon) + max(0.0 , T_Muon_neutralHadronIsoR04->at(iMuon) + T_Muon_photonIsoR04->at(iMuon)- 0.5*T_Muon_sumPUPtR04->at(iMuon)))/lep.Pt();
   if (relIso > 0.20) return false;
 
   return true;
 }
-bool TreeAnalysisTop::IsLooseMuon(unsigned int iMuon){
-  if (!IsGoodMuon(iMuon)) return false;
+bool TreeAnalysisTop::IsTightMuon(unsigned int iMuon,float ptcut){
+  TLorentzVector lep;
+  lep.SetPxPyPzE(MuPx.at(iMuon), MuPy.at(iMuon), T_Muon_Pz->at(iMuon), T_Muon_Energy->at(iMuon));
+  if (lep.Pt() < ptcut)            return false;
+  if (TMath::Abs(lep.Eta()) > 2.4) return false;
   
   // POG Tight Muons definition				       
-  if (!T_Muon_IsGlobalMuon->at(iMuon))                       return false;
-  if (T_Muon_NormChi2GTrk->at(iMuon) >= 10.)                 return false;
-  if (T_Muon_NValidHitsGTrk->at(iMuon) < 1)                  return false;
+  if (!T_Muon_IsGlobalMuon->at(iMuon))                             return false;
+  if (T_Muon_NormChi2GTrk->at(iMuon) >= 10.)                       return false;
+  if (T_Muon_NValidHitsGTrk->at(iMuon) < 1)                        return false;
   //this is still not the exact same def.		       
-  if (T_Muon_NumOfMatchedStations->at(iMuon) <= 1)           return false; 
+  if (T_Muon_NumOfMatchedStations->at(iMuon) <= 1)                 return false; 
   //							       
   if (TMath::Abs(T_Muon_IPwrtAveBSInTrack->at(iMuon)) >= 0.2)      return false; 
   if (TMath::Abs(T_Muon_vz->at(iMuon) - T_Vertex_z->at(0)) >= 0.5) return false;
-  if (T_Muon_NValidPixelHitsInTrk->at(iMuon) == 0)           return false;
-  if (T_Muon_NLayers->at(iMuon) <= 5)                        return false;
-  
-  float relIso = (T_Muon_chargedHadronIsoR04->at(iMuon) + max(0.0 , T_Muon_neutralHadronIsoR04->at(iMuon) + T_Muon_photonIsoR04->at(iMuon)- 0.5*T_Muon_sumPUPtR04->at(iMuon)))/T_Muon_Pt->at(iMuon);
-  
-  if (relIso > 1.0) return false;
-  
-  return true;
-}
-bool TreeAnalysisTop::IsTightMuon(unsigned int iMuon){
-  if (!IsLooseMuon(iMuon)) return false;
-  
+  if (T_Muon_NValidPixelHitsInTrk->at(iMuon) == 0)                 return false;
+  if (T_Muon_NLayers->at(iMuon) <= 5)                              return false;
+
   float relIso = getMuonIso(iMuon);
   
   if (relIso > 0.12) return false;
@@ -2039,80 +1389,19 @@ float TreeAnalysisTop::getMuonIso(int iMuon){
   if (iMuon < 0) return 9999.;
   if (iMuon >= (int)T_Muon_chargedHadronIsoR04->size()) return 9999.;
 
-  return (T_Muon_chargedHadronIsoR04->at(iMuon) + max(0.0 , T_Muon_neutralHadronIsoR04->at(iMuon) + T_Muon_photonIsoR04->at(iMuon)- 0.5*T_Muon_sumPUPtR04->at(iMuon)))/T_Muon_Pt->at(iMuon);
+  TLorentzVector lep;
+  lep.SetPxPyPzE(MuPx.at(iMuon), MuPy.at(iMuon), T_Muon_Pz->at(iMuon), T_Muon_Energy->at(iMuon));
+  
+  return (T_Muon_chargedHadronIsoR04->at(iMuon) + max(0.0 , T_Muon_neutralHadronIsoR04->at(iMuon) + T_Muon_photonIsoR04->at(iMuon)- 0.5*T_Muon_sumPUPtR04->at(iMuon)))/lep.Pt();
 }
 //------------------------------------------------------------------------------
 // Electron Selectors
 //------------------------------------------------------------------------------
-//SANTIint TreeAnalysisTop::GetSelectedElecInd()
-//SANTI{
-//SANTI  if (nSelElec > 0) {
-//SANTI    cout << "[ERROR] GetSelectedElec(): This function has already been called" << endl;
-//SANTI    cout << "[ERROR] GetSelectedElec(): Cleaning previous information        " << endl;
-//SANTI    S_Elec.clear();
-//SANTI  }
-//SANTI  
-//SANTI  // Loop over all electrons and keep loose electrons
-//SANTI  for (UInt_t i=0; i<T_Elec_Energy->size(); i++) {
-//SANTI    if (!IsLooseElectron(i)) continue;
-//SANTI    S_Elec.push_back(i);
-//SANTI  }
-//SANTI  
-//SANTI  return S_Elec.size();
-//SANTI}
-int  TreeAnalysisTop::getNTightElectrons(){
-  int nEls = 0;
-  for (UInt_t i=0; i<T_Elec_Energy->size(); i++) {
-    if (IsTightElectron(i)) nEls++;
-  }
-  return nEls;
-}
-int  TreeAnalysisTop::getNElectrons(){
-  int nEls = 0;
-  for (UInt_t i=0; i<T_Elec_Energy->size(); i++) {
-    if (IsGoodElectron(i,10)) nEls++;
-  }
-  return nEls;
-}
-bool TreeAnalysisTop::IsGoodElectron(unsigned int iElec, float ptcut){
-  if (T_Elec_Pt->at(iElec) < ptcut)            return false;
-  if (TMath::Abs(T_Elec_Eta->at(iElec)) > 2.5) return false;
-  
-  float sceta = TMath::Abs(T_Elec_SC_Eta->at(iElec));
-  if (sceta > 1.4442 && sceta < 1.566) return false;
+bool TreeAnalysisTop::IsVetoElectron(unsigned int iElec,float ptcut){
+  TLorentzVector lep;
+  lep.SetPxPyPzE(ElPx.at(iElec), ElPy.at(iElec), T_Elec_Pz->at(iElec), T_Elec_Energy->at(iElec));
 
-  return true;
-}
-bool TreeAnalysisTop::IsLooseElectron(unsigned int iElec){
-  if (!IsGoodElectron(iElec)) return false;
-  
-  float pt  = T_Elec_Pt->at(iElec);
-  
-  // Require electrons passing Trigger requirements
-  bool passTriggerID = false;
-  if(TMath::Abs(T_Elec_SC_Eta->at(iElec)) < 1.479) {  //Barrel electron
-    if(T_Elec_sigmaIetaIeta->at(iElec)           < 0.014 &&
-       T_Elec_HtoE->at(iElec)                    < 0.15  &&
-       T_Elec_dr03TkSumPt->at(iElec)/pt          < 0.2   &&
-       T_Elec_dr03EcalSumEt->at(iElec)/pt        < 0.2   &&
-       T_Elec_dr03HcalSumEt->at(iElec)/pt        < 0.2   &&
-       T_Elec_nLost->at(iElec)                    == 0     )
-      passTriggerID = true;
-  }
-  else {
-    if(T_Elec_sigmaIetaIeta->at(iElec)           < 0.035 &&
-       T_Elec_HtoE->at(iElec)                    < 0.10  &&
-       T_Elec_dr03TkSumPt->at(iElec)/pt          < 0.2   &&
-       T_Elec_dr03EcalSumEt->at(iElec)/pt        < 0.2   &&
-       T_Elec_dr03HcalSumEt->at(iElec)/pt        < 0.2   &&
-       T_Elec_nLost->at(iElec)                    == 0     )
-      passTriggerID = true;
-  }  
-  
-  return passTriggerID;
-}
-bool TreeAnalysisTop::IsVetoElectron(unsigned int iElec){
-  if (T_Elec_Pt->at(iElec) < 20)               return false;
+  if (lep.Pt() < ptcut)               return false;
   if (TMath::Abs(T_Elec_Eta->at(iElec)) > 2.5) return false;
   
   float sceta = TMath::Abs(T_Elec_SC_Eta->at(iElec));
@@ -2158,9 +1447,38 @@ bool TreeAnalysisTop::IsMVAIDElectron(unsigned int iElec){
   if (T_Elec_MVA->at(iElec) > 0.90) return true;
   return false;
 }
-bool TreeAnalysisTop::IsTightElectron(unsigned int iElec){
-  if (!IsLooseElectron(iElec))               return false;
-
+bool TreeAnalysisTop::IsTightElectron(unsigned int iElec, float ptcut){
+  TLorentzVector lep;
+  lep.SetPxPyPzE(ElPx.at(iElec), ElPy.at(iElec), T_Elec_Pz->at(iElec), T_Elec_Energy->at(iElec));
+  
+  float pt  = lep.Pt();
+  float sceta = TMath::Abs(T_Elec_SC_Eta->at(iElec));
+  if (sceta > 1.4442 && sceta < 1.566) return false;
+  if (lep.Pt() < ptcut)                return false;
+  if (TMath::Abs(lep.Eta()) > 2.5)     return false;
+  
+  // Require electrons passing Trigger requirements
+  bool passTriggerID = false;
+  if(TMath::Abs(T_Elec_SC_Eta->at(iElec)) < 1.479) {  //Barrel electron
+    if(T_Elec_sigmaIetaIeta->at(iElec)           < 0.014 &&
+       T_Elec_HtoE->at(iElec)                    < 0.15  &&
+       T_Elec_dr03TkSumPt->at(iElec)/pt          < 0.2   &&
+       T_Elec_dr03EcalSumEt->at(iElec)/pt        < 0.2   &&
+       T_Elec_dr03HcalSumEt->at(iElec)/pt        < 0.2   &&
+       T_Elec_nLost->at(iElec)                    == 0     )
+      passTriggerID = true;
+  }
+  else {
+    if(T_Elec_sigmaIetaIeta->at(iElec)           < 0.035 &&
+       T_Elec_HtoE->at(iElec)                    < 0.10  &&
+       T_Elec_dr03TkSumPt->at(iElec)/pt          < 0.2   &&
+       T_Elec_dr03EcalSumEt->at(iElec)/pt        < 0.2   &&
+       T_Elec_dr03HcalSumEt->at(iElec)/pt        < 0.2   &&
+       T_Elec_nLost->at(iElec)                    == 0     )
+      passTriggerID = true;
+  }  
+  
+  if (!passTriggerID)                        return false;
   if (!IsMVAIDElectron(iElec))               return false;
   if (!T_Elec_passConversionVeto->at(iElec)) return false;
   if ( T_Elec_nHits->at(iElec) >= 1)         return false;
@@ -2175,7 +1493,10 @@ bool TreeAnalysisTop::IsTightElectron(unsigned int iElec){
 float TreeAnalysisTop::getElecIso(int iElec){
   if (iElec < 0) return 9999.;
   if (iElec >= (int)T_Elec_chargedHadronIso->size()) return 9999.;
-
+  
+  TLorentzVector lep;
+  lep.SetPxPyPzE(ElPx.at(iElec), ElPy.at(iElec), T_Elec_Pz->at(iElec), T_Elec_Energy->at(iElec));
+  float pt     = lep.Pt();
   float EA     = getEACorrection(T_Elec_Eta->at(iElec));
   float relIso = (T_Elec_chargedHadronIso->at(iElec) + 
 		  max((float)0.0, 
@@ -2183,7 +1504,7 @@ float TreeAnalysisTop::getElecIso(int iElec){
 		      T_Elec_photonIso->at(iElec) - 
 		      T_Event_RhoIso*EA
 		      )
-		  )/T_Elec_Pt->at(iElec);
+		  )/pt;
 
   return relIso;
 }
@@ -2210,48 +1531,29 @@ float TreeAnalysisTop::getMET(){
 float TreeAnalysisTop::getMETPhi(){
   return MET_Phi;
 }
-int TreeAnalysisTop::getNJets(){
-  int nj(0);
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) if(IsGoodJet(i,gJetEtCut)) nj++;
-  
-  return nj;
-}
-int TreeAnalysisTop::getLeadingJet(){
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) if(IsGoodJet(i,gJetEtCut)) return i;
-  return -1;
-}
-int TreeAnalysisTop::getSecondLeadingJet(){
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) 
-    if(i!=getLeadingJet() && IsGoodJet(i,gJetEtCut)) return i;
-  return -1;
-}
 
+int TreeAnalysisTop::getNJets(){
+  return nJets;
+}
 float TreeAnalysisTop::getDRClosestJet(TLorentzVector lep){
-  TLorentzVector jet;
   float minDR = 9999.;
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) {
-    if(!IsGoodJet(i,gJetEtCut)) continue;
-    jet.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Py->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
-    if (minDR > lep.DeltaR(jet)) minDR = lep.DeltaR(jet);
+  for (unsigned int i=0; i<Jet.size(); i++) {
+    if (minDR > lep.DeltaR(Jet[i].p)) minDR = lep.DeltaR(Jet[i].p);
   }
   
   return minDR;
 }
 float TreeAnalysisTop::getDPhiClosestJet(TLorentzVector lep){
-  TLorentzVector jet;
   float minDphi = 9999.;
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) {
-    if(!IsGoodJet(i,gJetEtCut)) continue;
-    jet.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Py->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
-    if (minDphi > TMath::Abs(lep.DeltaPhi(jet))) minDphi = TMath::Abs(lep.DeltaPhi(jet));
+  for (unsigned int i=0; i<Jet.size(); i++) {
+    if (minDphi > TMath::Abs(lep.DeltaPhi(Jet[i].p))) minDphi = TMath::Abs(lep.DeltaPhi(Jet[i].p));
   }
   
   return minDphi;
 }
 int TreeAnalysisTop::getLeadingJetbTag(){
-  for (unsigned int i=0; i<T_JetAKCHS_Energy->size(); i++) {
-    if(!IsGoodJet(i,gJetEtCut)) continue;
-    if(T_JetAKCHS_Tag_CombSVtx->at(i) > 0 && T_JetAKCHS_Tag_CombSVtx->at(i) < 1) return i;
+  for (unsigned int i=0; i<Jet.size(); i++) {
+    if (Jet[i].isbtag) return i;
   }
   
   return  -1;
@@ -2259,16 +1561,55 @@ int TreeAnalysisTop::getLeadingJetbTag(){
 int TreeAnalysisTop::getNBTags(){
   int ntags(0);
   
-  int btagSys = 0;
+  for(UInt_t i = 0; i <Jet.size(); i++){
+    if (Jet[i].isbtag) ntags++;
+  }
+  
+  return ntags;
+}
+float TreeAnalysisTop::getDeltaPhillJet(){
+  if (fHypLepton1.index == -1) return -999.;
+  if (fHypLepton2.index == -1) return -999.;
 
-  for(UInt_t i = 0; i <T_JetAKCHS_Energy->size(); i++) {
+  Int_t ij = getLeadingJetbTag();
+  if (ij < 0) return -999.; 
+  TLorentzVector dilep = fHypLepton1.p+fHypLepton2.p;
+  TLorentzVector jet = Jet[ij].p; 
+  return TMath::Abs(dilep.DeltaPhi(jet));
+}
+float TreeAnalysisTop::getTopD(){
+  if (fHypLepton1.index == -1) return -999;
+  if (fHypLepton2.index == -1) return -999;
+
+  // Make Dilepton system
+  TLorentzVector dilep = fHypLepton1.p+fHypLepton2.p;
+
+  Float_t DeltaPhi(0.),TopD(0.);
+  TLorentzVector jet;
+  if (nJets == 0) return -999.;
+   
+  DeltaPhi = TMath::Abs(dilep.DeltaPhi(Jet[0].p));
+  TopD     = 1 - (DeltaPhi/TMath::Pi()) * (1 - T_JetAKCHS_Tag_CombSVtx->at(Jet[0].index));
+  
+  return TopD;
+}
+int TreeAnalysisTop::getSelectedJets(){
+  int nj(0);
+  if (Jet.size() > 0) {
+    cout << "[WARNING]: you have called this function previously, RESETTING..."<<endl;
+    Jet.clear();
+  }
+
+  int btagSys = 0;
+  TLorentzVector jt;
+  for (UInt_t i=0; i<T_JetAKCHS_Energy->size(); i++) {
     if(!IsGoodJet(i,gJetEtCut)) continue;
-    
-        
-    if(gIsData  && (fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),-999999, JetEt.at(i), 
-				      T_JetAKCHS_Eta->at(i), btagSys))) ntags++;
-    
-    if(!gIsData) {
+    jt.SetPtEtaPhiE(JetEt.at(i),T_JetAKCHS_Eta->at(i),JetPhi.at(i),T_JetAKCHS_Energy->at(i));
+    bool isbtag = false;
+    if (gIsData) {
+      isbtag = fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),-999999,JetEt.at(i),T_JetAKCHS_Eta->at(i),btagSys);
+    }
+    else {
       if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) == 5 || TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) == 4){
 	if (gSysSource == BtagUp)     btagSys =  1;
 	if (gSysSource == BtagDown)   btagSys = -1;
@@ -2281,49 +1622,19 @@ int TreeAnalysisTop::getNBTags(){
 	if (gSysSource == MisTagUp)   btagSys =  1;
 	if (gSysSource == MisTagDown) btagSys = -1;
       }
-      
-      if(fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i),T_JetAKCHS_Parton_Flavour->at(i), 
-			   JetEt.at(i), T_JetAKCHS_Eta->at(i), btagSys)) ntags++;
+      isbtag = fBTagSF->IsTagged(T_JetAKCHS_Tag_CombSVtx->at(i), T_JetAKCHS_Parton_Flavour->at(i), 
+				 JetEt.at(i),T_JetAKCHS_Eta->at(i), btagSys);
     }
+    jet tmpjet(jt, isbtag, i);
+    Jet.push_back(tmpjet);
+    nj++;
   }
-  return ntags;
-}
-float TreeAnalysisTop::getDeltaPhillJet(){
-  if (fHypLepton1.index == -1) return -999.;
-  if (fHypLepton2.index == -1) return -999.;
-
-  Int_t ij = getLeadingJetbTag();
-  TLorentzVector dilep = fHypLepton1.p+fHypLepton2.p;
-  TLorentzVector jet;
-  if (ij < 0) return -999.;
-  jet.SetPxPyPzE(T_JetAKCHS_Px->at(ij),T_JetAKCHS_Py->at(ij),T_JetAKCHS_Pz->at(ij),T_JetAKCHS_Energy->at(ij));
-  
-  return TMath::Abs(dilep.DeltaPhi(jet));
-}
-float TreeAnalysisTop::getTopD(){
-  if (fHypLepton1.index == -1) return -999;
-  if (fHypLepton2.index == -1) return -999;
-
-  // Make Dilepton system
-  TLorentzVector dilep = fHypLepton1.p+fHypLepton2.p;
-
-  Float_t DeltaPhi(0.),TopD(0.);
-  TLorentzVector jet;
-  Int_t ij = getLeadingJet();
-  if (ij < 0) return -999.;
-  jet.SetPxPyPzE(T_JetAKCHS_Px->at(ij),T_JetAKCHS_Py->at(ij),T_JetAKCHS_Pz->at(ij),T_JetAKCHS_Energy->at(ij));
-   
-  DeltaPhi = TMath::Abs(dilep.DeltaPhi(jet));
-  //  DeltaPhi = TMath::Pi() - TMath::Abs(TMath::Abs(dilep.Phi() - jet.Phi()) - TMath::Pi());
-  TopD     = 1 - (DeltaPhi/TMath::Pi()) * (1 - T_JetAKCHS_Tag_CombSVtx->at(ij));
-  
-  return TopD;
+  return nj;
 }
 bool TreeAnalysisTop::IsGoodJet(unsigned int ijet, float ptcut){
   float minDR = 0.4;
-   
-  if(JetEt.at(ijet) < ptcut)      return false;
-  if(TMath::Abs(T_JetAKCHS_Eta->at(ijet)) > 2.5) return false; // btagging only up to 2.4
+  if(JetEt.at(ijet) < ptcut)                     return false;
+  if(TMath::Abs(T_JetAKCHS_Eta->at(ijet)) > 2.4) return false; // btagging only up to 2.4
   
   // JetID 
   if ( !(T_JetAKCHS_nDaughters->at(ijet)        > 1   ) ) return false;
@@ -2335,16 +1646,10 @@ bool TreeAnalysisTop::IsGoodJet(unsigned int ijet, float ptcut){
     if ( !(T_JetAKCHS_ChargedMultiplicity->at(ijet) > 0 ) ) return false;
   }
   
-  // Remove jets close to hypothesis leptons
-  TLorentzVector jet(T_JetAKCHS_Px->at(ijet),
-		     T_JetAKCHS_Py->at(ijet),
-		     T_JetAKCHS_Pz->at(ijet),
-		     T_JetAKCHS_Energy->at(ijet));
-  
-  if(fHypLepton1.index > -1) if(jet.DeltaR(fHypLepton1.p) < minDR) return false;
-  if(fHypLepton2.index > -1) if(jet.DeltaR(fHypLepton2.p) < minDR) return false;
-  
   // Remove jets close to all tight leptons
+  TLorentzVector jet;
+  jet.SetPtEtaPhiE(JetEt.at(ijet),T_JetAKCHS_Eta->at(ijet),JetPhi.at(ijet),T_JetAKCHS_Energy->at(ijet));
+  
   for(unsigned int imu = 0; imu < T_Muon_Energy->size(); ++imu){
     if(!IsTightMuon(imu)) continue;
     TLorentzVector mu(T_Muon_Px    ->at(imu),     
@@ -2370,8 +1675,7 @@ bool TreeAnalysisTop::IsGoodJet(unsigned int ijet, float ptcut){
 //------------------------------------------------------------------------------
 // SelectedGenLepton
 //------------------------------------------------------------------------------
-void TreeAnalysisTop::SelectedGenLepton()
-{
+void TreeAnalysisTop::SelectedGenLepton() {
 
 #ifdef __ISMC
   // Count generated muons and electrons
@@ -2467,10 +1771,9 @@ void TreeAnalysisTop::SmearJetPts(int flag){
   std::vector<int>::const_iterator it = cleanJets.begin();
   
   for( it = cleanJets.begin(); it != cleanJets.end(); ++it) {
-    tmp.SetPxPyPzE(T_JetAKCHS_Px->at(*it), T_JetAKCHS_Py->at(*it), 
-		   T_JetAKCHS_Pz->at(*it), T_JetAKCHS_Energy->at(*it));            // set temp to the jet
-    float phi = tmp.Phi();
-    ojets += tmp;                                                                  // add jet to the old jets vector
+    tmp.SetPtEtaPhiE(JetEt.at(*it),  T_JetAKCHS_Eta->at(*it), 
+		     JetPhi.at(*it), T_JetAKCHS_Energy->at(*it));         // set temp to the jet
+    ojets += tmp;                                                         // add jet to the old jets vector
     if(flag == 1) JetEt.at(*it) *= (1 + T_JetAKCHS_Uncertainty->at(*it)); // vary up for flag 1
     if(flag == 2) JetEt.at(*it) *= (1 - T_JetAKCHS_Uncertainty->at(*it)); // vary down for flag 2;
     if(flag == 3){
@@ -2482,7 +1785,7 @@ void TreeAnalysisTop::SmearJetPts(int flag){
       JetEt.at(*it) = JetEt.at(*it) * factor;           // smear for flag 3
     }
     // set tmp to the scaled/smeared jet
-    tmp.SetPtEtaPhiE(JetEt.at(*it), T_JetAKCHS_Eta->at(*it), phi, T_JetAKCHS_Energy->at(*it)); 
+    tmp.SetPtEtaPhiE(JetEt.at(*it), T_JetAKCHS_Eta->at(*it),JetPhi.at(*it), T_JetAKCHS_Energy->at(*it)); 
     jets += tmp;                                                    // add scaled/smeared jet to the new jets
   }
   propagateMET(jets, ojets);                                        // propagate this change to the MET

@@ -33,16 +33,16 @@ resetpaf -a
 
 root -l -b -q RunTree_ReReco.C\(\"TTJetsFullLeptMGTuneP11\",30\)
 root -l -b -q RunTree_ReReco.C\(\"TTJetsFullLeptMGTuneP11noCR\",30\)
-root -l -b -q RunTree_ReReco.C\(\"TTbar_MCatNLO\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_mass169\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_mass175\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_scaledown\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_scaleup\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTbar_MCatNLO_noCorr\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_mass169\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_mass175\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_scaledown\",30,true\)
-root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_scaleup\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTbar_MCatNLO\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_mass169\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_mass175\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_scaledown\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_scaleup\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTbar_MCatNLO_noCorr\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_mass169\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_mass175\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_scaledown\",30,true\)
+##root -l -b -q RunTree_ReReco.C\(\"TTLept_mcatnlo_noCorr_scaleup\",30,true\)
 
 ## Single Boson
 root -l -b -q RunTree_ReReco.C\(\"ZJets_Madgraph\",30,true\)
@@ -74,4 +74,4 @@ root -l -b -q RunTree_ReReco.C\(\"ZZZJets\",20,true\)
 
 
 ## stop
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",20,true\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",20,true\)

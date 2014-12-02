@@ -8,16 +8,12 @@
 //          in PROOF-Lite, PROOF-Cluster or Sequential mode
 //
 ////////////////////////////////////////////////////////////////////////////////
-
 TProof* proof = 0;
 
 void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 		    Int_t    nSlots         =  1,
 		    Bool_t   DoSystStudies  =  false,
-		    Bool_t   DoFR           =  false,
-		    Long64_t nEvents        = -1,
-		    TString  suffix         = ""
-		    ){
+		    Long64_t nEvents        = -1){
   
   gROOT->LoadMacro("$PAFPATH/PAF.C");
   
@@ -26,6 +22,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   Float_t G_Event_Weight  = 1.0;         // Event Weight
   Bool_t  G_IsData        = false;       // 1 for data, 0 for MC
   Float_t G_LumiForPUData = 19468.3;     // luminosity in http://www.hep.uniovi.es/jfernan/PUhistos
+  Bool_t  DoSF            = false;
+  Bool_t  DoDF            = true;
   
   cout << "Params: " << endl;
   cout << "sampleName      " << sampleName      << endl;
@@ -33,7 +31,6 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   cout << "EventWeight     " << G_Event_Weight  << endl;
   cout << "lumiForPUdata   " << G_LumiForPUData << endl;
   cout << "DoSystStudies   " << DoSystStudies   << endl;
-  cout << "DoFR            " << DoFR            << endl;
   cout << "nEvents         " << nEvents         << endl;
   
   // PROOF settings - see scripts/PAFOptions.h
@@ -84,7 +81,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   ///////////////////////////////
   // INPUT DATA SAMPLE
   //
-  TString userhome = "/mnt_pool/fanae105/user/sscruz/";
+  TString userhome = "/mnt_pool/fanae105/user/folgueras/";
   gROOT->LoadMacro(userhome+"/Utils/DatasetManager/DatasetManager.C+");
   
   cout << ">> Setting datasets..." << endl;
@@ -92,40 +89,9 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   dm->RedownloadFiles();
   
   // Deal with data samples
-//  if (DoFR){
-//    cout << "   + FR trees..." << endl;
-//    if (sampleName == "DoubleElectron" ||
-//	sampleName == "DoubleMu" ||
-//	sampleName == "MuEG"){
-//      
-//      TString datasuffix[] = {
-//	"A_876",
-//	"B_4412",
-//	"C_7016",
-//	"D_7360"
-//      };
-//      const unsigned int nDataSamples = 4;
-//      for(unsigned int i = 0; i < nDataSamples; i++) {
-//	TString asample = Form("Tree_%s*%s",sampleName.Data(), datasuffix[i].Data());
-//	cout << "   + Looking for " << asample << " trees..." << endl;
-//	gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/FR/",asample));
-//      }
-//      G_Event_Weight = 1.;
-//      G_IsData = true;
-//    }
-//    else {
-//      dm->LoadDataset(sampleName);
-//      G_Event_Weight = dm->GetCrossSection() / dm->GetEventsInTheSample();
-//      G_IsData = false;
-//      
-//      TString asample = Form("Tree_%s*",sampleName.Data());
-//      gPAFOptions->AddDataFiles(dm->GetRealDataFiles("MC_Summer12_53X/Legacy/FR/",asample));
-//      
-//    }
-//  }
   if ((sampleName == "DoubleElectron" ||
        sampleName == "DoubleMu" ||
-       sampleName == "MuEG") && !DoFR) {
+       sampleName == "MuEG")) {
     cout << "   + Data..." << endl;
     
     TString datasuffix[] = {
@@ -144,7 +110,13 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     G_IsData = true;
   }
   else if (sampleName == "T2tt_150to250LSP1to100_LeptonFilter") {
-    G_Event_Weight = 36.7994/446023.;  // cross section in pb
+
+    if(lspMass=1.){
+      if(stopMass==162.5) G_Event_Weight = (5./9.) * 46.2   /462897.;  // cross section in pb, 5/9 for BR
+      if(stopMass==175.0) G_Event_Weight = (5./9.) * 36.7994/446023.;  
+      if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93  /440137.;
+      if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245/343270.;  
+    }
     G_IsData = false;
     
     cout << endl;
@@ -176,10 +148,14 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     
   // Output file name
   //----------------------------------------------------------------------------
-  Bool_t G_Use_CSVM = false; //true; //false;
-  TString outputDir = "/mnt_pool/fanae105/user/sscruz/TOP/Nov11_Jet30_Lep20_CSVL/";
+  Bool_t G_Use_CSVM = true; //false;
+  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Dec02_Jet30_Lep20_CSVM/";
+  
+  if (DoSF && DoDF) outputDir += "ALL/";
+  else if (DoSF)    outputDir += "SF/";
+  else if (DoDF)    outputDir += "DF/";
+  else             {cout << "ERROR, please indicate SF or DF" << endl;  return; }
 
-  //CSVM_METType0I_3rdLepV_FullSyst_Mar20_jet25/";
   gSystem->mkdir(outputDir, kTRUE);
 
   std::ostringstream oss;      
@@ -193,7 +169,6 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 //    + LumiString
 //    + "pb-1_"
     + sampleName
-    + suffix
     + ".root";
   
   gPAFOptions->SetOutputFile(outputFile);
@@ -208,11 +183,6 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     else      
       gSystem->AddIncludePath("-D__ISMC"); 
   }
-  if (DoFR)      { 
-    gSystem->AddIncludePath("-D__ISFR"); 
-    if(!proof && gPAFOptions->GetPAFMode() != kSequential)
-      proof->Exec("gSystem->AddIncludePath(\"-D__ISFR\");"); 
-  }
   if (sampleName == "T2tt_150to250LSP1to100_LeptonFilter"){
     //cout << "this is a stop sample!!! " << endl;
     if(gPAFOptions->GetPAFMode() != kSequential)
@@ -220,7 +190,14 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     else
       gSystem->AddIncludePath("-D__ISSTOP");
   }
-  
+  if (sampleName == "TTbar_MCatNLO"){
+    //cout << "this is a MC@NLO sample!!! " << endl;
+    if(gPAFOptions->GetPAFMode() != kSequential)  
+      proof->Exec("gSystem->AddIncludePath(\"-D__ISMCNLO\");");
+    else
+      gSystem->AddIncludePath("-D__ISMCNLO");
+  }  
+
   // See packages/InputParameters/InputParameters.h for information on how
   // to use this class.
 
@@ -236,11 +213,12 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   gPAFOptions->inputParameters->SetNamedFloat ("LumiForPU",     G_LumiForPUData  );
   gPAFOptions->inputParameters->SetNamedFloat ("TotalLumi",     G_Total_Lumi     );
   gPAFOptions->inputParameters->SetNamedBool  ("DoSystStudies", DoSystStudies    );
-  gPAFOptions->inputParameters->SetNamedBool  ("DoFR"         , DoFR             );
+  gPAFOptions->inputParameters->SetNamedBool  ("DoSF"         , DoSF             );
+  gPAFOptions->inputParameters->SetNamedBool  ("DoDF"         , DoDF             );
   
   // Number of events (Long64_t)
   //----------------------------------------------------------------------------
-  if (nSlots==1) gPAFOptions->SetNEvents(100);
+  if (nSlots==1) gPAFOptions->SetNEvents(2000);
   else           gPAFOptions->SetNEvents(nEvents);
 
   // First event (Long64_t)
