@@ -220,7 +220,7 @@ void TreeAnalysisTop::SetOriginalObjects(){
   // Save original values for MET, Jets and Leptons
   TLorentzVector j;
   for (UInt_t i=0; i<T_JetAKCHS_Et->size(); i++){    
-    j.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Px->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
+    j.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Py->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
     JetEt.push_back(j.Et());
     JetPhi.push_back(j.Phi());
   }
@@ -275,7 +275,7 @@ void TreeAnalysisTop::ResetOriginalObjects(){
   // Save original values for MET, Jets and Leptons
   TLorentzVector j;
   for (UInt_t i=0; i<T_JetAKCHS_Et->size(); i++){    
-    j.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Px->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
+    j.SetPxPyPzE(T_JetAKCHS_Px->at(i),T_JetAKCHS_Py->at(i),T_JetAKCHS_Pz->at(i),T_JetAKCHS_Energy->at(i));
     JetEt[i]  = j.Et();
     JetPhi[i] = j.Phi();
   }
@@ -301,12 +301,12 @@ void TreeAnalysisTop::InsideLoop(){
 
 #ifdef __ISSTOP
   if (gSampleName == "T2tt_150to250LSP1to100_LeptonFilter" &&  
-      (abs(T_Gen_StopMass->at(0)-T_Gen_StopMass->at(1)) >  0.1  ||
-       abs(T_Gen_Chi0Mass->at(0)-T_Gen_Chi0Mass->at(1)) >  0.1  || 
-       abs(T_Gen_StopMass->at(0)-175.)                  >  6.25 ||
-       abs(T_Gen_Chi0Mass->at(0)-1.)                    >  6.25)
+      (abs(T_Gen_StopMass->at(0)-T_Gen_StopMass->at(1)) >  0.1 || 
+       abs(T_Gen_Chi0Mass->at(0)-T_Gen_Chi0Mass->at(1)) >  0.1 || 
+       abs(T_Gen_StopMass->at(0)-gStopMass)             > 6.25 || 
+       abs(T_Gen_Chi0Mass->at(0)-1.)                    > 6.25 )
       ) return;
-   #endif
+#endif
   
   // Init data members
   //----------------------------------------------------------------------------
@@ -551,7 +551,8 @@ void TreeAnalysisTop::GetParameters()
   GetInputParameters()->TheNamedBool ("UseCSVM",       gUseCSVM);
   GetInputParameters()->TheNamedBool ("DoSF"         , gDoSF);
   GetInputParameters()->TheNamedBool ("DoDF"         , gDoDF);
-  
+  GetInputParameters()->TheNamedFloat("stopMass"     , gStopMass         );
+
   //  GetInputParameters()->TheNamedInt("SystDirection", gSysDirection);
 }
 //-----------------------------------------------------------------------------------
@@ -696,16 +697,16 @@ float TreeAnalysisTop::getLeptonError(gChannel chan){
   int ind1 = fHypLepton1.index; 
   int ind2 = fHypLepton2.index;
   if (chan==Muon){
-    err1 = fLeptonSF->GetTightMuonSF_err(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
-    err2 = fLeptonSF->GetTightMuonSF_err(T_Muon_Pt->at(ind2), T_Muon_Eta->at(ind2));
+    err1 = fLeptonSF->GetTightMuonSF_err(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
+    err2 = fLeptonSF->GetTightMuonSF_err(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
   }
   if (chan==ElMu){
-    err1 = fLeptonSF->GetTightMuonSF_err    (T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
-    err2 = fLeptonSF->GetTightElectronSF_err(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
+    err1 = fLeptonSF->GetTightMuonSF_err    (fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
+    err2 = fLeptonSF->GetTightElectronSF_err(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
   }
   if (chan==Elec){
-    err1 = fLeptonSF->GetTightElectronSF_err(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
-    err2 = fLeptonSF->GetTightElectronSF_err(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
+    err1 = fLeptonSF->GetTightElectronSF_err(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
+    err2 = fLeptonSF->GetTightElectronSF_err(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
   }
   return TMath::Sqrt(err1*err1+err2*err2);
 }
@@ -713,32 +714,30 @@ float TreeAnalysisTop::getTriggerError(gChannel chan){
   float trig(0.);
   int ind1 = fHypLepton1.index; 
   int ind2 = fHypLepton2.index;
-  if (chan==Muon) trig = fLeptonSF->GetDoubleMuSF_err(T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2));
-  if (chan==ElMu) trig = fLeptonSF->GetMuEGSF_err    (T_Elec_Eta->at(ind2),T_Muon_Eta->at(ind1));
-  if (chan==Elec) trig = fLeptonSF->GetDoubleElSF_err(T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2));
+  if (chan==Muon) trig = fLeptonSF->GetDoubleMuSF_err(fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
+  if (chan==ElMu) trig = fLeptonSF->GetMuEGSF_err    (fHypLepton2.p.Eta(),fHypLepton1.p.Eta());
+  if (chan==Elec) trig = fLeptonSF->GetDoubleElSF_err(fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
   return trig;
 }
-float TreeAnalysisTop::getSF(gChannel chan, int ind1, int ind2) {
+float TreeAnalysisTop::getSF(gChannel chan) {
   if (gIsData)              return 1.; //Don't scale data
-  if (ind1 < 0 || ind2 < 0) return 1.; //sanity check!!; 
   
-  //  float Id1_err(1.), Id2_err(1.), Trig_err(1.);
   float Id   = 1.;
   float Trig = 1.;
   if (chan == Muon){
-    Id   = fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
-    Id  *= fLeptonSF->GetTightMuonSF(T_Muon_Pt->at(ind2), T_Muon_Eta->at(ind2));
-    Trig = fLeptonSF->GetDoubleMuSF (T_Muon_Eta->at(ind1),T_Muon_Eta->at(ind2)) ;
+    Id   = fLeptonSF->GetTightMuonSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
+    Id  *= fLeptonSF->GetTightMuonSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
+    Trig = fLeptonSF->GetDoubleMuSF (fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
   } 
   else if (chan == Elec){
-    Id   = fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind1), T_Elec_Eta->at(ind1));
-    Id  *= fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
-    Trig = fLeptonSF->GetDoubleElSF     (T_Elec_Eta->at(ind1),T_Elec_Eta->at(ind2));
+    Id   = fLeptonSF->GetTightElectronSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta()); 
+    Id  *= fLeptonSF->GetTightElectronSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta()); 
+    Trig = fLeptonSF->GetDoubleElSF     (fHypLepton1.p.Eta(),fHypLepton2.p.Eta()); 
   }
   else if (chan == ElMu){
-    Id   = fLeptonSF->GetTightMuonSF    (T_Muon_Pt->at(ind1), T_Muon_Eta->at(ind1));
-    Id  *= fLeptonSF->GetTightElectronSF(T_Elec_Pt->at(ind2), T_Elec_Eta->at(ind2));
-    Trig = fLeptonSF->GetMuEGSF         (T_Elec_Eta->at(ind2),T_Muon_Eta->at(ind1));
+    Id   = fLeptonSF->GetTightMuonSF    (fHypLepton1.p.Pt(), fHypLepton1.p.Eta()); 
+    Id  *= fLeptonSF->GetTightElectronSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
+    Trig = fLeptonSF->GetMuEGSF         (fHypLepton2.p.Eta(),fHypLepton1.p.Eta());
   }
   return (PUSF*Id*Trig);
 }
@@ -773,7 +772,7 @@ void TreeAnalysisTop::FillDYHistograms(){
   int ind1(-1),ind2(-1);
   if (PassTriggerEMu()  && IsElMuEvent()){
     // Define Hypothesis Leptons...
-    EventWeight = gWeight * getSF(ElMu,ind1,ind2);
+    EventWeight = gWeight * getSF(ElMu);
     
     Mll = (fHypLepton1.p+fHypLepton2.p).M();
     
@@ -813,7 +812,7 @@ void TreeAnalysisTop::FillDYHistograms(){
   ResetHypLeptons(); 
   if (PassTriggerMuMu() && IsMuMuEvent()){
     
-    EventWeight = gWeight * getSF(Muon,ind1,ind2);
+    EventWeight = gWeight * getSF(Muon);
     Mll = (fHypLepton1.p+fHypLepton2.p).M();
     
     if (PassesMllVeto() && PassesMuonEta2p1(Muon) && Passes3rdLeptonVeto()){
@@ -851,7 +850,7 @@ void TreeAnalysisTop::FillDYHistograms(){
 
   ResetHypLeptons(); 
   if (PassTriggerEE()   && IsElElEvent()){
-    EventWeight = gWeight * getSF(Elec,ind1,ind2);
+    EventWeight = gWeight * getSF(Elec);
     Mll = (fHypLepton1.p+fHypLepton2.p).M();
     
     if (PassesMllVeto() && PassesMuonEta2p1(Elec) && Passes3rdLeptonVeto()){
@@ -1020,7 +1019,7 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
   int ind1(-1),ind2(-1);
   if (gDoDF && PassTriggerEMu()  && IsElMuEvent()){
     // Define Hypothesis Leptons...
-    EventWeight = gWeight * getSF(ElMu,ind1,ind2) * getTopPtSF();
+    EventWeight = gWeight * getSF(ElMu) * getTopPtSF();
     hWeight -> Fill(EventWeight,1.);
 #ifdef DEBUG
   cout << " pass trigger + emu, ";
@@ -1082,7 +1081,7 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
   
   ResetHypLeptons(); 
   if (gDoSF && PassTriggerMuMu() && IsMuMuEvent()){
-    EventWeight = gWeight * getSF(Muon,ind1,ind2)  * getTopPtSF();
+    EventWeight = gWeight * getSF(Muon)  * getTopPtSF();
 #ifdef __ISSTOP
     if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
       EventWeight = EventWeight * T_Gen_polWeights->at(10);
@@ -1115,7 +1114,7 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
 
   ResetHypLeptons(); 
   if (gDoSF && PassTriggerEE()   && IsElElEvent()){
-    EventWeight = gWeight * getSF(Elec,ind1,ind2) * getTopPtSF();     
+    EventWeight = gWeight * getSF(Elec) * getTopPtSF();     
 #ifdef __ISSTOP
     if(gSampleName == "T2tt_150to250LSP1to100_LeptonFilter")
       EventWeight = EventWeight * T_Gen_polWeights->at(10);
@@ -1646,28 +1645,12 @@ bool TreeAnalysisTop::IsGoodJet(unsigned int ijet, float ptcut){
     if ( !(T_JetAKCHS_ChargedMultiplicity->at(ijet) > 0 ) ) return false;
   }
   
-  // Remove jets close to all tight leptons
+  // Remove jets close to all selected leptons... 
   TLorentzVector jet;
   jet.SetPtEtaPhiE(JetEt.at(ijet),T_JetAKCHS_Eta->at(ijet),JetPhi.at(ijet),T_JetAKCHS_Energy->at(ijet));
   
-  for(unsigned int imu = 0; imu < T_Muon_Energy->size(); ++imu){
-    if(!IsTightMuon(imu)) continue;
-    TLorentzVector mu(T_Muon_Px    ->at(imu),     
-		      T_Muon_Py    ->at(imu),     
-		      T_Muon_Pz    ->at(imu),     
-		      T_Muon_Energy->at(imu));
-    if(jet.DeltaR(mu) > minDR) continue;
-    return false;
-  }
-  for(unsigned int iel = 0; iel < T_Elec_Energy->size(); ++iel){
-    if(!IsTightElectron(iel)) continue;
-    TLorentzVector el(T_Elec_Px    ->at(iel),     
-		      T_Elec_Py    ->at(iel),     
-		      T_Elec_Pz    ->at(iel),     
-		      T_Elec_Energy->at(iel));
-    
-    if(jet.DeltaR(el) > minDR) continue;
-    return false;
+  for(unsigned int i = 0; i < Lepton.size(); ++i){
+    if(jet.DeltaR(Lepton[i].p) < minDR) return false;
   }
   return true;
 }

@@ -72,6 +72,8 @@ root -l -b -q RunTree_ReReco.C\(\"WWZJets\",20,true\)
 root -l -b -q RunTree_ReReco.C\(\"WZZJets\",20,true\) 
 root -l -b -q RunTree_ReReco.C\(\"ZZZJets\",20,true\) 
 
-
 ## stop
-#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",20,true\)
+##root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",1,true,-1,162.5\)
+##root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",1,true,-1,175.0\)
+##root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",1,true,-1,187.5\)
+##root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",1,true,-1,200.0\)

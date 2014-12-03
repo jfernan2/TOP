@@ -13,7 +13,9 @@ TProof* proof = 0;
 void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 		    Int_t    nSlots         =  1,
 		    Bool_t   DoSystStudies  =  false,
-		    Long64_t nEvents        = -1){
+		    Long64_t nEvents        = -1,
+		    Float_t  stopMass       = 0.0
+		    ){
   
   gROOT->LoadMacro("$PAFPATH/PAF.C");
   
@@ -22,7 +24,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   Float_t G_Event_Weight  = 1.0;         // Event Weight
   Bool_t  G_IsData        = false;       // 1 for data, 0 for MC
   Float_t G_LumiForPUData = 19468.3;     // luminosity in http://www.hep.uniovi.es/jfernan/PUhistos
-  Bool_t  DoSF            = false;
+  Bool_t  DoSF            = true;
   Bool_t  DoDF            = true;
   
   cout << "Params: " << endl;
@@ -32,7 +34,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   cout << "lumiForPUdata   " << G_LumiForPUData << endl;
   cout << "DoSystStudies   " << DoSystStudies   << endl;
   cout << "nEvents         " << nEvents         << endl;
-  
+  cout << "massStop        " << stopMass        << endl;
+      
   // PROOF settings - see scripts/PAFOptions.h
   //----------------------------------------------------------------------------
 
@@ -148,10 +151,10 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     
   // Output file name
   //----------------------------------------------------------------------------
-  Bool_t G_Use_CSVM = true; //false;
-  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Dec02_Jet30_Lep20_CSVM/";
+  Bool_t G_Use_CSVM = true;
+  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Dec03_Jet30_Lep20_CSVM/";
   
-  if (DoSF && DoDF) outputDir += "ALL/";
+  if (DoSF && DoDF) outputDir += "";
   else if (DoSF)    outputDir += "SF/";
   else if (DoDF)    outputDir += "DF/";
   else             {cout << "ERROR, please indicate SF or DF" << endl;  return; }
@@ -161,19 +164,17 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   std::ostringstream oss;      
   oss << G_Total_Lumi;
   
+  TString mstop="";
+  if(sampleName == "T2tt_150to250LSP1to100_LeptonFilter")  mstop = Form("_%f",stopMass);
   TString LumiString = oss.str();
-  
   TString outputFile = outputDir
     + "/"
     + "Tree_Legacy_"
-//    + LumiString
-//    + "pb-1_"
     + sampleName
+    + mstop
     + ".root";
   
   gPAFOptions->SetOutputFile(outputFile);
-  //
-  //SANTI  gPAFOptions->outputFile = outputFile;
 
   // Parameters for the analysis
   //----------------------------------------------------------------------------
@@ -215,7 +216,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   gPAFOptions->inputParameters->SetNamedBool  ("DoSystStudies", DoSystStudies    );
   gPAFOptions->inputParameters->SetNamedBool  ("DoSF"         , DoSF             );
   gPAFOptions->inputParameters->SetNamedBool  ("DoDF"         , DoDF             );
-  
+  gPAFOptions->inputParameters->SetNamedFloat ("stopMass"     , stopMass         );
+
   // Number of events (Long64_t)
   //----------------------------------------------------------------------------
   if (nSlots==1) gPAFOptions->SetNEvents(2000);

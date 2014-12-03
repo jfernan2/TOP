@@ -230,7 +230,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   float getBtagJetPtIndex(unsigned int);
   float getErrPt(float,float);
   float getJERScale(int);
-  float getSF(gChannel, int, int);
+  float getSF(gChannel);
   float getLeptonError(gChannel);
   float getTriggerError(gChannel);
   float getTopPtSF();
@@ -300,6 +300,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   Bool_t  gUseCSVM;
   Bool_t  gDoSF;
   Bool_t  gDoDF;
+  Float_t gStopMass;
 
   PUWeight *fPUWeight;     //The PU weight utility
   //  PUWeight *fPUWeightUp;   //The PU weight utility
