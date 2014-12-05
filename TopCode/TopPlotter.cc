@@ -20,6 +20,9 @@ void TopPlotter::Init(TString pathtofiles){
   ttbar_TLWG = 245.8;
   
   LoadSamples(pathtofiles);
+
+  DoDF = false;  if (pathtofiles.Contains("DF")) DoDF = true;
+  DoSF = false;  if (pathtofiles.Contains("SF")) DoSF = true; 
 }
 void TopPlotter::Loop(){
   //  cout << "Printing Yields with MC estimations..." << endl;
@@ -157,78 +160,103 @@ void TopPlotter::LoadSamples(TString pathtofiles){
   }
   LoadCategories();
 }
-//SANTI void TopPlotter::LoadCategory(Categories &Cat, TString sample){
-//SANTI   
-//SANTI   // CREATE LIST WITH SELECTED SAMPLES...
-//SANTI   std::vector<Samples> SampleList;
-//SANTI   if (sample=="ttbar"){
-//SANTI     if (gUseTTMadSpin) SampleList.push_back(TTJets_MadSpin);
-//SANTI     else               SampleList.push_back(TTJetsFullLeptMGtauola); 
-//SANTI   }
-//SANTI   else if (sample=="stop"){  
-//SANTI     SampleList.push_back(TbarWDilep);
-//SANTI     SampleList.push_back(TWDilep);
-//SANTI   }
-//SANTI   else if (sample=="dy"){
-//SANTI     SampleList.push_back(ZJets_Madgraph);
-//SANTI     SampleList.push_back(DYJets_Madgraph);
-//SANTI   }
-//SANTI   else if (sample=="vv"){
-//SANTI     SampleList.push_back(WZ);
-//SANTI     SampleList.push_back(ZZ);
-//SANTI     SampleList.push_back(WWTo2L2Nu_Madgraph);
-//SANTI   }
-//SANTI   else if (sample=="rare"){
-//SANTI     SampleList.push_back(TTWJets );
-//SANTI     SampleList.push_back(TTZJets );
-//SANTI     SampleList.push_back(TTGJets );
-//SANTI     SampleList.push_back(TTWWJets);
-//SANTI     SampleList.push_back(WWWJets );
-//SANTI     SampleList.push_back(WWZJets );
-//SANTI     SampleList.push_back(WZZJets );
-//SANTI     SampleList.push_back(ZZZJets );
-//SANTI   }
-//SANTI   else if (sample=="fake"){
-//SANTI     SampleList.push_back(TTJetsSemiLeptMGtauola);
-//SANTI     SampleList.push_back(Wbb_Madgraph          );
-//SANTI     SampleList.push_back(WgammaToLNuG          );
-//SANTI   }
-//SANTI   else if (sample=="Data"){
-//SANTI     SampleList.push_back(DoubleMu);
-//SANTI     SampleList.push_back(DoubleElectron);
-//SANTI     SampleList.push_back(MuEG);
-//SANTI   }
-//SANTI   else if (sample=="total"){
-//SANTI     SampleList.push_back(TbarWDilep);
-//SANTI     SampleList.push_back(TWDilep);
-//SANTI     SampleList.push_back(ZJets_Madgraph);
-//SANTI     SampleList.push_back(DYJets_Madgraph);
-//SANTI     SampleList.push_back(WZ);
-//SANTI     SampleList.push_back(ZZ);
-//SANTI     SampleList.push_back(WWTo2L2Nu_Madgraph);
-//SANTI     SampleList.push_back(TTWJets );
-//SANTI     SampleList.push_back(TTZJets );
-//SANTI     SampleList.push_back(TTGJets );
-//SANTI     SampleList.push_back(TTWWJets);
-//SANTI     SampleList.push_back(WWWJets );
-//SANTI     SampleList.push_back(WWZJets );
-//SANTI     SampleList.push_back(WZZJets );
-//SANTI     SampleList.push_back(ZZZJets );
-//SANTI     SampleList.push_back(TTJetsSemiLeptMGtauola);
-//SANTI     SampleList.push_back(Wbb_Madgraph          );
-//SANTI     SampleList.push_back(WgammaToLNuG          );
-//SANTI   }
-//SANTI   else { 
-//SANTI     cout << "[ERROR]: you have not selected a valid category..." << endl;
-//SANTI     break;
-//SANTI   }
-//SANTI   
-//SANTI   // NOW LOAD THE SELECTED CATEGORY:
-//SANTI   for (size_t cut=0; cut<iNCUTS; cut++){
-//SANTI     for (size_t chan=0; chan<gNCHANNELS; chan++){
-//SANTI       for (size_t sl=0; sl<SampleList.size(); sl++){
-//SANTI 	Cat
-//SANTI }
+/*
+void TopPlotter::LoadCategory(Categories &Cat, TString sample){
+  
+  // CREATE LIST WITH SELECTED SAMPLES...
+  std::vector<Samples> SampleList;
+  if (sample=="ttbar"){
+    SampleList.push_back(TTJets_MadSpin);
+  }
+  else if (sample=="stop"){  
+    SampleList.push_back(TbarWDilep);
+    SampleList.push_back(TWDilep);
+  }
+  else if (sample=="dy"){
+    SampleList.push_back(ZJets_Madgraph);
+    SampleList.push_back(DYJets_Madgraph);
+  }
+  else if (sample=="vv"){
+    SampleList.push_back(WZ);
+    SampleList.push_back(ZZ);
+    SampleList.push_back(WWTo2L2Nu_Madgraph);
+  }
+  else if (sample=="rare"){
+    //    SampleList.push_back(TTWJets );
+    //    SampleList.push_back(TTZJets );
+    //    SampleList.push_back(TTGJets );
+    SampleList.push_back(TTWWJets);
+    SampleList.push_back(WWWJets );
+    SampleList.push_back(WWZJets );
+    SampleList.push_back(WZZJets );
+    SampleList.push_back(ZZZJets );
+  }
+  else if (sample=="fake"){
+    SampleList.push_back(TTJetsSemiLeptMGtauola);
+    SampleList.push_back(Wbb_Madgraph          );
+    SampleList.push_back(WgammaToLNuG          );
+  }
+  else if (sample=="Data"){
+    SampleList.push_back(DoubleMu);
+    SampleList.push_back(DoubleElectron);
+    SampleList.push_back(MuEG);
+  }
+  else if (sample=="total"){
+    SampleList.push_back(TbarWDilep);
+    SampleList.push_back(TWDilep);
+    SampleList.push_back(ZJets_Madgraph);
+    SampleList.push_back(DYJets_Madgraph);
+    SampleList.push_back(WZ);
+    SampleList.push_back(ZZ);
+    SampleList.push_back(WWTo2L2Nu_Madgraph);
+    //    SampleList.push_back(TTWJets );
+    //    SampleList.push_back(TTZJets );
+    //    SampleList.push_back(TTGJets );
+    SampleList.push_back(TTWWJets);
+    SampleList.push_back(WWWJets );
+    SampleList.push_back(WWZJets );
+    SampleList.push_back(WZZJets );
+    SampleList.push_back(ZZZJets );
+    SampleList.push_back(TTJetsSemiLeptMGtauola);
+    SampleList.push_back(Wbb_Madgraph          );
+    SampleList.push_back(WgammaToLNuG          );
+  }
+  else { 
+    cout << "[ERROR]: you have not selected a valid category..." << endl;
+    break;
+  }
+  
+  // NOW LOAD YIELDS FOR THE SELECTED CATEGORY:
+  for (size_t cut=0; cut<iNCUTS; cut++){
+    for (size_t sl=0; sl<SampleList.size(); sl++){
+      for (size_t chan=0; chan<gNCHANNELS; chan++){
+	Cat.name = sample;
+	
+	// YIELDS
+	if (sl==0) Cat.Yields[chan][cut]  = S[SampleList[sl]].Yields[chan][cut];
+	else       Cat.Yields[chan][cut] += S[SampleList[sl]].Yields[chan][cut];
+	
+	if (sl==0) Cat.Yields_stat[chan][cut]  = S[SampleList[sl]].Yields_stat[chan][cut];
+	else       Cat.Yields_stat[chan][cut] += S[SampleList[sl]].Yields_stat[chan][cut];
+
+	for (size_t sys=0; sys<gNSYST; sys++){
+	  if (sl==0) Cat.Yields_syst[chan][cut]  = S[SampleList[sl]].Yields_syst[chan][cut];
+	  else       Cat.Yields_syst[chan][cut] += S[SampleList[sl]].Yields_syst[chan][cut];
+	}
+
+	// SSYIELDS
+	if (sl==0) Cat.SSYields[chan][cut]  = S[SampleList[sl]].SSYields[chan][cut];
+	else       Cat.SSYields[chan][cut] += S[SampleList[sl]].SSYields[chan][cut];
+
+	if (sl==0) Cat.SSYields_stat[chan][cut]  = S[SampleList[sl]].SSYields_stat[chan][cut];
+	else       Cat.SSYields_stat[chan][cut] += S[SampleList[sl]].SSYields_stat[chan][cut];
+      }
+    }
+  }
+  // NOW LOAD KINEMATIC HISTOGRAMS
+  
+}
+*/
 void TopPlotter::LoadCategories(){
   
   // Now Load everything (Yields, SSYields and KinHistos) to the different bkg. categories...
@@ -1645,7 +1673,7 @@ void TopPlotter::CalculateSystematicErrors(Categories &C, Int_t cut){
 							S[TTJets_MadSpin].Yields[ch][cut])
 					     ) / (S[TTJets_MadSpin].Yields[ch][cut]);
       
-      C.SystError[ch][TopPt]    = 0.; 
+      C.SystError[ch][toppt]    = 0.; 
 //SANTI      C.SystError[ch][TopPt]    = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][TopPtUp] - 
 //SANTI							C.Yields[ch][cut]),
 //SANTI					     TMath::Abs(C.Yields_syst[ch][cut][TopPtDown] - 
@@ -2183,7 +2211,7 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
     ttbar.err_JER  [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][jer];
     ttbar.err_Btag [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][btag];
     ttbar.err_mtag [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][mistag];
-    ttbar.err_TopPt[ch] = ttbar.xsec[ch] * TTbar.SystError[ch][TopPt];
+    ttbar.err_TopPt[ch] = ttbar.xsec[ch] * TTbar.SystError[ch][toppt];
     ttbar.err_Q2   [ch] = ttbar.xsec[ch] * TTbar.SystError[ch][Q2];
     ttbar.err_Match[ch] = ttbar.xsec[ch] * TTbar.SystError[ch][Matching];
   }
@@ -2472,8 +2500,8 @@ Int_t TopPlotter::GetRebin(TH1F* h, Int_t var){
   if (var==Jet0Pt     ) return 5 * rebin;
   if (var==Jet1Pt     ) return 5 * rebin;
   		      
-  if (var==CSVTag     ) return 25;
-  if (var==TopD       ) return 25;
+  //  if (var==CSVTag     ) return 25;
+  //  if (var==TopD       ) return 25;
   if (var==DelPhillJet) return 10;
   
   return rebin;

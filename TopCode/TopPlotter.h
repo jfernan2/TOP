@@ -36,11 +36,9 @@ enum iCut{
   iMET, 
   i2jets, 
   i1btag, 
-  //  iTopD,
   iNCUTS
-  //i2btag,
 };
-TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag"}; //,"TopD"}; //tag"};
+TString sCut[iNCUTS] = {"dilepton", "ZVeto", "MET", "2jets", "1btag"}; 
 enum gSystFlag{
   Norm,
   BtagUp,
@@ -52,16 +50,8 @@ enum gSystFlag{
   JER,
   LESUp,
   LESDown,
-//  LepUp,
-//  LepDown,
-//  TrigUp,
-//  TrigDown,
-//  METUp,
-//  METDown,
-//  PUUp,
-//  PUDown,
-  TopPtUp,
-  TopPtDown,
+  TopPt,
+  //  TopPtDown,
   gNSYST,
   Q2ScaleUp=gNSYST,
   Q2ScaleDown,
@@ -80,16 +70,8 @@ TString sysname[gNALLSYST]={
   "__jer",
   "__les__plus",
   "__les__minus",
-//  "__lep__plus",
-//  "__lep__minus",
-//  "__trig__plus",
-//  "__trig__minus",
-//  "__met__plus",
-//  "__met__minus",
-//  "__pu__plus",
-//  "__pu__minus",
-  "__toppt__plus",
-  "__toppt__minus",
+  "__toppt",
+  //"__toppt__minus",
   "__q2__minus",
   "__q2__plus",
   "__mpts__plus",
@@ -106,16 +88,8 @@ TString SystName[gNALLSYST] = {
   "JER",
   "LESUp",
   "LESDown",
-//  "LepUp",
-//  "LepDown",
-//  "TrigUp",
-//  "TrigDown",
-//  "METUp",
-//  "METDown",
-//  "PUUp",
-//  "PUDown",
-  "TopPtUp",
-  "TopPtDown",
+  "TopPt",
+  //  "TopPtDown",
   "Q2ScaleUp",
   "Q2ScaleDown",
   "MatchingUp",
@@ -129,12 +103,14 @@ enum gSystErrType{
   jer,
   btag,
   mistag,
-  TopPt,
+  toppt,
   Q2,
   Matching,
   gNSYSTERRTypes,
   stop=gNSYSTERRTypes,
   vv,
+  dy,
+  fake,
   rare,
   gNSYSTERRTypesALL
 };
@@ -145,11 +121,13 @@ TString SystErrLabel[gNSYSTERRTypesALL] = {"SFIDISO",
 					   "JER",
 					   "btag",
 					   "mistag",
-					   "TopPt",
+					   "toppt",
 					   "Q2",
 					   "Matching",
 					   "STop",
 					   "VV",
+					   "DrellYan",
+					   "Fake"
 					   "Rare"};
 enum Samples{
   DoubleElectron        ,
@@ -223,13 +201,11 @@ enum iVar{
   Jet0Pt,
   Jet1Pt,
   NBTagsNJets,
-  CSVTag,
-  TopD,
   DelPhillJet,
   gNVARS
 };
 TString KinVarName[gNVARS] = {"MET","InvMass","DiLepPt", "Lep0Pt","Lep1Pt","DelLepPhi","NJets",
-			      "NBtagJets","Jet0Pt","Jet1Pt","NBtagsNJets","CSVTag","TopD","DelPhillJet"}; 
+			      "NBtagJets","Jet0Pt","Jet1Pt","NBtagsNJets","DelPhillJet"}; 
 TString KinAxisLabel[gNVARS] = {"E_{T}^{miss} (GeV)",
 				"M_{ll} (GeV)",
 				"Di-Lepton p_{T} (GeV)",
@@ -241,8 +217,8 @@ TString KinAxisLabel[gNVARS] = {"E_{T}^{miss} (GeV)",
 				"Leading Jet p_{T} (GeV)",
 				"Subleading Jet p_{T} (GeV)",
 				"Number of b-jets (N_{jets})",
-				"CSV Tagger of the Leading Jet",
-				"Top Discrimator",
+				//				"CSV Tagger of the Leading Jet",
+				//				"Top Discrimator",
 				"#Delta #phi (ll,jet)"};
 class TopPlotter {
  public:
@@ -252,6 +228,7 @@ class TopPlotter {
   void Init(TString);
   void Loop();
   void LoadSamples(TString);
+  //  void LoadCategory(Categories &, TString);
   void LoadCategories();
   void ResetDataMembers();
   void ResetSystematicErrors();
@@ -334,7 +311,6 @@ class TopPlotter {
   Categories VV   ;
   Categories Rare ;
   Categories Fake ;
-  //  Categories Bkg  ;
   Categories Total;
   
   // Data Driven backgrounds.
@@ -351,6 +327,8 @@ class TopPlotter {
   TString fOutputSubDir;
   Int_t   fVerbose;
   
+  Bool_t DoDF;
+  Bool_t DoSF;
   std::ofstream fOUTSTREAM, fOUTSTREAM2, fOUTSTREAM3;
 
 };
