@@ -56,10 +56,14 @@ enum gSystFlag{
   JER,
   LESUp,
   LESDown,
+  /*  LepUp,
+      LepDown,
+      TrigUp,
+      TrigDown,
+  */
   PUUp,
   PUDown,
-  TopPtUp,
-  TopPtDown,
+  TopPt,
   gNSYST
 };
 TString SystName[gNSYST] = {
@@ -73,16 +77,15 @@ TString SystName[gNSYST] = {
   "JER",
   "LESUp",
   "LESDown",
-//  "LepUp",
-//  "LepDown",
-//  "TrigUp",
-//  "TrigDown",
+  /*  "LepUp",
+  "LepDown",
+  "TrigUp",
+  "TrigDown",*/
 //  "METUp",
 //  "METDown",
   "PUUp",
   "PUDown",
-  "TopPtUp",
-  "TopPtDown"
+  "TopPt",
 };
 enum FakeSource{
   HF_mu,
@@ -303,8 +306,8 @@ class TreeAnalysisTop: public PAFAnalysis {
   Float_t gStopMass;
 
   PUWeight *fPUWeight;     //The PU weight utility
-  //  PUWeight *fPUWeightUp;   //The PU weight utility
-  //  PUWeight *fPUWeightDown; //The PU weight utility
+  PUWeight *fPUWeightUp;   //The PU weight utility
+  PUWeight *fPUWeightDown; //The PU weight utility
   BTagSFUtil *fBTagSF;     //The BTag SF utility 
   LeptonSF *fLeptonSF;
   TRandom3 *fRand3;
@@ -326,6 +329,8 @@ class TreeAnalysisTop: public PAFAnalysis {
   TH1F* fHyields  [gNCHANNELS][gNSYST];
   TH1F* fHSSyields[gNCHANNELS][gNSYST];
   TH1F* fHTopPtWeight;
+  TH1F* fHpdfWeightSum;
+  TH1F* fHpdfWeight;
   TH1F* fHLepSys[gNCHANNELS][iNCUTS];
   TH1F* fHTrigSys[gNCHANNELS][iNCUTS];
 

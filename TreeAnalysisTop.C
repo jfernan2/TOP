@@ -10,6 +10,8 @@ ClassImp(TreeAnalysisTop);
 
 const float gJetEtCut = 30.;
 //#define DEBUG
+#define __ISPDF
+
 TreeAnalysisTop::TreeAnalysisTop(TTree* tree) : PAFAnalysis(tree) {}
 //------------------------------------------------------------------------------
 // Initialise
@@ -29,8 +31,10 @@ void TreeAnalysisTop::Initialise() {
 #ifdef __ISMC
   InitialiseGenHistos();
 #endif  
-  fHTopPtWeight = CreateH1F("H_TopPtWeight","TopPt Weight",100, 0, 2);
-  
+  fHTopPtWeight  = CreateH1F("H_TopPtWeight" ,"TopPt Weight",100, 0, 2);
+  fHpdfWeightSum = CreateH1F("H_pdfWeightSum", "PDF sum Weights", 52, -0.5, 51.5);
+  fHpdfWeight    = CreateH1F("H_pdfWeight"   , "PDF Weights", 52, -0.5, 51.5);
+
   if (gSampleName == "DoubleMu"        ||       
       gSampleName == "DoubleElectron"  || 
       gSampleName == "MuEG"            ||       
@@ -45,10 +49,10 @@ void TreeAnalysisTop::Initialise() {
   PU Reweight
   ***********/
   fPUWeight     = new PUWeight(gLumiForPU,Summer12_53X,"2012");
-//#ifdef __ISMC
-//  fPUWeightUp   = new PUWeight(18494.9,   Summer12_53X,"2012"); //  18494.9  (5% down)
-//  fPUWeightDown = new PUWeight(20441.7,   Summer12_53X,"2012"); //  20441.7  (5% up  )
-//#endif
+#ifdef __ISMC
+  fPUWeightUp   = new PUWeight(18494.9,   Summer12_53X,"2012"); //  18494.9  (5% down)
+  fPUWeightDown = new PUWeight(20441.7,   Summer12_53X,"2012"); //  20441.7  (5% up  )
+#endif
 
   if (gUseCSVM) fBTagSF   = new BTagSFUtil("CSVM","ABCD");//ReReco
   else          fBTagSF   = new BTagSFUtil("CSVT","ABCD");//ReReco 
@@ -56,11 +60,11 @@ void TreeAnalysisTop::Initialise() {
   fLeptonSF = new LeptonSF();
 
   fRand3 = new TRandom3(50);
-
+  
   // No systematics activaded...
   gSysSource = Norm;
   fChargeSwitch = false;
-
+  
 #ifdef DEBUG
   cout << "Initialise(): Exit" << endl;
 #endif 
@@ -207,6 +211,8 @@ void TreeAnalysisTop::SetOriginalObjects(){
   // for systematic studies.
   ResetHypLeptons();
   
+  gSysSource = Norm;
+
   // SAVING ORIGINAL VALUES FOR MET, JET, LEPTONS for SYST
   JetEt.clear();
   JetPhi.clear();
@@ -313,36 +319,37 @@ void TreeAnalysisTop::InsideLoop(){
   SetOriginalObjects();
   SetEventObjects();
 
+#ifdef __ISPDF
+  for (int pdf=0; pdf<52; pdf++)
+    fHpdfWeightSum->Fill(pdf,T_Event_pdfWeight->at(pdf));
+#endif
+
   // Get number of generated leptons 
   //----------------------------------------------------------------------------
 #ifdef __ISMC
   SelectedGenLepton();
-  if (gSampleName == "TTJets_MadSpin"         && nGenLepton != 2) return;
-  if (gSampleName == "TTJets_matchingup"      && nGenLepton != 2) return;
-  if (gSampleName == "TTJets_matchingdown"    && nGenLepton != 2) return;
-  if (gSampleName == "TTJets_scaleup"         && nGenLepton != 2) return;
-  if (gSampleName == "TTJets_scaledown"       && nGenLepton != 2) return;
-  if (gSampleName == "TTJetsFullLeptMGtauola" && nGenLepton != 2) return;
   
-
-  if (gSampleName == "TTJets_MadSpin"         ||
-      gSampleName == "TTJets_matchingup"      ||
-      gSampleName == "TTJets_matchingdown"    ||
-      gSampleName == "TTJets_scaleup"         ||
-      gSampleName == "TTJets_scaledown"       ||
-      gSampleName == "TTJetsFullLeptMGtauola" ||
-      gSampleName == "TTJetsSemiLeptMGtauola") {
+  if (gSampleName == "TTJets_MadSpin"        ){
     
     Float_t Weight = 1.; 
     TLorentzVector top;
     for (size_t t=0; t<T_Gen_tSt3_Px->size(); t++){
       top.SetPxPyPzE(T_Gen_tSt3_Px->at(t),T_Gen_tSt3_Py->at(t),T_Gen_tSt3_Pz->at(t),T_Gen_tSt3_Energy->at(t));
       Float_t pt    = TMath::Min(top.Pt(), 400.);
-      Float_t topSF = TMath::Exp(0.148 - 0.00129 * pt);
+      //      Float_t topSF = TMath::Exp(0.148 - 0.00129 * pt);
+      Float_t topSF = TMath::Exp(0.156 - 0.00137 * pt);
       Weight *= topSF;
     }
     fHTopPtWeight->Fill(TMath::Sqrt(Weight));
   }
+
+  if (gSampleName == "TTJets_MadSpin"         && nGenLepton != 2) return;
+  if (gSampleName == "TTJets_matchingup"      && nGenLepton != 2) return;
+  if (gSampleName == "TTJets_matchingdown"    && nGenLepton != 2) return;
+  if (gSampleName == "TTJets_scaleup"         && nGenLepton != 2) return;
+  if (gSampleName == "TTJets_scaledown"       && nGenLepton != 2) return;
+  if (gSampleName == "TTJetsFullLeptMGtauola" && nGenLepton != 2) return;
+
   // Fill Gen Info 
   //----------------------------------------------------------------------------
   TLorentzVector lep,jet;
@@ -367,6 +374,8 @@ void TreeAnalysisTop::InsideLoop(){
   fHDeltaRLepJet[Elec] -> Fill(minDRel);
 #endif
 
+  // FOR PDF Uncertainties
+  
   // Accept only events with a good vertex
   //----------------------------------------------------------------------------
   if (SelectedVertexIndex() < 0) return;
@@ -479,40 +488,64 @@ void TreeAnalysisTop::InsideLoop(){
   fChargeSwitch = true;
   FillYields(LESDown); /// Get SS yields....
   fChargeSwitch = false;
-   
-//  // PILE UP UNCERTAINTY
-//  ResetOriginalObjects();
-//#ifdef __ISMC
-//  PUSF = fPUWeightUp->GetWeight((int)T_Event_nTruePU);
-//#endif
-//  gSysSource = PUUp;
-//  SetEventObjects();
-//  FillYields(PUUp);
-//  
-//  ResetOriginalObjects();
-//#ifdef __ISMC
-//  PUSF = fPUWeightDown->GetWeight((int)T_Event_nTruePU);
-//#endif
-//  gSysSource = PUDown;
-//  SetEventObjects();
-//  FillYields(PUDown);
-  
-  
-  // TOP PT
-  ResetOriginalObjects();
-  gSysSource = TopPtUp;
+
+  /*  ResetOriginalObjects();
+  gSysSource = LepUp;
   SetEventObjects();
-  FillYields(TopPtUp);
+  FillYields(LepUp);
   fChargeSwitch = true;
-  FillYields(TopPtUp); /// Get SS yields....
+  FillYields(LepUp); /// Get SS yields....
   fChargeSwitch = false;
 
   ResetOriginalObjects();
-  gSysSource = TopPtDown;
+  gSysSource = LepDown;
   SetEventObjects();
-  FillYields(TopPtDown);
+  FillYields(LepDown);
   fChargeSwitch = true;
-  FillYields(TopPtDown); /// Get SS yields....
+  FillYields(LepDown); /// Get SS yields....
+  fChargeSwitch = false;
+
+  ResetOriginalObjects();
+  gSysSource = TrigUp;
+  SetEventObjects();
+  FillYields(TrigUp);
+  fChargeSwitch = true;
+  FillYields(TrigUp); /// Get SS yields....
+  fChargeSwitch = false;
+
+  ResetOriginalObjects();
+  gSysSource = TrigDown;
+  SetEventObjects();
+  FillYields(TrigDown);
+  fChargeSwitch = true;
+  FillYields(TrigDown); /// Get SS yields....
+  fChargeSwitch = false;
+  */
+  
+  // PILE UP UNCERTAINTY
+  ResetOriginalObjects();
+#ifdef __ISMC
+  PUSF = fPUWeightUp->GetWeight((int)T_Event_nTruePU);
+#endif
+  gSysSource = PUUp;
+  SetEventObjects();
+  FillYields(PUUp);
+  
+  ResetOriginalObjects();
+#ifdef __ISMC
+  PUSF = fPUWeightDown->GetWeight((int)T_Event_nTruePU);
+#endif
+  gSysSource = PUDown;
+  SetEventObjects();
+  FillYields(PUDown); 
+  
+  // TOP PT
+  ResetOriginalObjects();
+  gSysSource = TopPt;
+  SetEventObjects();
+  FillYields(TopPt);
+  fChargeSwitch = true;
+  FillYields(TopPt); /// Get SS yields....
   fChargeSwitch = false;
   //
 }// void(InsideLoop)
@@ -694,8 +727,6 @@ float TreeAnalysisTop::getErrPt(float Pt, float Eta) {
 }
 float TreeAnalysisTop::getLeptonError(gChannel chan){
   float err1(0.), err2(0.);
-  int ind1 = fHypLepton1.index; 
-  int ind2 = fHypLepton2.index;
   if (chan==Muon){
     err1 = fLeptonSF->GetTightMuonSF_err(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
     err2 = fLeptonSF->GetTightMuonSF_err(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
@@ -712,8 +743,7 @@ float TreeAnalysisTop::getLeptonError(gChannel chan){
 }
 float TreeAnalysisTop::getTriggerError(gChannel chan){
   float trig(0.);
-  int ind1 = fHypLepton1.index; 
-  int ind2 = fHypLepton2.index;
+
   if (chan==Muon) trig = fLeptonSF->GetDoubleMuSF_err(fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
   if (chan==ElMu) trig = fLeptonSF->GetMuEGSF_err    (fHypLepton2.p.Eta(),fHypLepton1.p.Eta());
   if (chan==Elec) trig = fLeptonSF->GetDoubleElSF_err(fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
@@ -722,58 +752,59 @@ float TreeAnalysisTop::getTriggerError(gChannel chan){
 float TreeAnalysisTop::getSF(gChannel chan) {
   if (gIsData)              return 1.; //Don't scale data
   
-  float Id   = 1.;
-  float Trig = 1.;
+  float id1(1.),id2(1.), trig(1.);
+  float err1(0.), err2(0.), err_trg(0.);
   if (chan == Muon){
-    Id   = fLeptonSF->GetTightMuonSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
-    Id  *= fLeptonSF->GetTightMuonSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
-    Trig = fLeptonSF->GetDoubleMuSF (fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
+    id1  = fLeptonSF->GetTightMuonSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
+    id2  = fLeptonSF->GetTightMuonSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
+    trig = fLeptonSF->GetDoubleMuSF (fHypLepton1.p.Eta(),fHypLepton2.p.Eta());
+    //    if (gSysSource == LepDown)
   } 
   else if (chan == Elec){
-    Id   = fLeptonSF->GetTightElectronSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta()); 
-    Id  *= fLeptonSF->GetTightElectronSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta()); 
-    Trig = fLeptonSF->GetDoubleElSF     (fHypLepton1.p.Eta(),fHypLepton2.p.Eta()); 
+    id1  = fLeptonSF->GetTightElectronSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta()); 
+    id2  = fLeptonSF->GetTightElectronSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta()); 
+    trig = fLeptonSF->GetDoubleElSF     (fHypLepton1.p.Eta(),fHypLepton2.p.Eta()); 
   }
   else if (chan == ElMu){
-    Id   = fLeptonSF->GetTightMuonSF    (fHypLepton1.p.Pt(), fHypLepton1.p.Eta()); 
-    Id  *= fLeptonSF->GetTightElectronSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
-    Trig = fLeptonSF->GetMuEGSF         (fHypLepton2.p.Eta(),fHypLepton1.p.Eta());
+    id1  = fLeptonSF->GetTightMuonSF    (fHypLepton1.p.Pt(), fHypLepton1.p.Eta()); 
+    id2  = fLeptonSF->GetTightElectronSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
+    trig = fLeptonSF->GetMuEGSF         (fHypLepton2.p.Eta(),fHypLepton1.p.Eta());
   }
-  return (PUSF*Id*Trig);
+  return (PUSF*id1*id2*trig);
+  
 }
 float TreeAnalysisTop::getTopPtSF(){
   // Return SF of the pt pt of the top 
   // Only apply SF if the process is ttbar...
-  return 1;
   if(!gSampleName.Contains("TTJets")) return 1.;
   
-  TLorentzVector top;
-  Float_t topSF = 0.;
-  Float_t Weight = 1.; 
+  if (gSysSource==TopPt) {
+    TLorentzVector top;
+    Float_t topSF = 0.;
+    Float_t Weight = 1.; 
 #ifdef __ISMC
-  if (T_Gen_tSt3_Px->size() != 2) return 1.;
-  
-  for (size_t t=0; t<T_Gen_tSt3_Px->size(); t++){
-    top.SetPxPyPzE(T_Gen_tSt3_Px->at(t),T_Gen_tSt3_Py->at(t),T_Gen_tSt3_Pz->at(t),T_Gen_tSt3_Energy->at(t));
-    Float_t pt = TMath::Min(top.Pt(), 400.);
-    topSF = TMath::Exp(0.148 - 0.00129 * pt);
-    Weight *= topSF;
-  }
-  Weight = TMath::Sqrt(Weight);
+    if (T_Gen_tSt3_Px->size() != 2) return 1.;
+    
+    for (size_t t=0; t<T_Gen_tSt3_Px->size(); t++){
+      top.SetPxPyPzE(T_Gen_tSt3_Px->at(t),T_Gen_tSt3_Py->at(t),T_Gen_tSt3_Pz->at(t),T_Gen_tSt3_Energy->at(t));
+      Float_t pt = TMath::Min(top.Pt(), 400.);
+      //    topSF = TMath::Exp(0.148 - 0.00129 * pt);
+      topSF = TMath::Exp(0.156 - 0.00137 * pt);
+      Weight *= topSF;
+    }
+    Weight = TMath::Sqrt(Weight);
 #endif
+    return Weight;
+  }
   
-  if (gSysSource == TopPtDown) { return 1.;          }
-  if (gSysSource == TopPtUp)   { return 2*Weight-1.; }
-  
-  return Weight;
+  return 1.;
 }
 void TreeAnalysisTop::FillDYHistograms(){
+
   float Mll = 0.;
-  int ind1(-1),ind2(-1);
   if (PassTriggerEMu()  && IsElMuEvent()){
     // Define Hypothesis Leptons...
     EventWeight = gWeight * getSF(ElMu);
-    
     Mll = (fHypLepton1.p+fHypLepton2.p).M();
     
     if (PassesMllVeto() && PassesMuonEta2p1(ElMu) && Passes3rdLeptonVeto()){
@@ -977,6 +1008,14 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   if (fChargeSwitch){   fHSSyields[chan][sys]->Fill(cut, EventWeight);  }
   else {                fHyields[chan][sys]  ->Fill(cut, EventWeight);  }
   
+#ifdef __ISPDF
+  if (cut==i1btag && chan==ElMu && sys==Norm) {
+    for (int i=0; i<52; i++) {
+      fHpdfWeight->Fill(i, EventWeight*T_Event_pdfWeight->at(i));
+    }
+  }
+#endif
+
   /// FOR SYSTEMATIC STUDIES
   int njets  = 0; njets  = getNJets();
   int nbtags = 0; nbtags = getNBTags();
@@ -1001,10 +1040,9 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   if (!gIsData){
     fHLepSys[chan][cut] ->Fill(getLeptonError(chan), EventWeight);
     fHTrigSys[chan][cut]->Fill(getTriggerError(chan),EventWeight);
-//    // FOR SS ORIGINS
-//    if (fChargeSwitch) fHSSOrigins[chan][cut]->Fill();
-//    else               fHOrigins[chan][cut]  ->Fill();
-    
+    //    // FOR SS ORIGINS
+    //    if (fChargeSwitch) fHSSOrigins[chan][cut]->Fill();
+    //    else               fHOrigins[chan][cut]  ->Fill();
   }
 #ifdef DEBUG
   cout << " DONE! " << endl;
@@ -1016,7 +1054,6 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
   cout << "FillYields("<<sys<<")... ";
 #endif
   ResetHypLeptons();  
-  int ind1(-1),ind2(-1);
   if (gDoDF && PassTriggerEMu()  && IsElMuEvent()){
     // Define Hypothesis Leptons...
     EventWeight = gWeight * getSF(ElMu) * getTopPtSF();
@@ -1569,7 +1606,6 @@ int TreeAnalysisTop::getNBTags(){
 float TreeAnalysisTop::getDeltaPhillJet(){
   if (fHypLepton1.index == -1) return -999.;
   if (fHypLepton2.index == -1) return -999.;
-
   Int_t ij = getLeadingJetbTag();
   if (ij < 0) return -999.; 
   TLorentzVector dilep = fHypLepton1.p+fHypLepton2.p;
@@ -1615,7 +1651,8 @@ int TreeAnalysisTop::getSelectedJets(){
 	if (gSysSource == MisTagUp)   btagSys =  0;
 	if (gSysSource == MisTagDown) btagSys =  0;
       }
-      if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 5 || TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 4){
+      else {
+//if(TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 5 && TMath::Abs(T_JetAKCHS_Parton_Flavour->at(i)) != 4){
 	if (gSysSource == BtagUp)     btagSys =  0;
 	if (gSysSource == BtagDown)   btagSys =  0;
 	if (gSysSource == MisTagUp)   btagSys =  1;
