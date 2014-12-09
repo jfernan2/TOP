@@ -10,7 +10,7 @@ ClassImp(TreeAnalysisTop);
 
 const float gJetEtCut = 30.;
 //#define DEBUG
-#define __ISPDF
+//#define __ISPDF
 
 TreeAnalysisTop::TreeAnalysisTop(TTree* tree) : PAFAnalysis(tree) {}
 //------------------------------------------------------------------------------
