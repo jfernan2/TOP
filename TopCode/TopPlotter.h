@@ -50,8 +50,9 @@ enum gSystFlag{
   JER,
   LESUp,
   LESDown,
+  PUUp,
+  PUDown,
   TopPt,
-  //  TopPtDown,
   gNSYST,
   Q2ScaleUp=gNSYST,
   Q2ScaleDown,
@@ -70,8 +71,9 @@ TString sysname[gNALLSYST]={
   "__jer",
   "__les__plus",
   "__les__minus",
+  "__pu__plus",
+  "__pu__minus",
   "__toppt",
-  //"__toppt__minus",
   "__q2__minus",
   "__q2__plus",
   "__mpts__plus",
@@ -88,8 +90,9 @@ TString SystName[gNALLSYST] = {
   "JER",
   "LESUp",
   "LESDown",
+  "PUUp",
+  "PUDown",
   "TopPt",
-  //  "TopPtDown",
   "Q2ScaleUp",
   "Q2ScaleDown",
   "MatchingUp",
@@ -103,7 +106,11 @@ enum gSystErrType{
   jer,
   btag,
   mistag,
+  pu,
   toppt,
+  had,
+  pdf,
+  cr,
   Q2,
   Matching,
   gNSYSTERRTypes,
@@ -121,7 +128,11 @@ TString SystErrLabel[gNSYSTERRTypesALL] = {"SFIDISO",
 					   "JER",
 					   "btag",
 					   "mistag",
+					   "pu"
 					   "toppt",
+					   "had",
+					   "pdf"
+					   "cr",
 					   "Q2",
 					   "Matching",
 					   "STop",
@@ -134,12 +145,18 @@ enum Samples{
   DoubleMu   	        ,
   MuEG   		,
   TTJets_MadSpin        ,
+  TTJetsFullLeptMGtauola,
+  TTJetsSemiLeptMGtauola,
+  // TTbar systematics
   TTJets_matchingup     ,
   TTJets_matchingdown   ,
   TTJets_scaleup        ,
   TTJets_scaledown      ,
-  TTJetsFullLeptMGtauola,
-  TTJetsSemiLeptMGtauola,
+  TTJets_MadSpinPDF     ,
+  TTbar_Powheg          ,
+  TTbar_Powheg_Herwig   ,
+  TTJetsFullLeptMGTuneP11,
+  TTJetsFullLeptMGTuneP11noCR,
   TbarWDilep		,
   TWDilep		,
   DYJets_Madgraph	,
@@ -149,7 +166,7 @@ enum Samples{
   WWTo2L2Nu_Madgraph	,
   WZ			,
   ZZ			,
-  TTGJets		,
+  //  TTGJets		,
   TTWJets		,
   TTWWJets		,
   TTZJets		,
@@ -164,12 +181,18 @@ TString SampleName[gNSAMPLES] = {
   "DoubleMu"  	    	  ,
   "MuEG"    	      	  ,
   "TTJets_MadSpin"        ,
+  "TTJetsFullLeptMGtauola",
+  "TTJetsSemiLeptMGtauola",
+  // TTbar systematics
   "TTJets_matchingup"     ,
   "TTJets_matchingdown"   ,
   "TTJets_scaleup"        ,
   "TTJets_scaledown"      ,
-  "TTJetsFullLeptMGtauola",
-  "TTJetsSemiLeptMGtauola",
+  "TTJets_MadSpinPDF"     ,
+  "TTbar_Powheg"          ,
+  "TTbar_Powheg_Herwig"   ,
+  "TTJetsFullLeptMGTuneP11",
+  "TTJetsFullLeptMGTuneP11noCR",
   "TbarWDilep"		  ,
   "TWDilep"		  ,
   "DYJets_Madgraph"	  ,
@@ -179,7 +202,7 @@ TString SampleName[gNSAMPLES] = {
   "WW"  ,
   "WZ"			  ,
   "ZZ"			  ,
-  "TTGJets"		  ,
+  //  "TTGJets"		  ,
   "TTWJets"		  ,
   "TTWWJets"		  ,
   "TTZJets"		  ,
@@ -248,6 +271,8 @@ class TopPlotter {
     TH1F* SSInvMass    [gNCHANNELS][iNCUTS][gNALLSYST]; 
     float SystError    [gNCHANNELS][gNSYSTERRTypesALL];
     TH1F* MllHistos    [gNCHANNELS][iNCUTS];
+    TH1F* pdfWeights;
+    TH1F* pdfWeightsSum;
   };
   
   struct XSection {
@@ -272,6 +297,9 @@ class TopPlotter {
     float err_Btag [gNCHANNELS];
     float err_mtag [gNCHANNELS];
     float err_TopPt[gNCHANNELS];
+    float err_cr   [gNCHANNELS];
+    float err_pdf  [gNCHANNELS];
+    float err_had  [gNCHANNELS];
     float err_PU   [gNCHANNELS];
     float err_Q2   [gNCHANNELS];
     float err_Match[gNCHANNELS];
@@ -285,7 +313,8 @@ class TopPlotter {
   void CalculateDYBkg();
   void CalculateCrossSection(Bool_t DD = false);
   void CalculateSystematicErrorsWithXSec(Categories&, Int_t);
-  
+  float GetPDFUncertainty();
+
   void DrawKinematicPlots(Bool_t DD,Int_t onechan = -1,Int_t onevar = -1, Int_t onecut =-1);
   //void DrawKinematicPlotsWithDD(Int_t onechan = -1,Int_t onevar = -1, Int_t onecut =-1);
   void DrawNbjetsNjets(bool);
@@ -329,6 +358,9 @@ class TopPlotter {
   
   Bool_t DoDF;
   Bool_t DoSF;
+  
+  float toppt_weight;
+
   std::ofstream fOUTSTREAM, fOUTSTREAM2, fOUTSTREAM3;
 
 };

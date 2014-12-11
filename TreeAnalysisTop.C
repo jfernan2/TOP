@@ -1815,7 +1815,7 @@ void TreeAnalysisTop::ScaleLeptons(int flag){
   if(gIsData) return; // don't smear data
   
   if(flag == 0) return;
-  float scale = 0.002;
+  float scale = 0.002; // 0.2%
   TLorentzVector oleps, leps, tmp;
   for(UInt_t i = 0; i < T_Muon_Energy->size(); ++i){
     tmp.SetPxPyPzE(MuPx.at(i), MuPy.at(i), T_Muon_Pz->at(i), T_Muon_Energy->at(i));
