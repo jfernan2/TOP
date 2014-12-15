@@ -34,8 +34,8 @@ void TopPlotter::Loop(){
 
   //  cout << "Draw Kinematic Plots with MC/DD estimations..." << endl;
   // tA->DrawKinematicPlotsWithMC(-1, NBTagsNJets, -1);
-  DrawKinematicPlots(true);
-  DrawKinematicPlots(false);
+  //DrawKinematicPlots(true);
+  //DrawKinematicPlots(false);
   
   //  cout << "Draw Plots for Likelihood..." << endl;
   //  DrawNbjetsNjets(false);
@@ -301,6 +301,9 @@ void TopPlotter::LoadCategories(){
       if (gUseTTMadSpin) TTbar.Yields[chan][cut] = S[TTJets_MadSpin]        .Yields[chan][cut]; 
       else               TTbar.Yields[chan][cut] = S[TTJetsFullLeptMGtauola].Yields[chan][cut]; 
       
+      SUSYstop.name = "SUSYstop";
+      SUSYstop.Yields[chan][cut]  = S[T2tt_150to250LSP1to100_LeptonFilter].Yields[chan][cut];
+      
       STop.name = "stop";
       STop .Yields[chan][cut]  = S[TbarWDilep].Yields[chan][cut];
       STop .Yields[chan][cut] += S[TWDilep]   .Yields[chan][cut];
@@ -344,6 +347,8 @@ void TopPlotter::LoadCategories(){
 	else               {
 	  TTbar.Yields_syst[chan][cut][sys]=S[TTJetsFullLeptMGtauola].Yields_syst[chan][cut][sys];
 	}
+      
+	SUSYstop.Yields_syst[chan][cut][sys]  = S[T2tt_150to250LSP1to100_LeptonFilter].Yields_syst[chan][cut][sys];
 	
 	STop .Yields_syst[chan][cut][sys]  = S[TbarWDilep].Yields_syst[chan][cut][sys];
 	STop .Yields_syst[chan][cut][sys] += S[TWDilep]   .Yields_syst[chan][cut][sys];
@@ -376,6 +381,8 @@ void TopPlotter::LoadCategories(){
       if (gUseTTMadSpin) TTbar.Yields_stat[chan][cut]  = S[TTJets_MadSpin].        Yields_stat[chan][cut] * S[TTJets_MadSpin].        Yields_stat[chan][cut];
       else               TTbar.Yields_stat[chan][cut]  = S[TTJetsFullLeptMGtauola].Yields_stat[chan][cut] * S[TTJetsFullLeptMGtauola].Yields_stat[chan][cut];
       
+      SUSYstop .Yields_stat[chan][cut]  = S[T2tt_150to250LSP1to100_LeptonFilter].Yields_stat[chan][cut] * S[T2tt_150to250LSP1to100_LeptonFilter].Yields_stat[chan][cut];
+      
       STop .Yields_stat[chan][cut]  = S[TbarWDilep].Yields_stat[chan][cut] * S[TbarWDilep].Yields_stat[chan][cut];
       STop .Yields_stat[chan][cut] += S[TWDilep]   .Yields_stat[chan][cut] * S[TWDilep]   .Yields_stat[chan][cut];
       
@@ -399,6 +406,7 @@ void TopPlotter::LoadCategories(){
       Fake .Yields_stat[chan][cut] += S[Wbb_Madgraph]          .Yields_stat[chan][cut] * S[Wbb_Madgraph]          .Yields_stat[chan][cut];
       Fake .Yields_stat[chan][cut] += S[WgammaToLNuG]          .Yields_stat[chan][cut] * S[WgammaToLNuG]          .Yields_stat[chan][cut];
       
+      SUSYstop  .Yields_stat[chan][cut] = TMath::Sqrt(SUSYstop  .Yields_stat[chan][cut]);
       TTbar.Yields_stat[chan][cut] = TMath::Sqrt(TTbar.Yields_stat[chan][cut]);
       STop .Yields_stat[chan][cut] = TMath::Sqrt(STop .Yields_stat[chan][cut]);
       DY   .Yields_stat[chan][cut] = TMath::Sqrt(DY   .Yields_stat[chan][cut]);
@@ -601,6 +609,8 @@ void TopPlotter::LoadCategories(){
     }
     TTbar.SystError[chan][SFIDISO]  = TMath::Sqrt(S[TTJets_MadSpin].SystError[chan][SFIDISO]*S[TTJets_MadSpin].SystError[chan][SFIDISO]);
 
+    SUSYstop .SystError[chan][SFIDISO]  = TMath::Sqrt(S[T2tt_150to250LSP1to100_LeptonFilter].SystError[chan][SFIDISO]*S[T2tt_150to250LSP1to100_LeptonFilter].SystError[chan][SFIDISO]);
+
     STop .SystError[chan][SFIDISO]  = S[TbarWDilep].SystError[chan][SFIDISO]*S[TbarWDilep].SystError[chan][SFIDISO];
     STop .SystError[chan][SFIDISO] += S[TWDilep]   .SystError[chan][SFIDISO]*S[TWDilep]   .SystError[chan][SFIDISO];
     STop .SystError[chan][SFIDISO]  = TMath::Sqrt(STop .SystError[chan][SFIDISO]);
@@ -624,6 +634,8 @@ void TopPlotter::LoadCategories(){
     Rare .SystError[chan][SFIDISO] += S[WZZJets]               .SystError[chan][SFIDISO]*S[WZZJets]               .SystError[chan][SFIDISO];
     Rare .SystError[chan][SFIDISO] += S[ZZZJets]               .SystError[chan][SFIDISO]*S[ZZZJets]               .SystError[chan][SFIDISO];
     Rare .SystError[chan][SFIDISO]  = TMath::Sqrt(Rare .SystError[chan][SFIDISO]);
+
+    SUSYstop .SystError[chan][SFTrig]  = TMath::Sqrt(S[T2tt_150to250LSP1to100_LeptonFilter].SystError[chan][SFTrig]*S[T2tt_150to250LSP1to100_LeptonFilter].SystError[chan][SFTrig]);
 
     TTbar.SystError[chan][SFTrig]  = TMath::Sqrt(S[TTJets_MadSpin].SystError[chan][SFTrig]*S[TTJets_MadSpin].SystError[chan][SFTrig]);
 
@@ -892,6 +904,7 @@ void TopPlotter::ResetDataMembers(){
       Rare .  Yields[chan][cut] = 0.;	 Rare .  Yields_stat[chan][cut] = 0.;
       Fake .  Yields[chan][cut] = 0.;	 Fake .  Yields_stat[chan][cut] = 0.;
       Total.  Yields[chan][cut] = 0.;	 Total.  Yields_stat[chan][cut] = 0.;
+      SUSYstop.Yields[chan][cut] = 0.;	 SUSYstop.  Yields_stat[chan][cut] = 0.;
 
       for (size_t sys=0; sys<gNSYST; sys++){
 	Data .  Yields_syst[chan][cut][sys] = 0.;    
@@ -902,6 +915,7 @@ void TopPlotter::ResetDataMembers(){
 	Rare .  Yields_syst[chan][cut][sys] = 0.;    
 	Fake .  Yields_syst[chan][cut][sys] = 0.;    
 	Total.  Yields_syst[chan][cut][sys] = 0.;    
+	SUSYstop.Yields_syst[chan][cut][sys] = 0.;    
 
 	DD_DY  .Yields_syst[chan][cut][sys] = 0.;    
 	DD_NonW.Yields_syst[chan][cut][sys] = 0.;    
@@ -931,6 +945,7 @@ void TopPlotter::ResetDataMembers(){
       Rare .SystError[chan][sys] = 0.;
       Fake .SystError[chan][sys] = 0.;
       Total.SystError[chan][sys] = 0.;
+      SUSYstop.SystError[chan][sys] = 0.;
     }
   }
   
@@ -971,6 +986,7 @@ void TopPlotter::ResetSystematicErrors(){
       Rare .SystError[chan][sys] = 0.;
       Fake .SystError[chan][sys] = 0.;
       Total.SystError[chan][sys] = 0.;
+      SUSYstop.SystError[chan][sys] = 0.;
     }
     
     for (size_t cut=0; cut<iNCUTS; cut++){
@@ -982,6 +998,7 @@ void TopPlotter::ResetSystematicErrors(){
       Rare .  Yields_syst[chan][cut][0] = 0.;    
       Fake .  Yields_syst[chan][cut][0] = 0.;    
       Total.  Yields_syst[chan][cut][0] = 0.;    
+      SUSYstop  .Yields_syst[chan][cut][0] = 0.;    
     }
   }
   // Reset XSection...
@@ -2194,6 +2211,7 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
   
   
   cout << "Calculating Systematic Errors..." << endl;
+  CalculateSystematicErrors(SUSYstop, cut);   
   CalculateSystematicErrors(TTbar, cut);
   CalculateSystematicErrors(STop , cut);   
   CalculateSystematicErrors(VV   , cut);
@@ -2448,6 +2466,12 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
 		     Data.Yields[Elec][cut], 
 		     Data.Yields[Muon][cut], 
 		     Data.Yields[ElMu][cut] )<< endl;
+  fOUTSTREAM << "------------------------------------------------------------------------------------------------------------" << endl;
+  fOUTSTREAM << Form(" SUSY stop        | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f | %7.1f +/- %4.1f +/- %6.1f ",   
+        	     SUSYstop.Yields[Elec][cut], SUSYstop.Yields_stat[Elec][cut], SUSYstop.Yields_syst[Elec][cut][0], 
+        	     SUSYstop.Yields[Muon][cut], SUSYstop.Yields_stat[Muon][cut], SUSYstop.Yields_syst[Muon][cut][0], 
+        	     SUSYstop.Yields[ElMu][cut], SUSYstop.Yields_stat[ElMu][cut], SUSYstop.Yields_syst[ElMu][cut][0])
+             << endl;
   fOUTSTREAM << "============================================================================================================" << endl;
   fOUTSTREAM << endl;
   fOUTSTREAM << endl;
@@ -2474,8 +2498,97 @@ void TopPlotter::CalculateCrossSection(Bool_t DD){
 	     << endl;
   fOUTSTREAM << "==============================================================================================================" << endl;
   fOUTSTREAM << endl;
-  fOUTSTREAM.close();
+
+  fOUTSTREAM << "=========================================================================================================================================================================================================" << endl;
+  fOUTSTREAM << "          El/Mu            " << endl;
+  fOUTSTREAM << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+  fOUTSTREAM << "          Source  |  Yields +/- stat +/- syst   | vv    | stop  | rare  | DY    | fakes | IdIso | Trig  | les   | jes   | JER   | btag  | mistag| PU    | TopPt | PDF   | Had   | CR    | Q2    | Match | " << endl;
+  fOUTSTREAM << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+  fOUTSTREAM << Form(" Drell-Yan	  | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     DD_DY.Yields[ElMu][cut]       , DD_DY.Yields_stat[ElMu][cut]   , DD_DY.Yields_syst[ElMu][cut][0], 
+		     DD_DY.SystError[ElMu][vv]     , DD_DY.SystError[ElMu][stop]    , DD_DY.SystError[ElMu][rare]    , DD_DY.SystError[ElMu][dy], DD_DY.SystError[ElMu][fake],
+		     DD_DY.SystError[ElMu][SFIDISO], DD_DY.SystError[ElMu][SFTrig]  , DD_DY.SystError[ElMu][les]     , DD_DY.SystError[ElMu][jes], 
+		     DD_DY.SystError[ElMu][jer]    , DD_DY.SystError[ElMu][btag]    , DD_DY.SystError[ElMu][mistag]  , DD_DY.SystError[ElMu][pu],
+		     DD_DY.SystError[ElMu][TopPt]  , DD_DY.SystError[ElMu][pdf]     , DD_DY.SystError[ElMu][had]     , DD_DY.SystError[ElMu][cr]  , 
+		     DD_DY.SystError[ElMu][Q2]     , DD_DY.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << Form(" Non W/Z leptons  | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     DD_NonW.Yields[ElMu][cut]       , DD_NonW.Yields_stat[ElMu][cut]   , DD_NonW.Yields_syst[ElMu][cut][0], 
+		     DD_NonW.SystError[ElMu][vv]     , DD_NonW.SystError[ElMu][stop]    , DD_NonW.SystError[ElMu][rare]    , DD_NonW.SystError[ElMu][dy], DD_NonW.SystError[ElMu][fake],
+		     DD_NonW.SystError[ElMu][SFIDISO], DD_NonW.SystError[ElMu][SFTrig]  , DD_NonW.SystError[ElMu][les]     , DD_NonW.SystError[ElMu][jes], 
+		     DD_NonW.SystError[ElMu][jer]    , DD_NonW.SystError[ElMu][btag]    , DD_NonW.SystError[ElMu][mistag]  , DD_NonW.SystError[ElMu][pu],
+		     DD_NonW.SystError[ElMu][TopPt]  , DD_NonW.SystError[ElMu][pdf]     , DD_NonW.SystError[ElMu][had]     , DD_NonW.SystError[ElMu][cr]  , 
+		     DD_NonW.SystError[ElMu][Q2]     , DD_NonW.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << Form(" Single Top       | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     STop.Yields[ElMu][cut]       , STop.Yields_stat[ElMu][cut]   , STop.Yields_syst[ElMu][cut][0], 
+		     STop.SystError[ElMu][vv]     , STop.SystError[ElMu][stop]    , STop.SystError[ElMu][rare]    , STop.SystError[ElMu][dy], STop.SystError[ElMu][fake],
+		     STop.SystError[ElMu][SFIDISO], STop.SystError[ElMu][SFTrig]  , STop.SystError[ElMu][les]     , STop.SystError[ElMu][jes], 
+		     STop.SystError[ElMu][jer]    , STop.SystError[ElMu][btag]    , STop.SystError[ElMu][mistag]  , STop.SystError[ElMu][pu],
+		     STop.SystError[ElMu][TopPt]  , STop.SystError[ElMu][pdf]     , STop.SystError[ElMu][had]     , STop.SystError[ElMu][cr]  , 
+		     STop.SystError[ElMu][Q2]     , STop.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << Form(" Diboson          | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     VV.Yields[ElMu][cut]       , VV.Yields_stat[ElMu][cut]   , VV.Yields_syst[ElMu][cut][0], 
+		     VV.SystError[ElMu][vv]     , VV.SystError[ElMu][stop]    , VV.SystError[ElMu][rare]    , VV.SystError[ElMu][dy], VV.SystError[ElMu][fake],
+		     VV.SystError[ElMu][SFIDISO], VV.SystError[ElMu][SFTrig]  , VV.SystError[ElMu][les]     , VV.SystError[ElMu][jes], 
+		     VV.SystError[ElMu][jer]    , VV.SystError[ElMu][btag]    , VV.SystError[ElMu][mistag]  , VV.SystError[ElMu][pu],
+		     VV.SystError[ElMu][TopPt]  , VV.SystError[ElMu][pdf]     , VV.SystError[ElMu][had]     , VV.SystError[ElMu][cr]  , 
+		     VV.SystError[ElMu][Q2]     , VV.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << Form(" Rare             | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     Rare.Yields[ElMu][cut]       , Rare.Yields_stat[ElMu][cut]   , Rare.Yields_syst[ElMu][cut][0], 
+		     Rare.SystError[ElMu][vv]     , Rare.SystError[ElMu][stop]    , Rare.SystError[ElMu][rare]    , Rare.SystError[ElMu][dy], Rare.SystError[ElMu][fake],
+		     Rare.SystError[ElMu][SFIDISO], Rare.SystError[ElMu][SFTrig]  , Rare.SystError[ElMu][les]     , Rare.SystError[ElMu][jes], 
+		     Rare.SystError[ElMu][jer]    , Rare.SystError[ElMu][btag]    , Rare.SystError[ElMu][mistag]  , Rare.SystError[ElMu][pu],
+		     Rare.SystError[ElMu][TopPt]  , Rare.SystError[ElMu][pdf]     , Rare.SystError[ElMu][had]     , Rare.SystError[ElMu][cr]  , 
+		     Rare.SystError[ElMu][Q2]     , Rare.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << Form(" TTbar dilepton   | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     TTbar.Yields[ElMu][cut]       , TTbar.Yields_stat[ElMu][cut]   , TTbar.Yields_syst[ElMu][cut][0], 
+		     TTbar.SystError[ElMu][vv]     , TTbar.SystError[ElMu][stop]    , TTbar.SystError[ElMu][rare]    , TTbar.SystError[ElMu][dy], TTbar.SystError[ElMu][fake],
+		     TTbar.SystError[ElMu][SFIDISO], TTbar.SystError[ElMu][SFTrig]  , TTbar.SystError[ElMu][les]     , TTbar.SystError[ElMu][jes], 
+		     TTbar.SystError[ElMu][jer]    , TTbar.SystError[ElMu][btag]    , TTbar.SystError[ElMu][mistag]  , TTbar.SystError[ElMu][pu],
+		     TTbar.SystError[ElMu][TopPt]  , TTbar.SystError[ElMu][pdf]     , TTbar.SystError[ElMu][had]     , TTbar.SystError[ElMu][cr]  , 
+		     TTbar.SystError[ElMu][Q2]     , TTbar.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << Form(" SUSY stop        | %7.1f +/- %4.1f +/- %6.1f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f | %1.3f |",   
+        	     SUSYstop.Yields[ElMu][cut], SUSYstop.Yields_stat[ElMu][cut], SUSYstop.Yields_syst[ElMu][cut][0], 
+		     SUSYstop.SystError[ElMu][vv]     , SUSYstop.SystError[ElMu][stop]    , SUSYstop.SystError[ElMu][rare]    , SUSYstop.SystError[ElMu][dy], SUSYstop.SystError[ElMu][fake],
+		     SUSYstop.SystError[ElMu][SFIDISO], SUSYstop.SystError[ElMu][SFTrig]  , SUSYstop.SystError[ElMu][les]     , SUSYstop.SystError[ElMu][jes], 
+		     SUSYstop.SystError[ElMu][jer]    , SUSYstop.SystError[ElMu][btag]    , SUSYstop.SystError[ElMu][mistag]  , SUSYstop.SystError[ElMu][pu],
+		     SUSYstop.SystError[ElMu][TopPt]  , SUSYstop.SystError[ElMu][pdf]     , SUSYstop.SystError[ElMu][had]     , SUSYstop.SystError[ElMu][cr]  , 
+		     SUSYstop.SystError[ElMu][Q2]     , SUSYstop.SystError[ElMu][Matching]    )
+             << endl;
+  fOUTSTREAM << "=========================================================================================================================================================================================================" << endl;
+
   
+  fOUTSTREAM << Form(" tt syst = %3.3f ",   
+                     TTbar.Yields[ElMu][cut] * sqrt(
+		     TTbar.SystError[ElMu][vv]      * TTbar.SystError[ElMu][vv]      + 
+		     TTbar.SystError[ElMu][stop]    * TTbar.SystError[ElMu][stop]    + 
+		     TTbar.SystError[ElMu][rare]    * TTbar.SystError[ElMu][rare]    + 
+		     TTbar.SystError[ElMu][dy]      * TTbar.SystError[ElMu][dy]      + 
+		     TTbar.SystError[ElMu][fake]    * TTbar.SystError[ElMu][fake]    +
+		     TTbar.SystError[ElMu][SFIDISO] * TTbar.SystError[ElMu][SFIDISO] + 
+		     TTbar.SystError[ElMu][SFTrig]  * TTbar.SystError[ElMu][SFTrig]  +
+		     TTbar.SystError[ElMu][les]     * TTbar.SystError[ElMu][les]     + 
+		     TTbar.SystError[ElMu][jes]     * TTbar.SystError[ElMu][jes]     + 
+		     TTbar.SystError[ElMu][jer]     * TTbar.SystError[ElMu][jer]     + 
+		     TTbar.SystError[ElMu][btag]    * TTbar.SystError[ElMu][btag]    + 
+		     TTbar.SystError[ElMu][mistag]  * TTbar.SystError[ElMu][mistag]  + 
+		     TTbar.SystError[ElMu][pu]      * TTbar.SystError[ElMu][pu]      +
+		     TTbar.SystError[ElMu][TopPt]   * TTbar.SystError[ElMu][TopPt]   + 
+		     TTbar.SystError[ElMu][pdf]     * TTbar.SystError[ElMu][pdf]     + 
+		     TTbar.SystError[ElMu][had]     * TTbar.SystError[ElMu][had]     + 
+		     TTbar.SystError[ElMu][cr]      * TTbar.SystError[ElMu][cr]      + 
+		     TTbar.SystError[ElMu][Q2]      * TTbar.SystError[ElMu][Q2]      + 
+		     TTbar.SystError[ElMu][Matching]* TTbar.SystError[ElMu][Matching]
+		     ) )
+             << endl;
+  
+  
+  fOUTSTREAM.close();
   gSystem->Exec("cat "+filename);
 }
 void TopPlotter::DrawTopLine(Int_t chan, Float_t y){

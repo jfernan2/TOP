@@ -174,6 +174,7 @@ enum Samples{
   WWZJets		,
   WZZJets		,
   ZZZJets               ,
+  T2tt_150to250LSP1to100_LeptonFilter,
   gNSAMPLES
 };
 TString SampleName[gNSAMPLES] = { 
@@ -209,7 +210,8 @@ TString SampleName[gNSAMPLES] = {
   "WWWJets"  		  ,
   "WWZJets"		  ,
   "WZZJets"		  ,
-  "ZZZJets"             
+  "ZZZJets"               ,
+  "T2tt_150to250LSP1to100_LeptonFilter_175.0"             
 };
 //++ categories
 enum iVar{
@@ -341,6 +343,7 @@ class TopPlotter {
   Categories Rare ;
   Categories Fake ;
   Categories Total;
+  Categories SUSYstop;
   
   // Data Driven backgrounds.
   Categories DD_DY  ;
