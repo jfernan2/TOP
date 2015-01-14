@@ -1727,29 +1727,29 @@ void TopPlotter::CalculateSystematicErrors(Categories &C, Int_t cut){
   cout << C.name << endl;
   for (size_t ch=0; ch<gNCHANNELS; ch++){
     if (C.name == "ttbar"){
-      C.SystError[ch][Q2]       = TMath::Max(TMath::Abs(S[TTJets_scaleup].Yields[ch][iDilepton]   - 
-							S[TTJets_MadSpin].Yields[ch][iDilepton]),
-					     TMath::Abs(S[TTJets_scaledown].Yields[ch][iDilepton] - 
-							S[TTJets_MadSpin].Yields[ch][iDilepton])
-					     ) / (S[TTJets_MadSpin].Yields[ch][iDilepton]);
+      C.SystError[ch][Q2]       = TMath::Max(TMath::Abs(S[TTJets_scaleup].Yields[ch][cut]   - 
+							S[TTJets_MadSpin].Yields[ch][cut]),
+					     TMath::Abs(S[TTJets_scaledown].Yields[ch][cut] - 
+							S[TTJets_MadSpin].Yields[ch][cut])
+					     ) / (S[TTJets_MadSpin].Yields[ch][cut]);
       
       C.SystError[ch][toppt]    = 0.; 
       if (toppt_weight != 0) {
 	C.SystError[ch][toppt]    = TMath::Abs(C.Yields_syst[ch][cut][TopPt]*(1./toppt_weight) - C.Yields[ch][cut]
 					       ) / C.Yields[ch][cut];
       }
-      C.SystError[ch][Matching] = TMath::Max(TMath::Abs(S[TTJets_matchingup].Yields[ch][iDilepton]   - 
-							S[TTJets_MadSpin].Yields[ch][iDilepton]),
-					     TMath::Abs(S[TTJets_matchingdown].Yields[ch][iDilepton] - 
-							S[TTJets_MadSpin].Yields[ch][iDilepton])
-					     ) / (S[TTJets_MadSpin].Yields[ch][iDilepton]);
+      C.SystError[ch][Matching] = TMath::Max(TMath::Abs(S[TTJets_matchingup].Yields[ch][cut]   - 
+							S[TTJets_MadSpin].Yields[ch][cut]),
+					     TMath::Abs(S[TTJets_matchingdown].Yields[ch][cut] - 
+							S[TTJets_MadSpin].Yields[ch][cut])
+					     ) / (S[TTJets_MadSpin].Yields[ch][cut]);
       C.SystError[ch][cr]  = TMath::Abs(S[TTJetsFullLeptMGTuneP11].Yields[ch][cut] - S[TTJetsFullLeptMGTuneP11noCR].Yields[ch][cut]) / S[TTJetsFullLeptMGTuneP11].Yields[ch][cut]; 
       C.SystError[ch][had] = 0.; //TMath::Abs(S[TTbar_Powheg].Yields[ch][cut] - S[TTbar_Powheg_Herwig].Yields[ch][cut]) / S[TTbar_Powheg].Yields[ch][cut]; 
       C.SystError[ch][pdf] = GetPDFUncertainty();
     }
-    C.SystError[ch][les]      = 0.02; /*TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][LESUp] - C.Yields[ch][cut]), 
-					TMath::Abs(C.Yields_syst[ch][cut][LESDown] - C.Yields[ch][cut])
-					) / C.Yields[ch][cut]; */
+    C.SystError[ch][les]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][LESUp] - C.Yields[ch][cut]), 
+					   TMath::Abs(C.Yields_syst[ch][cut][LESDown] - C.Yields[ch][cut])
+					   ) / C.Yields[ch][cut]; 
     C.SystError[ch][jes]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][JESUp] - C.Yields[ch][cut]), 
 					   TMath::Abs(C.Yields_syst[ch][cut][JESDown] - C.Yields[ch][cut])
 					   ) / C.Yields[ch][cut];
