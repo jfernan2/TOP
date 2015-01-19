@@ -374,7 +374,9 @@ class TreeAnalysisTop: public PAFAnalysis {
   TH1F* fHLep1Iso[gNCHANNELS][iNCUTS];
   
   /// STOP
-  TH1F* fHAbsDelPhiLep[gNCHANNELS][iNCUTS];
+  //TH1F* fHAbsDelPhiLep[gNCHANNELS][iNCUTS];
+  TH1F* fHAbsDelPhiLeps[gNCHANNELS][iNCUTS][gNSYST];
+  TH1F* fHSSAbsDelPhiLeps[gNCHANNELS][iNCUTS][gNSYST];
   TH1F* fHStopMass[gNCHANNELS][iNCUTS];
   TH1F* fHChi0Mass[gNCHANNELS][iNCUTS];
   TH2F* fHChi0StopMass[gNCHANNELS][iNCUTS];
