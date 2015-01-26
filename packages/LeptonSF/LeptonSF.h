@@ -68,7 +68,7 @@ class LeptonSF {
   
   /// Methods to get the ERROR 
   double GetTightMuonSF_err(double pt, double eta) {
-    return fTightMuonSF->GetBinError(fTightMuonSF->FindBin(TMath::Abs(eta), pt));
+    return fTightMuonSF->GetBinError(fTightMuonSF->FindBin(pt,TMath::Abs(eta)));
   }
   double GetTightElectronSF_err(double pt, double eta) {
     return fTightElectronSF->GetBinError(fTightElectronSF->FindBin(eta, pt));
