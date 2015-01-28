@@ -227,10 +227,11 @@ enum iVar{
   Jet1Pt,
   NBTagsNJets,
   DelPhillJet,
+  AbsDelPhiLeps,
   gNVARS
 };
 TString KinVarName[gNVARS] = {"MET","InvMass","DiLepPt", "Lep0Pt","Lep1Pt","DelLepPhi","NJets",
-			      "NBtagJets","Jet0Pt","Jet1Pt","NBtagsNJets","DelPhillJet"}; 
+			      "NBtagJets","Jet0Pt","Jet1Pt","NBtagsNJets","DelPhillJet","AbsDelPhiLeps"}; 
 TString KinAxisLabel[gNVARS] = {"E_{T}^{miss} (GeV)",
 				"M_{ll} (GeV)",
 				"Di-Lepton p_{T} (GeV)",
@@ -244,7 +245,8 @@ TString KinAxisLabel[gNVARS] = {"E_{T}^{miss} (GeV)",
 				"Number of b-jets (N_{jets})",
 				//				"CSV Tagger of the Leading Jet",
 				//				"Top Discrimator",
-				"#Delta #phi (ll,jet)"};
+				"#Delta #phi (ll,jet)",
+				"|#Delta #phi| (l,l)"};
 class TopPlotter {
  public:
   TopPlotter();
@@ -271,6 +273,8 @@ class TopPlotter {
     TH1F* SSNBtagsNJets[gNCHANNELS][iNCUTS][gNALLSYST]; 
     TH1F* InvMass      [gNCHANNELS][iNCUTS][gNALLSYST]; 
     TH1F* SSInvMass    [gNCHANNELS][iNCUTS][gNALLSYST]; 
+    TH1F* AbsDelPhiLeps      [gNCHANNELS][iNCUTS][gNALLSYST]; 
+    TH1F* SSAbsDelPhiLeps    [gNCHANNELS][iNCUTS][gNALLSYST]; 
     float SystError    [gNCHANNELS][gNSYSTERRTypesALL];
     TH1F* MllHistos    [gNCHANNELS][iNCUTS];
     TH1F* pdfWeights;
