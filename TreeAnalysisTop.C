@@ -149,6 +149,12 @@ void TreeAnalysisTop::InitialiseKinematicHistos(){
       
       fHAbsDelPhiLeps[ch][cut][0]   = CreateH1F("H_AbsDelPhiLeps_"+gChanLabel[ch]+"_"+sCut[cut]  ,"AbsDelPhiLeps"   , 28,-0.2, 1.2);
       fHSSAbsDelPhiLeps[ch][cut][0] = CreateH1F("HSS_AbsDelPhiLeps_"+gChanLabel[ch]+"_"+sCut[cut],"SS_AbsDelPhiLeps", 28,-0.2, 1.2);
+      
+      fHdelPhi2LeadJets[ch][cut][0]   = CreateH1F("H_delPhi2LeadJets_"+gChanLabel[ch]+"_"+sCut[cut]  ,"delPhi2LeadJets"   , 28,-0.2, 1.2);
+      fHSSdelPhi2LeadJets[ch][cut][0] = CreateH1F("HSS_delPhi2LeadJets_"+gChanLabel[ch]+"_"+sCut[cut],"SS_delPhi2LeadJets", 28,-0.2, 1.2);
+      
+      fHminDelRJetsLeps[ch][cut][0]   = CreateH1F("H_minDelRJetsLeps_"+gChanLabel[ch]+"_"+sCut[cut]  ,"minDelRJetsLeps"   ,   500,0.0, 5.0);
+      fHSSminDelRJetsLeps[ch][cut][0] = CreateH1F("HSS_minDelRJetsLeps_"+gChanLabel[ch]+"_"+sCut[cut],"SS_minDelRJetsLeps",   500,0.0, 5.0);
 
       // other variables 
       fHCSVTag[ch][cut]      = CreateH1F("H_CSVTag_"+gChanLabel[ch]+"_"+sCut[cut],"NBtagsNJets", 1000, 0.0, 1.0);
@@ -198,15 +204,27 @@ void TreeAnalysisTop::InitialiseSystematicHistos(){
 	
 	histoname = "H_AbsDelPhiLeps_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
 	fHAbsDelPhiLeps[ch][cut][sys] = CreateH1F(histoname,"AbsDelPhiLeps", 28,-0.2, 1.2);
+	
+	histoname = "H_delPhi2LeadJets_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
+	fHdelPhi2LeadJets[ch][cut][sys] = CreateH1F(histoname,"delPhi2LeadJets", 28,-0.2, 1.2);
+	
+	histoname = "H_minDelRJetsLeps_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
+	fHminDelRJetsLeps[ch][cut][sys] = CreateH1F(histoname,"minDelRJetsLeps", 500, 0., 5.0);
 
 	histoname = "HSS_NBtagsNJets_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
 	fHSSNBtagsNJets[ch][cut][sys] = CreateH1F(histoname,"SS_NBtagsNJets", 15 , -0.5, 14.5);
 	
 	histoname = "HSS_InvMass_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
-	fHSSInvMass[ch][cut][sys]     = CreateH1F(histoname,"InvMass"   , 300, 0., 300.);
+	fHSSInvMass[ch][cut][sys]     = CreateH1F(histoname,"SS_InvMass"   , 300, 0., 300.);
 	
 	histoname = "HSS_AbsDelPhiLeps_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
-	fHSSAbsDelPhiLeps[ch][cut][sys] = CreateH1F(histoname,"AbsDelPhiLeps", 28,-0.2, 1.2);
+	fHSSAbsDelPhiLeps[ch][cut][sys] = CreateH1F(histoname,"SS_AbsDelPhiLeps", 28,-0.2, 1.2);
+	
+	histoname = "HSS_delPhi2LeadJets_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
+	fHSSdelPhi2LeadJets[ch][cut][sys] = CreateH1F(histoname,"SS_delPhi2LeadJets", 28,-0.2, 1.2);
+	
+	histoname = "HSS_minDelRJetsLeps_"+gChanLabel[ch]+"_"+sCut[cut]+"_"+SystName[sys];
+	fHSSminDelRJetsLeps[ch][cut][sys] = CreateH1F(histoname,"SS_minDelRJetsLeps", 500, 0., 5.0);
 	
       }
     }
@@ -992,7 +1010,7 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
     fHDPhiLep0Jet[chan][cut]  ->Fill(getDPhiClosestJet(fHypLepton1.p), EventWeight);
     fHDPhiLep1Jet[chan][cut]  ->Fill(getDPhiClosestJet(fHypLepton2.p), EventWeight);
   }
-
+  
   //fHAbsDelPhiLep[chan][cut] ->Fill(TMath::Abs(fHypLepton1.p.DeltaPhi((fHypLepton2.p)))/TMath::Pi(), EventWeight);
   fHvertices[chan][cut]     ->Fill(nGoodVertex, EventWeight);
 #ifdef __ISSTOP  
@@ -1001,9 +1019,7 @@ void TreeAnalysisTop::FillKinematicHistos(gChannel chan, iCut cut){
       fHStopMass[chan][cut] ->Fill(T_Gen_StopMass->at(t), EventWeight);
     for (size_t t=0; t<T_Gen_Chi0Mass->size(); t++)
       fHChi0Mass[chan][cut] ->Fill(T_Gen_Chi0Mass->at(t), EventWeight);
-    
-    fHChi0StopMass[chan][cut] ->Fill(T_Gen_StopMass->at(0),
-				     T_Gen_Chi0Mass->at(0), EventWeight);
+      fHChi0StopMass[chan][cut] ->Fill(T_Gen_StopMass->at(0), T_Gen_Chi0Mass->at(0), EventWeight);
   }
 #endif
 #ifdef DEBUG
@@ -1030,6 +1046,7 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   int nbtags = 0; nbtags = getNBTags();
   
   if (fChargeSwitch) { 
+ cout << "!!!!!!!"<< endl; 
     fHSSInvMass[chan][cut][sys]->Fill((fHypLepton1.p+fHypLepton2.p).M(), EventWeight);
     if (njets == 0) fHSSNBtagsNJets[chan][cut][sys]->Fill(nbtags,        EventWeight);
     if (njets == 1) fHSSNBtagsNJets[chan][cut][sys]->Fill(nbtags+1,      EventWeight);
@@ -1037,6 +1054,18 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
     if (njets == 3) fHSSNBtagsNJets[chan][cut][sys]->Fill(nbtags+6,      EventWeight);
     if (njets >= 4) fHSSNBtagsNJets[chan][cut][sys]->Fill(nbtags+10,     EventWeight);
     fHSSAbsDelPhiLeps[chan][cut][sys]->Fill( TMath::Abs(fHypLepton1.p.DeltaPhi(fHypLepton2.p))/TMath::Pi(), EventWeight);
+    if(njets >= 2) fHSSdelPhi2LeadJets[chan][cut][sys]->Fill( TMath::Abs(Jet[0].p.DeltaPhi(Jet[1].p))/TMath::Pi(), EventWeight);
+    if (njets > 1) {
+       double deltaR_temp1 = 999., deltaR_temp2 = 999.;       
+       if( fHypLepton1.p.DeltaR(Jet[0].p) < fHypLepton2.p.DeltaR(Jet[0].p) ) {
+          deltaR_temp1 = fHypLepton1.p.DeltaR(Jet[0].p);
+          deltaR_temp2 = fHypLepton2.p.DeltaR(Jet[1].p);  
+       }else{
+          deltaR_temp1 = fHypLepton2.p.DeltaR(Jet[0].p);
+          deltaR_temp2 = fHypLepton1.p.DeltaR(Jet[1].p);  
+       }
+       fHSSminDelRJetsLeps[chan][cut][sys]->Fill(TMath::Min(deltaR_temp1, deltaR_temp2), EventWeight);
+    }
   }
   else {
     fHInvMass[chan][cut][sys]->Fill((fHypLepton1.p+fHypLepton2.p).M(), EventWeight);
@@ -1046,6 +1075,18 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
     if (njets == 3) fHNBtagsNJets[chan][cut][sys]->Fill(nbtags+6,      EventWeight);
     if (njets >= 4) fHNBtagsNJets[chan][cut][sys]->Fill(nbtags+10,     EventWeight);
     fHAbsDelPhiLeps[chan][cut][sys]->Fill( TMath::Abs(fHypLepton1.p.DeltaPhi(fHypLepton2.p))/TMath::Pi(), EventWeight);
+    if( njets >= 2) fHdelPhi2LeadJets[chan][cut][sys]->Fill( TMath::Abs(Jet[0].p.DeltaPhi(Jet[1].p))/TMath::Pi(), EventWeight);
+    if (njets > 1) {
+       double deltaR_temp1 = 999., deltaR_temp2 = 999.;       
+       if( fHypLepton1.p.DeltaR(Jet[0].p) < fHypLepton2.p.DeltaR(Jet[0].p) ) {
+          deltaR_temp1 = fHypLepton1.p.DeltaR(Jet[0].p);
+          deltaR_temp2 = fHypLepton2.p.DeltaR(Jet[1].p);  
+       }else{
+          deltaR_temp1 = fHypLepton2.p.DeltaR(Jet[0].p);
+          deltaR_temp2 = fHypLepton1.p.DeltaR(Jet[1].p);  
+       }
+       fHminDelRJetsLeps[chan][cut][sys]->Fill(TMath::Min(deltaR_temp1, deltaR_temp2), EventWeight);
+    }
   }
   
   if (!gIsData){

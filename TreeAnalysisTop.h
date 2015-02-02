@@ -375,6 +375,10 @@ class TreeAnalysisTop: public PAFAnalysis {
   
   /// STOP
   //TH1F* fHAbsDelPhiLep[gNCHANNELS][iNCUTS];
+  TH1F* fHminDelRJetsLeps[gNCHANNELS][iNCUTS][gNSYST];
+  TH1F* fHSSminDelRJetsLeps[gNCHANNELS][iNCUTS][gNSYST];
+  TH1F* fHdelPhi2LeadJets[gNCHANNELS][iNCUTS][gNSYST];
+  TH1F* fHSSdelPhi2LeadJets[gNCHANNELS][iNCUTS][gNSYST];
   TH1F* fHAbsDelPhiLeps[gNCHANNELS][iNCUTS][gNSYST];
   TH1F* fHSSAbsDelPhiLeps[gNCHANNELS][iNCUTS][gNSYST];
   TH1F* fHStopMass[gNCHANNELS][iNCUTS];
