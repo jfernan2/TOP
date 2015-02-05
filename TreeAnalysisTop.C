@@ -1720,7 +1720,7 @@ int TreeAnalysisTop::getSelectedJets(){
   return nj;
 }
 bool TreeAnalysisTop::IsGoodJet(unsigned int ijet, float ptcut){
-  float minDR = 0.4;
+  float minDR = 0.5;
   if(JetEt.at(ijet) < ptcut)                     return false;
   if(TMath::Abs(T_JetAKCHS_Eta->at(ijet)) > 2.4) return false; // btagging only up to 2.4
   
