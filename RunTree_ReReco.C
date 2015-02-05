@@ -150,7 +150,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // Output file name
   //----------------------------------------------------------------------------
   Bool_t G_Use_CSVM = true;
-  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Dec06_Jet30_Lep20_CSVM";
+  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Jan26_Jet30_Lep20_CSVM";
   
   if (DoSF && DoDF) outputDir += "";
   else if (DoSF)    outputDir += "SF/";
@@ -196,13 +196,13 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     else
       gSystem->AddIncludePath("-D__ISMCNLO");
   }  
-//  if (sampleName == "TTJets_MadSpinPDF"){
-//    //cout << "this is a MC@NLO sample!!! " << endl;
-//    if(gPAFOptions->GetPAFMode() != kSequential)  
-//      proof->Exec("gSystem->AddIncludePath(\"-D__ISPDF\");");
-//    else
-//      gSystem->AddIncludePath("-D__ISPDF");
-//  }  
+  if (sampleName == "TTJets_MadSpinPDF"){
+    //cout << "this is a MC@NLO sample!!! " << endl;
+    if(gPAFOptions->GetPAFMode() != kSequential)  
+      proof->Exec("gSystem->AddIncludePath(\"-D__ISPDF\");");
+    else
+      gSystem->AddIncludePath("-D__ISPDF");
+  }  
 
   // See packages/InputParameters/InputParameters.h for information on how
   // to use this class.
