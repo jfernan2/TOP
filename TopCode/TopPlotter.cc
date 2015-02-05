@@ -39,7 +39,7 @@ void TopPlotter::Loop(){
   
   cout << "Draw Plots for Likelihood..." << endl;
   DrawNbjetsNjets(false);
-  DrawNbjetsNjets(true);
+  //DrawNbjetsNjets(true);
   
   cout << "Saving Plots for Likelihood..." << endl;
   SaveHistosForLH(false);
@@ -148,7 +148,7 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	for (size_t sys=0; sys<gNSYST; sys++){
 	  if (sys==0) histoname = "H_NBtagsNJets_" + gChanLabel[chan] + "_" + sCut[cut];
 	  else        histoname = "H_NBtagsNJets_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
-	  //	  cout << "Reading... " << histoname << endl;
+	  // cout << "Reading... " << histoname << " " << endl;
 	  S[sample].NBtagsNJets[chan][cut][sys] = GetHisto1D(_file, histoname);
 	  if (!IsData) S[sample].NBtagsNJets[chan][cut][sys]->Scale(Weight);
 	  
@@ -183,6 +183,32 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	  
 	  S[sample].SSAbsDelPhiLeps[chan][cut][sys] = GetHisto1D(_file, histoname);
 	  if (!IsData) S[sample].SSAbsDelPhiLeps[chan][cut][sys]->Scale(Weight);
+	  
+	  
+	  if (sys==0) histoname = "H_delPhi2LeadJets_" + gChanLabel[chan] + "_" + sCut[cut];
+	  else        histoname = "H_delPhi2LeadJets_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
+	  //	  cout << "Reading... " << histoname << endl;
+	  S[sample].delPhi2LeadJets[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].delPhi2LeadJets[chan][cut][sys]->Scale(Weight);
+	  
+	  if (sys==0) histoname = "HSS_delPhi2LeadJets_" + gChanLabel[chan] + "_" + sCut[cut];
+	  else        histoname = "HSS_delPhi2LeadJets_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
+	  
+	  S[sample].SSdelPhi2LeadJets[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].SSdelPhi2LeadJets[chan][cut][sys]->Scale(Weight);
+	  
+	  
+	  if (sys==0) histoname = "H_minDelRJetsLeps_" + gChanLabel[chan] + "_" + sCut[cut];
+	  else        histoname = "H_minDelRJetsLeps_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
+	  //	  cout << "Reading... " << histoname << endl;
+	  S[sample].minDelRJetsLeps[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].minDelRJetsLeps[chan][cut][sys]->Scale(Weight);
+	  
+	  if (sys==0) histoname = "HSS_minDelRJetsLeps_" + gChanLabel[chan] + "_" + sCut[cut];
+	  else        histoname = "HSS_minDelRJetsLeps_" + gChanLabel[chan] + "_" + sCut[cut] + "_" + SystName[sys];
+	  
+	  S[sample].SSminDelRJetsLeps[chan][cut][sys] = GetHisto1D(_file, histoname);
+	  if (!IsData) S[sample].SSminDelRJetsLeps[chan][cut][sys]->Scale(Weight);
 	}
       }
     }
@@ -705,6 +731,7 @@ void TopPlotter::LoadCategories(){
 	  TTbar.NBtagsNJets[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].NBtagsNJets[chan][cut][sys]->Clone();
 	  TTbar.SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSNBtagsNJets[chan][cut][sys]->Clone();
 	}
+        SUSYstop.NBtagsNJets[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].NBtagsNJets[chan][cut][sys]->Clone();
 	STop .NBtagsNJets[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .NBtagsNJets[chan][cut][sys]->Clone();
 	STop .NBtagsNJets[chan][cut][sys] ->Add(   S[TWDilep]               .NBtagsNJets[chan][cut][sys]);
 	DY   .NBtagsNJets[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .NBtagsNJets[chan][cut][sys]->Clone();
@@ -732,6 +759,7 @@ void TopPlotter::LoadCategories(){
 	SetupDraw(Rare .NBtagsNJets[chan][cut][sys], kYellow  , NBTagsNJets);  
 	SetupDraw(Fake .NBtagsNJets[chan][cut][sys], kGreen-3 , NBTagsNJets);  
 
+        SUSYstop.SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].SSNBtagsNJets[chan][cut][sys]->Clone();
 	STop .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[TbarWDilep]            .SSNBtagsNJets[chan][cut][sys]->Clone();
 	STop .SSNBtagsNJets[chan][cut][sys] ->Add(   S[TWDilep]               .SSNBtagsNJets[chan][cut][sys]);
 	DY   .SSNBtagsNJets[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]       .SSNBtagsNJets[chan][cut][sys]->Clone();
@@ -806,6 +834,7 @@ void TopPlotter::LoadCategories(){
           TTbar.InvMass[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].InvMass[chan][cut][sys]->Clone();
           TTbar.SSInvMass[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSInvMass[chan][cut][sys]->Clone();
         }
+        SUSYstop .InvMass[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].InvMass[chan][cut][sys]->Clone();
         STop .InvMass[chan][cut][sys] = (TH1F*)S[TbarWDilep]		.InvMass[chan][cut][sys]->Clone();
         STop .InvMass[chan][cut][sys] ->Add(   S[TWDilep]		.InvMass[chan][cut][sys]);
         DY   .InvMass[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	.InvMass[chan][cut][sys]->Clone();
@@ -827,12 +856,14 @@ void TopPlotter::LoadCategories(){
         
         SetupDraw(Data .InvMass[chan][cut][sys], kBlack   , InvMass); 
         SetupDraw(TTbar.InvMass[chan][cut][sys], kRed+1   , InvMass);  
+        SetupDraw(SUSYstop .InvMass[chan][cut][sys], kWhite  , InvMass);  
         SetupDraw(STop .InvMass[chan][cut][sys], kPink-3  , InvMass);  
         SetupDraw(DY   .InvMass[chan][cut][sys], kAzure-2 , InvMass);  
         SetupDraw(VV   .InvMass[chan][cut][sys], kOrange-3, InvMass);  
         SetupDraw(Rare .InvMass[chan][cut][sys], kYellow  , InvMass);  
         SetupDraw(Fake .InvMass[chan][cut][sys], kGreen-3 , InvMass);  
         
+        SUSYstop.SSInvMass[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].SSInvMass[chan][cut][sys]->Clone();
         STop .SSInvMass[chan][cut][sys] = (TH1F*)S[TbarWDilep]  	  .SSInvMass[chan][cut][sys]->Clone();
         STop .SSInvMass[chan][cut][sys] ->Add(   S[TWDilep]		  .SSInvMass[chan][cut][sys]);
         DY   .SSInvMass[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	  .SSInvMass[chan][cut][sys]->Clone();
@@ -906,6 +937,7 @@ void TopPlotter::LoadCategories(){
           TTbar.AbsDelPhiLeps[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].AbsDelPhiLeps[chan][cut][sys]->Clone();
           TTbar.SSAbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSAbsDelPhiLeps[chan][cut][sys]->Clone();
         }
+        SUSYstop.AbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].AbsDelPhiLeps[chan][cut][sys]->Clone();
         STop .AbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[TbarWDilep]		.AbsDelPhiLeps[chan][cut][sys]->Clone();
         STop .AbsDelPhiLeps[chan][cut][sys] ->Add(   S[TWDilep]		.AbsDelPhiLeps[chan][cut][sys]);
         DY   .AbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	.AbsDelPhiLeps[chan][cut][sys]->Clone();
@@ -933,6 +965,7 @@ void TopPlotter::LoadCategories(){
         SetupDraw(Rare .AbsDelPhiLeps[chan][cut][sys], kYellow  , AbsDelPhiLeps);  
         SetupDraw(Fake .AbsDelPhiLeps[chan][cut][sys], kGreen-3 , AbsDelPhiLeps);  
         
+        SUSYstop.SSAbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].SSAbsDelPhiLeps[chan][cut][sys]->Clone();
         STop .SSAbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[TbarWDilep]  	  .SSAbsDelPhiLeps[chan][cut][sys]->Clone();
         STop .SSAbsDelPhiLeps[chan][cut][sys] ->Add(   S[TWDilep]		  .SSAbsDelPhiLeps[chan][cut][sys]);
         DY   .SSAbsDelPhiLeps[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	  .SSAbsDelPhiLeps[chan][cut][sys]->Clone();
@@ -981,6 +1014,211 @@ void TopPlotter::LoadCategories(){
         SetupDraw(TTbar.SSAbsDelPhiLeps[chan][cut][Q2ScaleDown ], kRed+1   , AbsDelPhiLeps);  
         SetupDraw(TTbar.SSAbsDelPhiLeps[chan][cut][MatchingUp  ], kRed+1   , AbsDelPhiLeps);  
         SetupDraw(TTbar.SSAbsDelPhiLeps[chan][cut][MatchingDown], kRed+1   , AbsDelPhiLeps);      
+      } 	
+ 	
+	
+      for (size_t sys=0; sys<gNSYST; sys++){
+        if (chan == Muon){
+          Data .delPhi2LeadJets[chan][cut][sys]   = (TH1F*)S[DoubleMu]        .delPhi2LeadJets[chan][cut][0]->Clone();
+          Data .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[DoubleMu]      .SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        }
+        else if (chan == Elec){
+          Data .delPhi2LeadJets[chan][cut][sys]   = (TH1F*)S[DoubleElectron]  .delPhi2LeadJets[chan][cut][0]->Clone();
+          Data .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[DoubleElectron].SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        }
+        else if (chan == ElMu){
+          Data .delPhi2LeadJets[chan][cut][sys]   = (TH1F*)S[MuEG]	      .delPhi2LeadJets[chan][cut][0]->Clone();
+          Data .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[MuEG]	    .SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        }
+        
+        if (gUseTTMadSpin) {
+          TTbar.delPhi2LeadJets[chan][cut][sys]   = (TH1F*)S[TTJets_MadSpin]	    .delPhi2LeadJets[chan][cut][sys]->Clone();
+          TTbar.SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TTJets_MadSpin]	  .SSdelPhi2LeadJets[chan][cut][sys]->Clone();
+        }
+        else {
+          TTbar.delPhi2LeadJets[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].delPhi2LeadJets[chan][cut][sys]->Clone();
+          TTbar.SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSdelPhi2LeadJets[chan][cut][sys]->Clone();
+        }
+        SUSYstop.delPhi2LeadJets[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].delPhi2LeadJets[chan][cut][sys]->Clone();
+        STop .delPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TbarWDilep]		.delPhi2LeadJets[chan][cut][sys]->Clone();
+        STop .delPhi2LeadJets[chan][cut][sys] ->Add(   S[TWDilep]		.delPhi2LeadJets[chan][cut][sys]);
+        DY   .delPhi2LeadJets[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	.delPhi2LeadJets[chan][cut][sys]->Clone();
+        DY   .delPhi2LeadJets[chan][cut][sys] ->Add(   S[ZJets_Madgraph]	.delPhi2LeadJets[chan][cut][sys]);
+        VV   .delPhi2LeadJets[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]	.delPhi2LeadJets[chan][cut][sys]->Clone();
+        VV   .delPhi2LeadJets[chan][cut][sys] ->Add(   S[WZ]			.delPhi2LeadJets[chan][cut][sys]);
+        VV   .delPhi2LeadJets[chan][cut][sys] ->Add(   S[ZZ]			.delPhi2LeadJets[chan][cut][sys]);
+        Fake .delPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].delPhi2LeadJets[chan][cut][sys]->Clone();  
+        Fake .delPhi2LeadJets[chan][cut][sys] ->Add(   S[WgammaToLNuG]  	.delPhi2LeadJets[chan][cut][sys]);
+        Fake .delPhi2LeadJets[chan][cut][sys] ->Add(   S[Wbb_Madgraph]  	.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TTWJets]		.delPhi2LeadJets[chan][cut][sys]->Clone();  
+        //	Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[TTWJets]		.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[TTWWJets]		.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[TTZJets]		.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[WWWJets]		.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[WWZJets]		.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[WZZJets]		.delPhi2LeadJets[chan][cut][sys]);
+        Rare .delPhi2LeadJets[chan][cut][sys] ->Add(   S[ZZZJets]		.delPhi2LeadJets[chan][cut][sys]);
+        
+        SetupDraw(Data .delPhi2LeadJets[chan][cut][sys], kBlack   , delPhi2LeadJets); 
+        SetupDraw(TTbar.delPhi2LeadJets[chan][cut][sys], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(STop .delPhi2LeadJets[chan][cut][sys], kPink-3  , delPhi2LeadJets);  
+        SetupDraw(DY   .delPhi2LeadJets[chan][cut][sys], kAzure-2 , delPhi2LeadJets);  
+        SetupDraw(VV   .delPhi2LeadJets[chan][cut][sys], kOrange-3, delPhi2LeadJets);  
+        SetupDraw(Rare .delPhi2LeadJets[chan][cut][sys], kYellow  , delPhi2LeadJets);  
+        SetupDraw(Fake .delPhi2LeadJets[chan][cut][sys], kGreen-3 , delPhi2LeadJets);  
+        
+        SUSYstop.SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].SSdelPhi2LeadJets[chan][cut][sys]->Clone();
+        STop .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TbarWDilep]  	  .SSdelPhi2LeadJets[chan][cut][sys]->Clone();
+        STop .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[TWDilep]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        DY   .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	  .SSdelPhi2LeadJets[chan][cut][sys]->Clone();
+        DY   .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[ZJets_Madgraph]	  .SSdelPhi2LeadJets[chan][cut][sys]);
+        VV   .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .SSdelPhi2LeadJets[chan][cut][sys]->Clone();
+        VV   .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[WZ]  		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        VV   .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[ZZ]  		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Fake .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].SSdelPhi2LeadJets[chan][cut][sys]->Clone();  
+        Fake .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[WgammaToLNuG]	  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Fake .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[Wbb_Madgraph]	  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] = (TH1F*)S[TTWJets]		  .SSdelPhi2LeadJets[chan][cut][sys]->Clone();  
+        //	Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[TTWJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[TTWWJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[TTZJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[WWWJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[WWZJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[WZZJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+        Rare .SSdelPhi2LeadJets[chan][cut][sys] ->Add(   S[ZZZJets]		  .SSdelPhi2LeadJets[chan][cut][sys]);
+
+        SetupDraw(Data .SSdelPhi2LeadJets[chan][cut][sys], kBlack   , delPhi2LeadJets); 
+        SetupDraw(TTbar.SSdelPhi2LeadJets[chan][cut][sys], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(STop .SSdelPhi2LeadJets[chan][cut][sys], kPink-3  , delPhi2LeadJets);  
+        SetupDraw(DY   .SSdelPhi2LeadJets[chan][cut][sys], kAzure-2 , delPhi2LeadJets);  
+        SetupDraw(VV   .SSdelPhi2LeadJets[chan][cut][sys], kOrange-3, delPhi2LeadJets);  
+        SetupDraw(Rare .SSdelPhi2LeadJets[chan][cut][sys], kYellow  , delPhi2LeadJets);  
+        SetupDraw(Fake .SSdelPhi2LeadJets[chan][cut][sys], kGreen-3 , delPhi2LeadJets);  
+      }
+      if (gUseTTMadSpin) {
+        TTbar.delPhi2LeadJets[chan][cut][Q2ScaleUp   ] = (TH1F*)S[TTJets_scaleup]     .delPhi2LeadJets[chan][cut][0]->Clone();
+        TTbar.delPhi2LeadJets[chan][cut][Q2ScaleDown ] = (TH1F*)S[TTJets_scaledown]   .delPhi2LeadJets[chan][cut][0]->Clone();
+        TTbar.delPhi2LeadJets[chan][cut][MatchingUp  ] = (TH1F*)S[TTJets_matchingup]  .delPhi2LeadJets[chan][cut][0]->Clone();
+        TTbar.delPhi2LeadJets[chan][cut][MatchingDown] = (TH1F*)S[TTJets_matchingdown].delPhi2LeadJets[chan][cut][0]->Clone();
+        
+        SetupDraw(TTbar.delPhi2LeadJets[chan][cut][Q2ScaleUp   ], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(TTbar.delPhi2LeadJets[chan][cut][Q2ScaleDown ], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(TTbar.delPhi2LeadJets[chan][cut][MatchingUp  ], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(TTbar.delPhi2LeadJets[chan][cut][MatchingDown], kRed+1   , delPhi2LeadJets);        
+        
+        //// SS 
+        TTbar.SSdelPhi2LeadJets[chan][cut][Q2ScaleUp   ]=(TH1F*)S[TTJets_scaleup]     .SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        TTbar.SSdelPhi2LeadJets[chan][cut][Q2ScaleDown ]=(TH1F*)S[TTJets_scaledown]   .SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        TTbar.SSdelPhi2LeadJets[chan][cut][MatchingUp  ]=(TH1F*)S[TTJets_matchingup]  .SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        TTbar.SSdelPhi2LeadJets[chan][cut][MatchingDown]=(TH1F*)S[TTJets_matchingdown].SSdelPhi2LeadJets[chan][cut][0]->Clone();
+        
+        SetupDraw(TTbar.SSdelPhi2LeadJets[chan][cut][Q2ScaleUp   ], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(TTbar.SSdelPhi2LeadJets[chan][cut][Q2ScaleDown ], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(TTbar.SSdelPhi2LeadJets[chan][cut][MatchingUp  ], kRed+1   , delPhi2LeadJets);  
+        SetupDraw(TTbar.SSdelPhi2LeadJets[chan][cut][MatchingDown], kRed+1   , delPhi2LeadJets);      
+      } 	
+ 	
+	
+      for (size_t sys=0; sys<gNSYST; sys++){
+        if (chan == Muon){
+          Data .minDelRJetsLeps[chan][cut][sys]   = (TH1F*)S[DoubleMu]        .minDelRJetsLeps[chan][cut][0]->Clone();
+          Data .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[DoubleMu]      .SSminDelRJetsLeps[chan][cut][0]->Clone();
+        }
+        else if (chan == Elec){
+          Data .minDelRJetsLeps[chan][cut][sys]   = (TH1F*)S[DoubleElectron]  .minDelRJetsLeps[chan][cut][0]->Clone();
+          Data .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[DoubleElectron].SSminDelRJetsLeps[chan][cut][0]->Clone();
+        }
+        else if (chan == ElMu){
+          Data .minDelRJetsLeps[chan][cut][sys]   = (TH1F*)S[MuEG]	      .minDelRJetsLeps[chan][cut][0]->Clone();
+          Data .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[MuEG]	    .SSminDelRJetsLeps[chan][cut][0]->Clone();
+        }
+        
+        if (gUseTTMadSpin) {
+          TTbar.minDelRJetsLeps[chan][cut][sys]   = (TH1F*)S[TTJets_MadSpin]	    .minDelRJetsLeps[chan][cut][sys]->Clone();
+          TTbar.SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TTJets_MadSpin]	  .SSminDelRJetsLeps[chan][cut][sys]->Clone();
+        }
+        else {
+          TTbar.minDelRJetsLeps[chan][cut][sys]   = (TH1F*)S[TTJetsFullLeptMGtauola].minDelRJetsLeps[chan][cut][sys]->Clone();
+          TTbar.SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TTJetsFullLeptMGtauola].SSminDelRJetsLeps[chan][cut][sys]->Clone();
+        }
+        SUSYstop.minDelRJetsLeps[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].minDelRJetsLeps[chan][cut][sys]->Clone();
+        STop .minDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TbarWDilep]		.minDelRJetsLeps[chan][cut][sys]->Clone();
+        STop .minDelRJetsLeps[chan][cut][sys] ->Add(   S[TWDilep]		.minDelRJetsLeps[chan][cut][sys]);
+        DY   .minDelRJetsLeps[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	.minDelRJetsLeps[chan][cut][sys]->Clone();
+        DY   .minDelRJetsLeps[chan][cut][sys] ->Add(   S[ZJets_Madgraph]	.minDelRJetsLeps[chan][cut][sys]);
+        VV   .minDelRJetsLeps[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]	.minDelRJetsLeps[chan][cut][sys]->Clone();
+        VV   .minDelRJetsLeps[chan][cut][sys] ->Add(   S[WZ]			.minDelRJetsLeps[chan][cut][sys]);
+        VV   .minDelRJetsLeps[chan][cut][sys] ->Add(   S[ZZ]			.minDelRJetsLeps[chan][cut][sys]);
+        Fake .minDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].minDelRJetsLeps[chan][cut][sys]->Clone();  
+        Fake .minDelRJetsLeps[chan][cut][sys] ->Add(   S[WgammaToLNuG]  	.minDelRJetsLeps[chan][cut][sys]);
+        Fake .minDelRJetsLeps[chan][cut][sys] ->Add(   S[Wbb_Madgraph]  	.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TTWJets]		.minDelRJetsLeps[chan][cut][sys]->Clone();  
+        //	Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[TTWJets]		.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[TTWWJets]		.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[TTZJets]		.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[WWWJets]		.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[WWZJets]		.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[WZZJets]		.minDelRJetsLeps[chan][cut][sys]);
+        Rare .minDelRJetsLeps[chan][cut][sys] ->Add(   S[ZZZJets]		.minDelRJetsLeps[chan][cut][sys]);
+        
+        SetupDraw(Data .minDelRJetsLeps[chan][cut][sys], kBlack   , minDelRJetsLeps); 
+        SetupDraw(TTbar.minDelRJetsLeps[chan][cut][sys], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(SUSYstop .minDelRJetsLeps[chan][cut][sys], kWhite  , minDelRJetsLeps);  
+        SetupDraw(STop .minDelRJetsLeps[chan][cut][sys], kPink-3  , minDelRJetsLeps);  
+        SetupDraw(DY   .minDelRJetsLeps[chan][cut][sys], kAzure-2 , minDelRJetsLeps);  
+        SetupDraw(VV   .minDelRJetsLeps[chan][cut][sys], kOrange-3, minDelRJetsLeps);  
+        SetupDraw(Rare .minDelRJetsLeps[chan][cut][sys], kYellow  , minDelRJetsLeps);  
+        SetupDraw(Fake .minDelRJetsLeps[chan][cut][sys], kGreen-3 , minDelRJetsLeps);  
+        
+        SUSYstop.SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[T2tt_150to250LSP1to100_LeptonFilter].SSminDelRJetsLeps[chan][cut][sys]->Clone();
+        STop .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TbarWDilep]  	  .SSminDelRJetsLeps[chan][cut][sys]->Clone();
+        STop .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[TWDilep]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        DY   .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[DYJets_Madgraph]	  .SSminDelRJetsLeps[chan][cut][sys]->Clone();
+        DY   .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[ZJets_Madgraph]	  .SSminDelRJetsLeps[chan][cut][sys]);
+        VV   .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[WWTo2L2Nu_Madgraph]    .SSminDelRJetsLeps[chan][cut][sys]->Clone();
+        VV   .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[WZ]  		  .SSminDelRJetsLeps[chan][cut][sys]);
+        VV   .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[ZZ]  		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Fake .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TTJetsSemiLeptMGtauola].SSminDelRJetsLeps[chan][cut][sys]->Clone();  
+        Fake .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[WgammaToLNuG]	  .SSminDelRJetsLeps[chan][cut][sys]);
+        Fake .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[Wbb_Madgraph]	  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] = (TH1F*)S[TTWJets]		  .SSminDelRJetsLeps[chan][cut][sys]->Clone();  
+        //	Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[TTWJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[TTWWJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[TTZJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[WWWJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[WWZJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[WZZJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+        Rare .SSminDelRJetsLeps[chan][cut][sys] ->Add(   S[ZZZJets]		  .SSminDelRJetsLeps[chan][cut][sys]);
+
+        SetupDraw(Data .SSminDelRJetsLeps[chan][cut][sys], kBlack   , minDelRJetsLeps); 
+        SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][sys], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(STop .SSminDelRJetsLeps[chan][cut][sys], kPink-3  , minDelRJetsLeps);  
+        SetupDraw(DY   .SSminDelRJetsLeps[chan][cut][sys], kAzure-2 , minDelRJetsLeps);  
+        SetupDraw(VV   .SSminDelRJetsLeps[chan][cut][sys], kOrange-3, minDelRJetsLeps);  
+        SetupDraw(Rare .SSminDelRJetsLeps[chan][cut][sys], kYellow  , minDelRJetsLeps);  
+        SetupDraw(Fake .SSminDelRJetsLeps[chan][cut][sys], kGreen-3 , minDelRJetsLeps);  
+      }
+      if (gUseTTMadSpin) {
+        TTbar.minDelRJetsLeps[chan][cut][Q2ScaleUp   ] = (TH1F*)S[TTJets_scaleup]     .minDelRJetsLeps[chan][cut][0]->Clone();
+        TTbar.minDelRJetsLeps[chan][cut][Q2ScaleDown ] = (TH1F*)S[TTJets_scaledown]   .minDelRJetsLeps[chan][cut][0]->Clone();
+        TTbar.minDelRJetsLeps[chan][cut][MatchingUp  ] = (TH1F*)S[TTJets_matchingup]  .minDelRJetsLeps[chan][cut][0]->Clone();
+        TTbar.minDelRJetsLeps[chan][cut][MatchingDown] = (TH1F*)S[TTJets_matchingdown].minDelRJetsLeps[chan][cut][0]->Clone();
+        
+        SetupDraw(TTbar.minDelRJetsLeps[chan][cut][Q2ScaleUp   ], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(TTbar.minDelRJetsLeps[chan][cut][Q2ScaleDown ], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(TTbar.minDelRJetsLeps[chan][cut][MatchingUp  ], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(TTbar.minDelRJetsLeps[chan][cut][MatchingDown], kRed+1   , minDelRJetsLeps);        
+        
+        //// SS 
+        TTbar.SSminDelRJetsLeps[chan][cut][Q2ScaleUp   ]=(TH1F*)S[TTJets_scaleup]     .SSminDelRJetsLeps[chan][cut][0]->Clone();
+        TTbar.SSminDelRJetsLeps[chan][cut][Q2ScaleDown ]=(TH1F*)S[TTJets_scaledown]   .SSminDelRJetsLeps[chan][cut][0]->Clone();
+        TTbar.SSminDelRJetsLeps[chan][cut][MatchingUp  ]=(TH1F*)S[TTJets_matchingup]  .SSminDelRJetsLeps[chan][cut][0]->Clone();
+        TTbar.SSminDelRJetsLeps[chan][cut][MatchingDown]=(TH1F*)S[TTJets_matchingdown].SSminDelRJetsLeps[chan][cut][0]->Clone();
+        
+        SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][Q2ScaleUp   ], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][Q2ScaleDown ], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][MatchingUp  ], kRed+1   , minDelRJetsLeps);  
+        SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][MatchingDown], kRed+1   , minDelRJetsLeps);      
       } 	
      
 
@@ -1650,7 +1888,7 @@ void TopPlotter::DrawNbjetsNjets(bool DD){
 	Total.NBtagsNJets[ch][cut][sys] = (TH1F*)TTbar.NBtagsNJets[ch][cut][sys ]->Clone();
 	Total.NBtagsNJets[ch][cut][sys]->Add(    STop .NBtagsNJets[ch][cut][syst]);
 	if (DD) {
-	  DY   .NBtagsNJets[ch][cut][syst]->Scale(DD_DY.Yields[ch][cut]/DY.Yields[ch][cut]);
+	  DY   .NBtagsNJets[ch][cut][syst]->Scale(DD_DY.Yields[ch][cut]/DY.Yields[ch][cut]);  // syst???
 	  Total.NBtagsNJets[ch][cut][sys]->Add(  DY   .NBtagsNJets[ch][cut][syst]);
 	  Total.NBtagsNJets[ch][cut][sys]->Add(DD_NonW.NBtagsNJets[ch][cut][syst]);
  	}
@@ -1761,6 +1999,7 @@ void TopPlotter::SaveHistosForLH(bool DD){
   TH1F *fHNBNJ_Data ;
   TH1F *fHNBNJ_TTbar[gNALLSYST];
   TH1F *fHNBNJ_Stop [gNALLSYST];
+  TH1F *fHNBNJ_SUSYstop [gNALLSYST];
   TH1F *fHNBNJ_DY   [gNALLSYST];
   TH1F *fHNBNJ_VV   [gNALLSYST];
   TH1F *fHNBNJ_Rare [gNALLSYST];
@@ -1768,6 +2007,7 @@ void TopPlotter::SaveHistosForLH(bool DD){
   
   TH1F *fHMll_Data ;
   TH1F *fHMll_TTbar[gNALLSYST];
+  TH1F *fHMll_SUSYstop [gNALLSYST];
   TH1F *fHMll_Stop [gNALLSYST];
   TH1F *fHMll_DY   [gNALLSYST];
   TH1F *fHMll_VV   [gNALLSYST];
@@ -1776,28 +2016,52 @@ void TopPlotter::SaveHistosForLH(bool DD){
   
   TH1F *fHdll_Data ;
   TH1F *fHdll_TTbar[gNALLSYST];
+  TH1F *fHdll_SUSYstop [gNALLSYST];
   TH1F *fHdll_Stop [gNALLSYST];
   TH1F *fHdll_DY   [gNALLSYST];
   TH1F *fHdll_VV   [gNALLSYST];
   TH1F *fHdll_Rare [gNALLSYST];
   TH1F *fHdll_Fake [gNALLSYST];
   
-  fHNBNJ_Data = (TH1F*) Data.NBtagsNJets[ElMu][iDilepton][0]->Clone("NJetsNBjets__DATA");
+  TH1F *fHdjj_Data ;
+  TH1F *fHdjj_TTbar[gNALLSYST];
+  TH1F *fHdjj_SUSYstop [gNALLSYST];
+  TH1F *fHdjj_Stop [gNALLSYST];
+  TH1F *fHdjj_DY   [gNALLSYST];
+  TH1F *fHdjj_VV   [gNALLSYST];
+  TH1F *fHdjj_Rare [gNALLSYST];
+  TH1F *fHdjj_Fake [gNALLSYST];
+  
+  TH1F *fHdjl_Data ;
+  TH1F *fHdjl_TTbar[gNALLSYST];
+  TH1F *fHdjl_SUSYstop [gNALLSYST];
+  TH1F *fHdjl_Stop [gNALLSYST];
+  TH1F *fHdjl_DY   [gNALLSYST];
+  TH1F *fHdjl_VV   [gNALLSYST];
+  TH1F *fHdjl_Rare [gNALLSYST];
+  TH1F *fHdjl_Fake [gNALLSYST];
+  
+  fHNBNJ_Data = (TH1F*) Data.NBtagsNJets    [ElMu][iDilepton][0]->Clone("NJetsNBjets__DATA");
   fHNBNJ_Data->Write();
-  fHMll_Data  = (TH1F*) Data.InvMass    [ElMu][iDilepton][0]->Clone("InvMass__DATA");
+  fHMll_Data  = (TH1F*) Data.InvMass        [ElMu][iDilepton][0]->Clone("InvMass__DATA");
   fHMll_Data ->Write();
-  fHdll_Data  = (TH1F*) Data.AbsDelPhiLeps    [ElMu][i1btag][0]->Clone("AbsDelPhiLeps__DATA");
+  fHdll_Data  = (TH1F*) Data.AbsDelPhiLeps  [ElMu][iDilepton][0]->Clone("AbsDelPhiLeps__DATA");
   fHdll_Data ->Write();
+  fHdjj_Data  = (TH1F*) Data.delPhi2LeadJets[ElMu][iDilepton][0]->Clone("delPhi2LeadJets__DATA");
+  fHdjj_Data ->Write();
+  fHdjl_Data  = (TH1F*) Data.minDelRJetsLeps[ElMu][iDilepton][0]->Clone("minDelRJetsLeps__DATA");
+  fHdjl_Data ->Write();
   
   for (size_t sys=0; sys<gNALLSYST; sys++){
     Int_t syst = sys;
     if (sys < gNSYST) syst = sys;
     else              syst = 0; 
     
-    fHNBNJ_TTbar[sys ] = (TH1F*)TTbar.NBtagsNJets[ElMu][iDilepton][sys ]->Clone("NJetsNBjets__"+TTbar.name + sysname[sys]);
-    fHNBNJ_Stop [syst] = (TH1F*)STop .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+STop .name + sysname[sys]);
-    fHNBNJ_DY   [syst] = (TH1F*)DY   .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+DY   .name + sysname[sys]);
-    fHNBNJ_VV   [syst] = (TH1F*)VV   .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+VV   .name + sysname[sys]);
+    fHNBNJ_TTbar   [sys ] = (TH1F*)TTbar   .NBtagsNJets[ElMu][iDilepton][sys ]->Clone("NJetsNBjets__"+TTbar   .name + sysname[sys]);
+    fHNBNJ_SUSYstop[syst] = (TH1F*)SUSYstop.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+SUSYstop.name + sysname[sys]);
+    fHNBNJ_Stop    [syst] = (TH1F*)STop    .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+STop    .name + sysname[sys]);
+    fHNBNJ_DY      [syst] = (TH1F*)DY      .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+DY      .name + sysname[sys]);
+    fHNBNJ_VV      [syst] = (TH1F*)VV      .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+VV      .name + sysname[sys]);
 
 //    fHNBNJ_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__ww"+sysname[sys]);
 //    fHNBNJ_WZ   [syst] = (TH1F*)S[WZ]                .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__wz"+sysname[sys]);
@@ -1807,11 +2071,20 @@ void TopPlotter::SaveHistosForLH(bool DD){
       // here crahses SaveHistosForLH(true)
       fHNBNJ_Fake[syst] = (TH1F*)DD_NonW.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
     } else {
-      fHNBNJ_Fake[syst] = (TH1F*)  Fake.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
+      fHNBNJ_Fake[syst] = (TH1F*)   Fake.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
     }
-    fHNBNJ_Rare [syst] = (TH1F*)Rare .NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Rare .name + sysname[sys]);
+    fHNBNJ_Rare  [syst] = (TH1F*)   Rare.NBtagsNJets[ElMu][iDilepton][syst]->Clone("NJetsNBjets__"+Rare.name+sysname[sys]);
     
+    //fHNBNJ_TTbar   [sys ]->Sumw2();
+    //fHNBNJ_SUSYstop[syst]->Sumw2();
+    //fHNBNJ_Stop    [syst]->Sumw2();
+    //fHNBNJ_DY      [syst]->Sumw2();
+    //fHNBNJ_VV      [syst]->Sumw2();
+    //fHNBNJ_Rare    [syst]->Sumw2();
+    //fHNBNJ_Fake    [syst]->Sumw2();
+  
     fHNBNJ_TTbar[sys ]->Write();
+    fHNBNJ_SUSYstop[syst]->Write();
     fHNBNJ_Stop [syst]->Write();
     fHNBNJ_DY   [syst]->Write();
     fHNBNJ_VV   [syst]->Write();
@@ -1822,10 +2095,11 @@ void TopPlotter::SaveHistosForLH(bool DD){
     fHNBNJ_Fake [syst]->Write();
   
   
-    fHMll_TTbar[sys ] = (TH1F*)TTbar.InvMass[ElMu][iDilepton][sys ]->Clone("InvMass__"+TTbar.name + sysname[sys]);
-    fHMll_Stop [syst] = (TH1F*)STop .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+STop .name + sysname[sys]);
-    fHMll_DY   [syst] = (TH1F*)DY   .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+DY   .name + sysname[sys]);
-    fHMll_VV   [syst] = (TH1F*)VV   .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+VV   .name + sysname[sys]);
+    fHMll_TTbar   [sys ] = (TH1F*)TTbar   .InvMass[ElMu][iDilepton][sys ]->Clone("InvMass__"+TTbar   .name + sysname[sys]);
+    fHMll_SUSYstop[syst] = (TH1F*)SUSYstop.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+SUSYstop.name + sysname[sys]);
+    fHMll_Stop    [syst] = (TH1F*)STop    .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+STop    .name + sysname[sys]);
+    fHMll_DY      [syst] = (TH1F*)DY      .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+DY      .name + sysname[sys]);
+    fHMll_VV      [syst] = (TH1F*)VV      .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+VV      .name + sysname[sys]);
 
 //    fHMll_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].InvMass[ElMu][iDilepton][syst]->Clone("InvMass__ww"+sysname[sys]);
 //    fHMll_WZ   [syst] = (TH1F*)S[WZ]                .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__wz"+sysname[sys]);
@@ -1834,11 +2108,12 @@ void TopPlotter::SaveHistosForLH(bool DD){
     if (DD) {
       fHMll_Fake[syst] = (TH1F*)DD_NonW.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
     } else {
-      fHMll_Fake[syst] = (TH1F*)  Fake.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
+      fHMll_Fake[syst] = (TH1F*)   Fake.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
     }
-    fHMll_Rare [syst] = (TH1F*)Rare .InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Rare .name + sysname[sys]);
+    fHMll_Rare [syst]  = (TH1F*)   Rare.InvMass[ElMu][iDilepton][syst]->Clone("InvMass__"+Rare.name+sysname[sys]);
     
     fHMll_TTbar[sys ]->Write();
+    fHMll_SUSYstop[syst]->Write();
     fHMll_Stop [syst]->Write();
     fHMll_DY   [syst]->Write();
     fHMll_VV   [syst]->Write();
@@ -1849,23 +2124,25 @@ void TopPlotter::SaveHistosForLH(bool DD){
     fHMll_Fake [syst]->Write();
   
   
-    fHdll_TTbar[sys ] = (TH1F*)TTbar.AbsDelPhiLeps[ElMu][i1btag][sys ]->Clone("AbsDelPhiLeps__"+TTbar.name + sysname[sys]);
-    fHdll_Stop [syst] = (TH1F*)STop .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+STop .name + sysname[sys]);
-    fHdll_DY   [syst] = (TH1F*)DY   .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+DY	.name + sysname[sys]);
-    fHdll_VV   [syst] = (TH1F*)VV   .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+VV	.name + sysname[sys]);
+    fHdll_TTbar   [sys ] = (TH1F*)TTbar   .AbsDelPhiLeps[ElMu][iDilepton][sys ]->Clone("AbsDelPhiLeps__"+TTbar   .name + sysname[sys]);
+    fHdll_SUSYstop[syst] = (TH1F*)SUSYstop.AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+SUSYstop.name + sysname[sys]);
+    fHdll_Stop    [syst] = (TH1F*)STop    .AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+STop    .name + sysname[sys]);
+    fHdll_DY      [syst] = (TH1F*)DY      .AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+DY	 .name + sysname[sys]);
+    fHdll_VV      [syst] = (TH1F*)VV      .AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+VV	 .name + sysname[sys]);
 
 //    fHMll_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__ww"+sysname[sys]);
 //    fHMll_WZ   [syst] = (TH1F*)S[WZ]                .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__wz"+sysname[sys]);
 //    fHMll_ZZ   [syst] = (TH1F*)S[ZZ]                .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__zz"+sysname[sys]);
     
     if (DD) {
-      fHdll_Fake[syst] = (TH1F*)DD_NonW.AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
+      fHdll_Fake[syst] = (TH1F*)DD_NonW.AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
     } else {
-      fHdll_Fake[syst] = (TH1F*)  Fake.AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
+      fHdll_Fake[syst] = (TH1F*)   Fake.AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
     }
-    fHdll_Rare [syst] = (TH1F*)Rare .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+Rare .name + sysname[sys]);
+    fHdll_Rare  [syst] = (TH1F*)   Rare.AbsDelPhiLeps[ElMu][iDilepton][syst]->Clone("AbsDelPhiLeps__"+Rare.name+sysname[sys]);
     
     fHdll_TTbar[sys ]->Write();
+    fHdll_SUSYstop [syst]->Write();
     fHdll_Stop [syst]->Write();
     fHdll_DY   [syst]->Write();
     fHdll_VV   [syst]->Write();
@@ -1874,6 +2151,52 @@ void TopPlotter::SaveHistosForLH(bool DD){
 //    fHdll_ZZ   [syst]->Write();
     fHdll_Rare [syst]->Write();
     fHdll_Fake [syst]->Write();
+  
+  
+    fHdjj_TTbar   [sys ] = (TH1F*)TTbar   .delPhi2LeadJets[ElMu][iDilepton][sys ]->Clone("delPhi2LeadJets__"+TTbar   .name + sysname[sys]);
+    fHdjj_SUSYstop[syst] = (TH1F*)SUSYstop.delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+SUSYstop.name + sysname[sys]);
+    fHdjj_Stop    [syst] = (TH1F*)STop    .delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+STop    .name + sysname[sys]);
+    fHdjj_DY      [syst] = (TH1F*)DY      .delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+DY      .name + sysname[sys]);
+    fHdjj_VV      [syst] = (TH1F*)VV      .delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+VV      .name + sysname[sys]);
+
+    if (DD) {
+      fHdjj_Fake[syst] = (TH1F*)DD_NonW.delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+Fake.name+sysname[sys]);
+    } else {
+      fHdjj_Fake[syst] = (TH1F*)   Fake.delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+Fake.name+sysname[sys]);
+    }
+    fHdjj_Rare  [syst] = (TH1F*)   Rare.delPhi2LeadJets[ElMu][iDilepton][syst]->Clone("delPhi2LeadJets__"+Rare.name+sysname[sys]);
+    
+    fHdjj_TTbar[sys ]->Write();
+    fHdjj_SUSYstop [syst]->Write();
+    fHdjj_Stop [syst]->Write();
+    fHdjj_DY   [syst]->Write();
+    fHdjj_VV   [syst]->Write();
+    fHdjj_Rare [syst]->Write();
+    fHdjj_Fake [syst]->Write();
+  
+  
+    fHdjl_TTbar   [sys ] = (TH1F*)TTbar   .minDelRJetsLeps[ElMu][iDilepton][sys ]->Clone("minDelRJetsLeps__"+TTbar   .name + sysname[sys]);
+    fHdjl_SUSYstop[syst] = (TH1F*)SUSYstop.minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+SUSYstop.name + sysname[sys]);
+    fHdjl_Stop    [syst] = (TH1F*)STop    .minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+STop    .name + sysname[sys]);
+    fHdjl_DY      [syst] = (TH1F*)DY      .minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+DY      .name + sysname[sys]);
+    fHdjl_VV      [syst] = (TH1F*)VV      .minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+VV      .name + sysname[sys]);
+    
+    if (DD) {
+      fHdjl_Fake[syst] = (TH1F*)DD_NonW.minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+Fake.name+sysname[sys]);
+    } else {
+      fHdjl_Fake[syst] = (TH1F*)   Fake.minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+Fake.name+sysname[sys]);
+    }
+    fHdjl_Rare  [syst] = (TH1F*)   Rare.minDelRJetsLeps[ElMu][iDilepton][syst]->Clone("minDelRJetsLeps__"+Rare.name+sysname[sys]);
+    
+    fHdjl_TTbar[sys ]->Write();
+    fHdjl_SUSYstop [syst]->Write();
+    fHdjl_Stop [syst]->Write();
+    fHdjl_DY   [syst]->Write();
+    fHdjl_VV   [syst]->Write();
+    fHdjl_Rare [syst]->Write();
+    fHdjl_Fake [syst]->Write();
+  
+  
   }
   hfile->Close();
 }
@@ -2863,6 +3186,8 @@ Int_t TopPlotter::GetRebin(TH1F* h, Int_t var){
   if (var==Lep1Pt     ) return 5 * rebin;
   if (var==DelLepPhi  ) return 1;
   if (var==AbsDelPhiLeps  ) return 1;
+  if (var==delPhi2LeadJets) return 1;
+  if (var==minDelRJetsLeps) return 20;
   if (var==NJets      ) return rebin;
   if (var==NBtagJets  ) return rebin;
   if (var==Jet0Pt     ) return 5 * rebin;
