@@ -2245,9 +2245,9 @@ void TopPlotter::CalculateSystematicErrors(Categories &C, Int_t cut){
 					   TMath::Abs(C.Yields_syst[ch][cut][PUDown] - C.Yields[ch][cut])
 					   ) / C.Yields[ch][cut];
     
-    if (C.name == "vv"  ) C.SystError[ch][vv]   = 0.20;
+    if (C.name == "vv"  ) C.SystError[ch][vv]   = 0.30;
     if (C.name == "rare") C.SystError[ch][rare] = 0.30;
-    if (C.name == "stop") C.SystError[ch][stop] = 0.20;
+    if (C.name == "stop") C.SystError[ch][stop] = 0.30;
     
     for (size_t sys=0; sys<gNSYSTERRTypesALL; sys++){ 
       C.Yields_syst[ch][cut][0] += C.SystError[ch][sys] *  C.SystError[ch][sys];

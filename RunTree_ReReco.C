@@ -113,8 +113,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     G_IsData = true;
   }
   else if (sampleName == "T2tt_150to250LSP1to100_LeptonFilter") {
-
-    if(stopMass==162.5) G_Event_Weight = (5./9.) * 46.2   /462897.;  // cross section in pb, 5/9 for BR
+    if(stopMass==150.0) G_Event_Weight = (5./9.) * 80.268 /475311.; // cross section in pb
+    if(stopMass==162.5) G_Event_Weight = (5./9.) * 46.2   /462897.; // cross section in pb 
     if(stopMass==175.0) G_Event_Weight = (5./9.) * 36.7994/446023.;  
     if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93  /440137.;
     if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245/343270.;  
