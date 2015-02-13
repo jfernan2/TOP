@@ -136,7 +136,7 @@ void TreeAnalysisTop::InitialiseKinematicHistos(){
       fHDelLepPhi[ch][cut]   = CreateH1F("H_DelLepPhi_"  +gChanLabel[ch]+"_"+sCut[cut],"DelLepPhi" , 100,-3.2, 3.2);
       fHNJets[ch][cut]       = CreateH1F("H_NJets_"      +gChanLabel[ch]+"_"+sCut[cut],"NJets"     , 10 ,-0.5, 9.5);
       fHHT[ch][cut]          = CreateH1F("H_HT_"         +gChanLabel[ch]+"_"+sCut[cut],"HT"        , 4700,30,500);
-      fHNBtagJets[ch][cut]   = CreateH1F("H_NBtagJets_"  +gChanLabel[ch]+"_"+sCut[cut],"NBtagJets" , 10 ,-0.5, 9.5);
+      fHNBtagJets[ch][cut]   = CreateH1F("H_NBtagJets_"  +gChanLabel[ch]+"_"+sCut[cut],"NBtagJets" , 4 ,-0.5, 3.5);
       fHJet0Pt[ch][cut]      = CreateH1F("H_Jet0Pt_"     +gChanLabel[ch]+"_"+sCut[cut],"Jet0Pt"    , 2700,30,300);
       fHJet1Pt[ch][cut]      = CreateH1F("H_Jet1Pt_"     +gChanLabel[ch]+"_"+sCut[cut],"Jet1Pt"    , 2700,30,300);
       fHBtagJet0Pt[ch][cut]  = CreateH1F("H_BtagJet0Pt_" +gChanLabel[ch]+"_"+sCut[cut],"BtagJet0Pt", 2700,30,300);
@@ -1849,12 +1849,20 @@ void TreeAnalysisTop::SmearJetPts(int flag){
     if(flag == 1) JetEt.at(*it) *= (1 + T_JetAKCHS_Uncertainty->at(*it)); // vary up for flag 1
     if(flag == 2) JetEt.at(*it) *= (1 - T_JetAKCHS_Uncertainty->at(*it)); // vary down for flag 2;
     if(flag == 3){
-      // get the resolution
-      float sigmaMC  = getErrPt(JetEt.at(*it), T_JetAKCHS_Eta->at(*it))/JetEt.at(*it);
-      float jerScale = getJERScale(*it);                                  // get JER scale factors 
+
+      TVector3 genJet(T_JetAKCHS_GenJet_Px->at(*it),T_JetAKCHS_GenJet_Py->at(*it),T_JetAKCHS_GenJet_Pz->at(*it)); 
+      if (genJet.Pt() < 15) continue; 
+      if (genJet.DeltaR(tmp) < 0.5) continue;
       
-      float factor = fRand3->Gaus(1., sqrt(jerScale*jerScale -1.)*sigmaMC );
-      JetEt.at(*it) = JetEt.at(*it) * factor;           // smear for flag 3
+      float jerScale = getJERScale(*it);
+      else {
+	// get the resolution
+	float sigmaMC  = getErrPt(JetEt.at(*it), T_JetAKCHS_Eta->at(*it))/JetEt.at(*it);
+	float jerScale = getJERScale(*it);                                  // get JER scale factors 
+      
+	float factor = fRand3->Gaus(1., sqrt(jerScale*jerScale -1.)*sigmaMC );
+	JetEt.at(*it) = JetEt.at(*it) * factor;           // smear for flag 3
+      }
     }
     // set tmp to the scaled/smeared jet
     tmp.SetPtEtaPhiE(JetEt.at(*it), T_JetAKCHS_Eta->at(*it),JetPhi.at(*it), T_JetAKCHS_Energy->at(*it)); 
