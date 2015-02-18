@@ -34,17 +34,18 @@ void TopPlotter::Loop(){
 
   //  cout << "Draw Kinematic Plots with MC/DD estimations..." << endl;
   // tA->DrawKinematicPlotsWithMC(-1, NBTagsNJets, -1);
+  //  DrawKinematicPlots(true, ElMu, NBtagJets, i2jets);
   DrawKinematicPlots(true);
   DrawKinematicPlots(false);
   
   cout << "Draw Plots for Likelihood..." << endl;
   DrawNbjetsNjets(false);
-  //DrawNbjetsNjets(true);
-  
+//  //DrawNbjetsNjets(true);
+//  
   cout << "Saving Plots for Likelihood..." << endl;
   SaveHistosForLH(false);
-  //SaveHistosForLH(true);
-  
+//  //SaveHistosForLH(true);
+//  
   cout << "Calculating cross section ... " << endl;
   CalculateCrossSection(false);
   CalculateCrossSection(true );
@@ -394,9 +395,6 @@ void TopPlotter::LoadCategories(){
 	
 	DY   .Yields_syst[chan][cut][sys]  = S[ZJets_Madgraph] .Yields_syst[chan][cut][sys];
 	DY   .Yields_syst[chan][cut][sys] += S[DYJets_Madgraph].Yields_syst[chan][cut][sys];
-	DY   .Yields_syst[chan][cut][sys]  = S[ZJets_Madgraph] .Yields_syst[chan][cut][sys];
-	DY   .Yields_syst[chan][cut][sys] += S[DYJets_Madgraph].Yields_syst[chan][cut][sys];
-
 	
 	VV   .Yields_syst[chan][cut][sys]  = S[WZ]                .Yields_syst[chan][cut][sys];
 	VV   .Yields_syst[chan][cut][sys] += S[ZZ]                .Yields_syst[chan][cut][sys];
@@ -404,7 +402,6 @@ void TopPlotter::LoadCategories(){
 
 	Rare .Yields_syst[chan][cut][sys]  = S[TTWJets] .Yields_syst[chan][cut][sys];
 	Rare .Yields_syst[chan][cut][sys] += S[TTZJets] .Yields_syst[chan][cut][sys];
-	//	Rare .Yields_syst[chan][cut][sys] += S[TTGJets] .Yields_syst[chan][cut][sys];
 	Rare .Yields_syst[chan][cut][sys] += S[TTWWJets].Yields_syst[chan][cut][sys];
 	Rare .Yields_syst[chan][cut][sys] += S[WWWJets] .Yields_syst[chan][cut][sys];
 	Rare .Yields_syst[chan][cut][sys] += S[WWZJets] .Yields_syst[chan][cut][sys];
@@ -434,7 +431,6 @@ void TopPlotter::LoadCategories(){
 	
       Rare .Yields_stat[chan][cut]  = S[TTWJets] .Yields_stat[chan][cut] * S[TTWJets] .Yields_stat[chan][cut];
       Rare .Yields_stat[chan][cut] += S[TTZJets] .Yields_stat[chan][cut] * S[TTZJets] .Yields_stat[chan][cut];
-      //      Rare .Yields_stat[chan][cut] += S[TTGJets] .Yields_stat[chan][cut] * S[TTGJets] .Yields_stat[chan][cut];
       Rare .Yields_stat[chan][cut] += S[TTWWJets].Yields_stat[chan][cut] * S[TTWWJets].Yields_stat[chan][cut];
       Rare .Yields_stat[chan][cut] += S[WWWJets] .Yields_stat[chan][cut] * S[WWWJets] .Yields_stat[chan][cut];
       Rare .Yields_stat[chan][cut] += S[WWZJets] .Yields_stat[chan][cut] * S[WWZJets] .Yields_stat[chan][cut];
@@ -477,7 +473,6 @@ void TopPlotter::LoadCategories(){
       
       Rare .SSYields[chan][cut]  = S[TTWJets] .SSYields[chan][cut];
       Rare .SSYields[chan][cut] += S[TTZJets] .SSYields[chan][cut];
-      //      Rare .SSYields[chan][cut] += S[TTGJets] .SSYields[chan][cut];
       Rare .SSYields[chan][cut] += S[TTWWJets].SSYields[chan][cut];
       Rare .SSYields[chan][cut] += S[WWWJets] .SSYields[chan][cut];
       Rare .SSYields[chan][cut] += S[WWZJets] .SSYields[chan][cut];
@@ -585,7 +580,6 @@ void TopPlotter::LoadCategories(){
 	  Fake .KinHistos[chan][cut][var] ->Add(   S[WgammaToLNuG]          .KinHistos[Elec][cut][var]);
 	  Fake .KinHistos[chan][cut][var] ->Add(   S[Wbb_Madgraph]          .KinHistos[Elec][cut][var]);
 	  Rare .KinHistos[chan][cut][var] = (TH1F*)S[TTWJets]               .KinHistos[Muon][cut][var]->Clone();  
-	  //	  Rare .KinHistos[chan][cut][var] ->Add(   S[TTWJets]               .KinHistos[Muon][cut][var]);
 	  Rare .KinHistos[chan][cut][var] ->Add(   S[TTWWJets]              .KinHistos[Muon][cut][var]);
 	  Rare .KinHistos[chan][cut][var] ->Add(   S[TTZJets]               .KinHistos[Muon][cut][var]);
 	  Rare .KinHistos[chan][cut][var] ->Add(   S[WWWJets]               .KinHistos[Muon][cut][var]);
@@ -627,7 +621,6 @@ void TopPlotter::LoadCategories(){
 	  Fake .KinHistos[chan][cut][var] ->Add(   S[WgammaToLNuG]          .KinHistos[chan][cut][var]);
 	  Fake .KinHistos[chan][cut][var] ->Add(   S[Wbb_Madgraph]          .KinHistos[chan][cut][var]);
 	  Rare .KinHistos[chan][cut][var] = (TH1F*)S[TTWJets]               .KinHistos[chan][cut][var]->Clone();  
-	  //	  Rare .KinHistos[chan][cut][var] ->Add(   S[TTWJets]               .KinHistos[chan][cut][var]);
 	  Rare .KinHistos[chan][cut][var] ->Add(   S[TTWWJets]              .KinHistos[chan][cut][var]);
 	  Rare .KinHistos[chan][cut][var] ->Add(   S[TTZJets]               .KinHistos[chan][cut][var]);
 	  Rare .KinHistos[chan][cut][var] ->Add(   S[WWWJets]               .KinHistos[chan][cut][var]);
@@ -692,7 +685,6 @@ void TopPlotter::LoadCategories(){
     Fake .SystError[chan][SFTrig] += S[Wbb_Madgraph]          .SystError[chan][SFTrig]*S[Wbb_Madgraph]          .SystError[chan][SFTrig];
     Fake .SystError[chan][SFTrig]  = TMath::Sqrt(Fake .SystError[chan][SFTrig]);
 
-    //  Rare .SystError[chan][SFTrig]  = S[TTGJets]               .SystError[chan][SFTrig]*S[TTGJets]               .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig]  = S[TTWJets]               .SystError[chan][SFTrig]*S[TTWJets]               .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig] += S[TTWWJets]              .SystError[chan][SFTrig]*S[TTWWJets]              .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig] += S[TTZJets]               .SystError[chan][SFTrig]*S[TTZJets]               .SystError[chan][SFTrig];
@@ -704,9 +696,8 @@ void TopPlotter::LoadCategories(){
   }
   
   // SYSTEMATIC ERRORS HISTOS
-  
-    cout << " ---> Systematic Histograms" << endl;
-    for (size_t cut=0; cut<iNCUTS; cut++){
+  cout << " ---> Systematic Histograms" << endl;
+  for (size_t cut=0; cut<iNCUTS; cut++){
     for (size_t chan=0; chan<gNCHANNELS; chan++){
 
       for (size_t sys=0; sys<gNSYST; sys++){
@@ -1220,8 +1211,6 @@ void TopPlotter::LoadCategories(){
         SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][MatchingUp  ], kRed+1   , minDelRJetsLeps);  
         SetupDraw(TTbar.SSminDelRJetsLeps[chan][cut][MatchingDown], kRed+1   , minDelRJetsLeps);      
       } 	
-     
-
     }
   }
   cout << "DONE! " << endl;
@@ -1709,9 +1698,9 @@ void TopPlotter::DrawKinematicPlots(Bool_t DD, Int_t onechan, Int_t onevar, Int_
 	if (onecut > -1 && onecut != cut) continue; //print only one
 	
 	if (DD){
-	  if (gNCHANNELS+1) {
-	    DY   .KinHistos[ch][cut][var]->Scale((DD_DY.Yields[Muon][cut]+DD_DY.Yields[Muon][cut])/(DY   .Yields[Elec][cut]+DY   .Yields[Elec][cut]));
-	    Fake.KinHistos[ch][cut][var]->Scale((DD_NonW.Yields[Muon][cut]+DD_NonW.Yields[Elec][cut])/(Fake .Yields[Elec][cut]+Fake .Yields[Elec][cut]));
+	  if (ch==gNCHANNELS) {
+	    DY  .KinHistos[ch][cut][var]->Scale((DD_DY.Yields[Muon][cut]+DD_DY.Yields[Elec][cut])/(DY   .Yields[Muon][cut]+DY   .Yields[Elec][cut]));
+	    Fake.KinHistos[ch][cut][var]->Scale((DD_NonW.Yields[Muon][cut]+DD_NonW.Yields[Elec][cut])/(Fake .Yields[Muon][cut]+Fake .Yields[Elec][cut]));
 	  }
 	  else {
 	    DY   .KinHistos[ch][cut][var]->Scale(DD_DY.Yields[ch][cut]/DY.Yields[ch][cut]);
@@ -2393,13 +2382,13 @@ void TopPlotter::CalculateDYBkg(){
     fOUTSTREAM << endl;
     
     fOUTSTREAM << endl;
+    
+    DY_SF[Elec][cut] = SF[Elec];
+    DY_SF[Muon][cut] = SF[Muon];
+    DY_SF[ElMu][cut] = SF[ElMu];
   }
   fOUTSTREAM.close();
   gSystem->Exec("cat "+yieldsfilename);
-
-  DY_SF[Elec] = SF[Elec];
-  DY_SF[Muon] = SF[Muon];
-  DY_SF[ElMu] = SF[ElMu];
 
   /// DRAW R
   gROOT->SetStyle("Plain");
@@ -2442,16 +2431,16 @@ void TopPlotter::CalculateDYBkg(){
   mu->Draw("P SAME");
   leg->Draw("SAME");
 
-  cout << "ERRORS: " << endl;
-  Float_t mumax =  TMath::MaxElement(mu->GetN(),mu->GetY());
-  Float_t mumin =  TMath::MinElement(mu->GetN(),mu->GetY());
-  Float_t elmax =  TMath::MaxElement(el->GetN(),el->GetY());
-  Float_t elmin =  TMath::MinElement(el->GetN(),el->GetY());
+  //  cout << "ERRORS: " << endl;
+//  Float_t mumax =  TMath::MaxElement(mu->GetN(),mu->GetY());
+//  Float_t mumin =  TMath::MinElement(mu->GetN(),mu->GetY());
+//  Float_t elmax =  TMath::MaxElement(el->GetN(),el->GetY());
+//  Float_t elmin =  TMath::MinElement(el->GetN(),el->GetY());
 
-  cout<< elmax <<" - "<< elmin <<" = "<< (elmax-elmin)/el->GetMean(2) << endl;
-  cout<< mumax <<" - "<< mumin <<" = "<< (mumax-mumin)/mu->GetMean(2) << endl;
-  cout<< el->GetMean(2) << "+/-" <<  el->GetRMS(2) << endl;
-  cout<< mu->GetMean(2) << "+/-" <<  mu->GetRMS(2) << endl;
+//  cout<< elmax <<" - "<< elmin <<" = "<< (elmax-elmin)/el->GetMean(2) << endl;
+//  cout<< mumax <<" - "<< mumin <<" = "<< (mumax-mumin)/mu->GetMean(2) << endl;
+//  cout<< el->GetMean(2) << "+/-" <<  el->GetRMS(2) << endl;
+//  cout<< mu->GetMean(2) << "+/-" <<  mu->GetRMS(2) << endl;
 
   c1->SaveAs(fOutputDir + fOutputSubDir + "Routin.png");
   c1->SaveAs(fOutputDir + fOutputSubDir + "Routin.pdf");
@@ -2459,8 +2448,8 @@ void TopPlotter::CalculateDYBkg(){
     
   for (size_t chan=0; chan<gNCHANNELS; chan++){
     for (size_t ct=0; ct<iNCUTS; ct++){
-      DD_DY.Yields     [chan][ct] = DY.Yields     [chan][ct]*DY_SF[chan];
-      DD_DY.Yields_stat[chan][ct] = DY.Yields_stat[chan][ct]*DY_SF[chan];
+      DD_DY.Yields     [chan][ct]    = DY.Yields     [chan][ct]*DY_SF[chan][ct];
+      DD_DY.Yields_stat[chan][ct]    = DY.Yields_stat[chan][ct]*DY_SF[chan][ct];
       DD_DY.Yields_syst[chan][ct][0] = 0.15*DD_DY.Yields[chan][ct];
     }
   }
@@ -2598,17 +2587,17 @@ void TopPlotter::CalculateNonWZLeptonsBkg(){
   elmu->Draw("P SAME");
   leg->Draw("SAME");
 
-  cout << "ERRORS: " << endl;
-  Float_t mumumax =  TMath::MaxElement(mumu->GetN(),mumu->GetY());
-  Float_t mumumin =  TMath::MinElement(mumu->GetN(),mumu->GetY());
-  Float_t elmumax =  TMath::MaxElement(elmu->GetN(),elmu->GetY());
-  Float_t elmumin =  TMath::MinElement(elmu->GetN(),elmu->GetY());
-  Float_t elelmax =  TMath::MaxElement(elel->GetN(),elel->GetY());
-  Float_t elelmin =  TMath::MinElement(elel->GetN(),elel->GetY());
+  //  cout << "ERRORS: " << endl;
+//  Float_t mumumax =  TMath::MaxElement(mumu->GetN(),mumu->GetY());
+//  Float_t mumumin =  TMath::MinElement(mumu->GetN(),mumu->GetY());
+//  Float_t elmumax =  TMath::MaxElement(elmu->GetN(),elmu->GetY());
+//  Float_t elmumin =  TMath::MinElement(elmu->GetN(),elmu->GetY());
+//  Float_t elelmax =  TMath::MaxElement(elel->GetN(),elel->GetY());
+//  Float_t elelmin =  TMath::MinElement(elel->GetN(),elel->GetY());
 
-  cout<< elelmax <<" - "<< elelmin <<" = "<< (elelmax-elelmin)/elel->GetMean(2) << endl;
-  cout<< mumumax <<" - "<< mumumin <<" = "<< (mumumax-mumumin)/mumu->GetMean(2) << endl;
-  cout<< elmumax <<" - "<< elmumin <<" = "<< (elmumax-elmumin)/elmu->GetMean(2) << endl;
+//  cout<< elelmax <<" - "<< elelmin <<" = "<< (elelmax-elelmin)/elel->GetMean(2) << endl;
+//  cout<< mumumax <<" - "<< mumumin <<" = "<< (mumumax-mumumin)/mumu->GetMean(2) << endl;
+//  cout<< elmumax <<" - "<< elmumin <<" = "<< (elmumax-elmumin)/elmu->GetMean(2) << endl;
 
   c1->SaveAs(fOutputDir + fOutputSubDir + "R_NonW.png");
   c1->SaveAs(fOutputDir + fOutputSubDir + "R_NonW.pdf");

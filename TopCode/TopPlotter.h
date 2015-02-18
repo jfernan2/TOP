@@ -362,7 +362,7 @@ class TopPlotter {
   // Data Driven backgrounds.
   Categories DD_DY  ;
   Categories DD_NonW;
-  Float_t    DY_SF[gNCHANNELS];
+  Float_t    DY_SF[gNCHANNELS][iNCUTS];
   
   XSection ttbar;
   
