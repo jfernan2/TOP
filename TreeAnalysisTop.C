@@ -1850,19 +1850,19 @@ void TreeAnalysisTop::SmearJetPts(int flag){
     if(flag == 2) JetEt.at(*it) *= (1 - T_JetAKCHS_Uncertainty->at(*it)); // vary down for flag 2;
     if(flag == 3){
 
-      TVector3 genJet(T_JetAKCHS_GenJet_Px->at(*it),T_JetAKCHS_GenJet_Py->at(*it),T_JetAKCHS_GenJet_Pz->at(*it)); 
-      if (genJet.Pt() < 15) continue; 
-      if (genJet.DeltaR(tmp) < 0.5) continue;
+      //TVector3 genJet(T_JetAKCHS_GenJet_Px->at(*it),T_JetAKCHS_GenJet_Py->at(*it),T_JetAKCHS_GenJet_Pz->at(*it)); 
+      //if (genJet.Pt() < 15) continue; 
+      //if (genJet.DeltaR(tmp) < 0.5) continue;
       
-      float jerScale = getJERScale(*it);
-      else {
+      //float jerScale = getJERScale(*it);
+      //else {
 	// get the resolution
 	float sigmaMC  = getErrPt(JetEt.at(*it), T_JetAKCHS_Eta->at(*it))/JetEt.at(*it);
 	float jerScale = getJERScale(*it);                                  // get JER scale factors 
       
 	float factor = fRand3->Gaus(1., sqrt(jerScale*jerScale -1.)*sigmaMC );
 	JetEt.at(*it) = JetEt.at(*it) * factor;           // smear for flag 3
-      }
+      //}
     }
     // set tmp to the scaled/smeared jet
     tmp.SetPtEtaPhiE(JetEt.at(*it), T_JetAKCHS_Eta->at(*it),JetPhi.at(*it), T_JetAKCHS_Energy->at(*it)); 
