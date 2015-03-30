@@ -337,7 +337,7 @@ void TreeAnalysisTop::InsideLoop(){
       (abs(T_Gen_StopMass->at(0)-T_Gen_StopMass->at(1)) >  0.1 || 
        abs(T_Gen_Chi0Mass->at(0)-T_Gen_Chi0Mass->at(1)) >  0.1 || 
        abs(T_Gen_StopMass->at(0)-gStopMass)             > 6.25 || 
-       abs(T_Gen_Chi0Mass->at(0)-1.)                    > 6.25 )
+       abs(T_Gen_Chi0Mass->at(0)-gLspMass)              > 6.25 )
       ) return;
 #endif
   
@@ -603,15 +603,16 @@ void TreeAnalysisTop::GetParameters()
   
   gSampleName   = GetInputParameters()->TheNamedString("sampleName");
   
-  GetInputParameters()->TheNamedBool ("IsData",        gIsData);
-  GetInputParameters()->TheNamedFloat("weight",        gWeight); // cross section / events in the sample
-  GetInputParameters()->TheNamedFloat("LumiForPU",     gLumiForPU);
-  GetInputParameters()->TheNamedFloat("TotalLumi",     gTotalLumi);
+  GetInputParameters()->TheNamedBool ("IsData"       , gIsData);
+  GetInputParameters()->TheNamedFloat("weight"       , gWeight); // cross section / events in the sample
+  GetInputParameters()->TheNamedFloat("LumiForPU"    , gLumiForPU);
+  GetInputParameters()->TheNamedFloat("TotalLumi"    , gTotalLumi);
   GetInputParameters()->TheNamedBool ("DoSystStudies", gDoSystStudies);
-  GetInputParameters()->TheNamedBool ("UseCSVM",       gUseCSVM);
+  GetInputParameters()->TheNamedBool ("UseCSVM"      , gUseCSVM);
   GetInputParameters()->TheNamedBool ("DoSF"         , gDoSF);
   GetInputParameters()->TheNamedBool ("DoDF"         , gDoDF);
-  GetInputParameters()->TheNamedFloat("stopMass"     , gStopMass         );
+  GetInputParameters()->TheNamedFloat("stopMass"     , gStopMass);
+  GetInputParameters()->TheNamedFloat("lspMass"      , gLspMass );
 
   //  GetInputParameters()->TheNamedInt("SystDirection", gSysDirection);
 }

@@ -304,6 +304,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   Bool_t  gDoSF;
   Bool_t  gDoDF;
   Float_t gStopMass;
+  Float_t gLspMass;
 
   PUWeight *fPUWeight;     //The PU weight utility
   PUWeight *fPUWeightUp;   //The PU weight utility

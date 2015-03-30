@@ -3,6 +3,7 @@
 echo "Setting up environment..."
 #source /nfs/fanae/root_releases/root.5.34.13.slc5/bin/thisroot.sh
 #source /nfs/fanae/PAF_releases/PAF_devel/PAF_setup.sh
+#source /opt/root/bin/thisroot.sh
 #cd /nfs/fanae/user/sscruz/TOP
 
 source /nfs/fanae/user/sscruz/ChargeMiss/MissCode/setup.sh
@@ -76,8 +77,23 @@ root -l -b -q RunTree_ReReco.C\(\"WZZJets\",20,true\)
 root -l -b -q RunTree_ReReco.C\(\"ZZZJets\",20,true\) 
 
 ## stop
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,150.0\)
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,162.5\)
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,175.0\)
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,187.5\)
-root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,200.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,150.0,1.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,162.5,1.0\)
+root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,175.0,1.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,187.5,1.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,200.0,1.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,162.5,12.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,175.0,12.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,187.5,12.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,200.0,12.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,212.5,12.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,175.0,25.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,187.5,25.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,200.0,25.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,212.5,25.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,225.0,25.0\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,187.5,37.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,200.0,37.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,212.5,37.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,225.0,37.5\)
+#root -l -b -q RunTree_ReReco.C\(\"T2tt_150to250LSP1to100_LeptonFilter\",10,true,-1,237.5,37.5\)

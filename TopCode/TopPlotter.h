@@ -211,7 +211,7 @@ TString SampleName[gNSAMPLES] = {
   "WWZJets"		  ,
   "WZZJets"		  ,
   "ZZZJets"               ,
-  "T2tt_150to250LSP1to100_LeptonFilter_175.0"             
+  "T2tt_150to250LSP1to100_LeptonFilter_175.0_1.0"             
 };
 //++ categories
 enum iVar{

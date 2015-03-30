@@ -14,7 +14,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 		    Int_t    nSlots         =  1,
 		    Bool_t   DoSystStudies  =  false,
 		    Long64_t nEvents        = -1,
-		    Float_t  stopMass       = 0.0
+		    Float_t  stopMass       = 0.0,
+		    Float_t  lspMass        = 0.0
 		    ){
   
   gROOT->LoadMacro("$PAFPATH/PAF.C");
@@ -35,6 +36,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   cout << "DoSystStudies   " << DoSystStudies   << endl;
   cout << "nEvents         " << nEvents         << endl;
   cout << "massStop        " << stopMass        << endl;
+  cout << "massLSP         " << lspMass         << endl;
       
   // PROOF settings - see scripts/PAFOptions.h
   //----------------------------------------------------------------------------
@@ -84,7 +86,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   ///////////////////////////////
   // INPUT DATA SAMPLE
   //
-  TString userhome = "/mnt_pool/fanae105/user/folgueras/";
+  TString userhome = "/mnt_pool/fanae105/user/$USER/";
   gROOT->LoadMacro(userhome+"/Utils/DatasetManager/DatasetManager.C+");
   
   cout << ">> Setting datasets..." << endl;
@@ -113,11 +115,32 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     G_IsData = true;
   }
   else if (sampleName == "T2tt_150to250LSP1to100_LeptonFilter") {
-    if(stopMass==150.0) G_Event_Weight = (5./9.) * 80.268 /475311.; // cross section in pb
-    if(stopMass==162.5) G_Event_Weight = (5./9.) * 46.2   /462897.; // cross section in pb 
-    if(stopMass==175.0) G_Event_Weight = (5./9.) * 36.7994/446023.;  
-    if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93  /440137.;
-    if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245/343270.;  
+  // /afs/cern.ch/user/j/jfernan2/CMSSW_5_3_22/src/Tasks/SMS/HistosWithMassPoints/Files/Histos_T2tt_150to250LSP1to100_LeptonFilter.root
+    if(lspMass==1.0){
+       if(stopMass==150.0) G_Event_Weight = (5./9.) * 80.268 /481051.; // cross section in pb
+       if(stopMass==162.5) G_Event_Weight = (5./9.) * 46.2   /462897.; 
+       if(stopMass==175.0) G_Event_Weight = (5./9.) * 36.7994/446023.;  
+       if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93  /440137.;
+       if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245/343270.;  
+    }else if(lspMass==12.5){
+       if(stopMass==162.5) G_Event_Weight = (5./9.) * 46.2   /461473.;  
+       if(stopMass==175.0) G_Event_Weight = (5./9.) * 36.7994/450041.;  
+       if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93  /432344.;
+       if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245/343094.;  
+       if(stopMass==212.5) G_Event_Weight = (5./9.) * 13.4   /419153.; 
+    }else if(lspMass==25.0){
+       if(stopMass==175.0) G_Event_Weight = (5./9.) * 36.7994  /451455.;  
+       if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93    /439131.;
+       if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245  /342815.;  
+       if(stopMass==212.5) G_Event_Weight = (5./9.) * 13.4     /417733.; 
+       if(stopMass==225.0) G_Event_Weight = (5./9.) *  9.90959./410620.;  
+    }else if(lspMass==37.5){
+       if(stopMass==187.5) G_Event_Weight = (5./9.) * 25.93    /437837.;
+       if(stopMass==200.0) G_Event_Weight = (5./9.) * 18.5245  /341204.;  
+       if(stopMass==212.5) G_Event_Weight = (5./9.) * 13.4     /417493.; 
+       if(stopMass==225.0) G_Event_Weight = (5./9.) *  9.90959./411087.;  
+       if(stopMass==237.5) G_Event_Weight = (5./9.) *  7.38    /402073.;  
+    }
     G_IsData = false;
     
     cout << endl;
@@ -150,7 +173,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // Output file name
   //----------------------------------------------------------------------------
   Bool_t G_Use_CSVM = true;
-  TString outputDir = "/mnt_pool/fanae105/user/folgueras/TOP/TopTrees/Jan26_Jet30_Lep20_CSVM";
+  TString outputDir = "/mnt_pool/fanae105/user/palencia/TOP/TopTrees/";
   
   if (DoSF && DoDF) outputDir += "";
   else if (DoSF)    outputDir += "SF/";
@@ -163,7 +186,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   oss << G_Total_Lumi;
   
   TString mstop="";
-  if(sampleName == "T2tt_150to250LSP1to100_LeptonFilter")  mstop = Form("_%4.1f",stopMass);
+  if(sampleName == "T2tt_150to250LSP1to100_LeptonFilter")  mstop = Form("_%4.1f_%1.1f",stopMass, lspMass);
   TString LumiString = oss.str();
   TString outputFile = outputDir
     + "/"
@@ -222,10 +245,11 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   gPAFOptions->inputParameters->SetNamedBool  ("DoSF"         , DoSF             );
   gPAFOptions->inputParameters->SetNamedBool  ("DoDF"         , DoDF             );
   gPAFOptions->inputParameters->SetNamedFloat ("stopMass"     , stopMass         );
+  gPAFOptions->inputParameters->SetNamedFloat ("lspMass"      , lspMass          );
 
   // Number of events (Long64_t)
   //----------------------------------------------------------------------------
-  if (nSlots==1) gPAFOptions->SetNEvents(2000);
+  if (nSlots==1) gPAFOptions->SetNEvents(10000);
   else           gPAFOptions->SetNEvents(nEvents);
 
   // First event (Long64_t)
