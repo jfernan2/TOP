@@ -865,6 +865,20 @@ void TreeAnalysisTop::FillDYHistograms(){
 	  }
 	}
       }
+      if (getNBTags() == 1){
+	fHDY_InvMassVsNPV   [ElMu][iExact1btag]->Fill(nGoodVertex, Mll, EventWeight);
+	fHDY_InvMassVsMET   [ElMu][iExact1btag]->Fill(getMET()   , Mll, EventWeight);
+	fHDY_InvMassVsNjets [ElMu][iExact1btag]->Fill(getNJets() , Mll, EventWeight);
+	fHDY_InvMassVsNbtags[ElMu][iExact1btag]->Fill(getNBTags(), Mll, EventWeight);
+	fHDY_InvMass        [ElMu][iExact1btag]->Fill(             Mll, EventWeight);
+      }
+      if (getNBTags() == 2){
+	fHDY_InvMassVsNPV   [ElMu][iExact2btag]->Fill(nGoodVertex, Mll, EventWeight);
+	fHDY_InvMassVsMET   [ElMu][iExact2btag]->Fill(getMET()   , Mll, EventWeight);
+	fHDY_InvMassVsNjets [ElMu][iExact2btag]->Fill(getNJets() , Mll, EventWeight);
+	fHDY_InvMassVsNbtags[ElMu][iExact2btag]->Fill(getNBTags(), Mll, EventWeight);
+	fHDY_InvMass        [ElMu][iExact2btag]->Fill(             Mll, EventWeight);
+      }
     }
   }
   
@@ -887,7 +901,20 @@ void TreeAnalysisTop::FillDYHistograms(){
         fHDY_InvMassVsNjets [Muon][iMET]->Fill(getNJets() , Mll, EventWeight);
         fHDY_InvMassVsNbtags[Muon][iMET]->Fill(getNBTags(), Mll, EventWeight);
         fHDY_InvMass	    [Muon][iMET]->Fill( 	    Mll, EventWeight);
-      
+	if (getNBTags() == 1){
+	  fHDY_InvMassVsNPV   [Muon][iExact1btag]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [Muon][iExact1btag]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [Muon][iExact1btag]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[Muon][iExact1btag]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [Muon][iExact1btag]->Fill(             Mll, EventWeight);
+	}
+	if (getNBTags() == 2){
+	  fHDY_InvMassVsNPV   [Muon][iExact2btag]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [Muon][iExact2btag]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [Muon][iExact2btag]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[Muon][iExact2btag]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [Muon][iExact2btag]->Fill(             Mll, EventWeight);
+	}
         if (PassesNJetsCut()) {
 	  fHDY_InvMassVsNPV   [Muon][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
 	  fHDY_InvMassVsMET   [Muon][i2jets]->Fill(getMET()   , Mll, EventWeight);
@@ -925,7 +952,21 @@ void TreeAnalysisTop::FillDYHistograms(){
         fHDY_InvMassVsNjets [Elec][iMET]->Fill(getNJets() , Mll, EventWeight);
         fHDY_InvMassVsNbtags[Elec][iMET]->Fill(getNBTags(), Mll, EventWeight);
         fHDY_InvMass	    [Elec][iMET]->Fill( 	    Mll, EventWeight);
-      
+	
+	if (getNBTags() == 1){
+	  fHDY_InvMassVsNPV   [Elec][iExact1btag]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [Elec][iExact1btag]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [Elec][iExact1btag]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[Elec][iExact1btag]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [Elec][iExact1btag]->Fill(             Mll, EventWeight);
+	}
+	if (getNBTags() == 2){
+	  fHDY_InvMassVsNPV   [Elec][iExact2btag]->Fill(nGoodVertex, Mll, EventWeight);
+	  fHDY_InvMassVsMET   [Elec][iExact2btag]->Fill(getMET()   , Mll, EventWeight);
+	  fHDY_InvMassVsNjets [Elec][iExact2btag]->Fill(getNJets() , Mll, EventWeight);
+	  fHDY_InvMassVsNbtags[Elec][iExact2btag]->Fill(getNBTags(), Mll, EventWeight);
+	  fHDY_InvMass        [Elec][iExact2btag]->Fill(             Mll, EventWeight);
+	}
         if (PassesNJetsCut()) {
 	  fHDY_InvMassVsNPV   [Elec][i2jets]->Fill(nGoodVertex, Mll, EventWeight);
 	  fHDY_InvMassVsMET   [Elec][i2jets]->Fill(getMET()   , Mll, EventWeight);
@@ -1189,6 +1230,15 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
 	if (PassesMETCut())   {
 	  FillYieldsHistograms(Muon,iMET, sys);      
 	  if(sys==Norm) FillKinematicHistos(Muon,iMET);
+	  
+	  if (getNBTags() == 1){
+	    FillYieldsHistograms(Muon, iExact1btag, sys);      
+	    if(sys==Norm) FillKinematicHistos(Muon,iExact1btag);
+	  }
+	  if (getNBTags() == 2){
+	    FillYieldsHistograms(Muon, iExact2btag, sys);      
+	    if(sys==Norm) FillKinematicHistos(Muon,iExact2btag);
+	  }
 	  if (PassesNJetsCut()) {
 	    FillYieldsHistograms(Muon,i2jets, sys);      
 	    if(sys==Norm) FillKinematicHistos(Muon,i2jets);
@@ -1222,6 +1272,15 @@ void TreeAnalysisTop::FillYields(gSystFlag sys){
 	if (PassesMETCut())   {
 	  FillYieldsHistograms(Elec,iMET, sys);      
 	  if(sys==Norm) FillKinematicHistos(Elec,iMET);
+	  
+	  if (getNBTags() == 1){
+	    FillYieldsHistograms(Elec, iExact1btag, sys);      
+	    if(sys==Norm) FillKinematicHistos(Elec,iExact1btag);
+	  }
+	  if (getNBTags() == 2){
+	    FillYieldsHistograms(Elec, iExact2btag, sys);      
+	    if(sys==Norm) FillKinematicHistos(Elec,iExact2btag);
+	  }
 	  if (PassesNJetsCut()) {
 	    FillYieldsHistograms(Elec,i2jets, sys);      
 	    if(sys==Norm) FillKinematicHistos(Elec,i2jets);
