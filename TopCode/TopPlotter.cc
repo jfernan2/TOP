@@ -2030,15 +2030,15 @@ void TopPlotter::SaveHistosForLH(bool DD){
   TH1F *fHdjl_Rare [gNALLSYST];
   TH1F *fHdjl_Fake [gNALLSYST];
   
-  fHNBNJ_Data = (TH1F*) Data.NBtagsNJets    [ElMu][ibtag][0]->Clone("NJetsNBjets__DATA");
+  fHNBNJ_Data = (TH1F*) Data.NBtagsNJets    [ElMu][i1btag][0]->Clone("NJetsNBjets__DATA");
   fHNBNJ_Data->Write();
-  fHMll_Data  = (TH1F*) Data.InvMass        [ElMu][ibtag][0]->Clone("InvMass__DATA");
+  fHMll_Data  = (TH1F*) Data.InvMass        [ElMu][i1btag][0]->Clone("InvMass__DATA");
   fHMll_Data ->Write();
-  fHdll_Data  = (TH1F*) Data.AbsDelPhiLeps  [ElMu][ibtag][0]->Clone("AbsDelPhiLeps__DATA");
+  fHdll_Data  = (TH1F*) Data.AbsDelPhiLeps  [ElMu][i1btag][0]->Clone("AbsDelPhiLeps__DATA");
   fHdll_Data ->Write();
-  fHdjj_Data  = (TH1F*) Data.delPhi2LeadJets[ElMu][ibtag][0]->Clone("delPhi2LeadJets__DATA");
+  fHdjj_Data  = (TH1F*) Data.delPhi2LeadJets[ElMu][i1btag][0]->Clone("delPhi2LeadJets__DATA");
   fHdjj_Data ->Write();
-  fHdjl_Data  = (TH1F*) Data.minDelRJetsLeps[ElMu][ibtag][0]->Clone("minDelRJetsLeps__DATA");
+  fHdjl_Data  = (TH1F*) Data.minDelRJetsLeps[ElMu][i1btag][0]->Clone("minDelRJetsLeps__DATA");
   fHdjl_Data ->Write();
   
   for (size_t sys=0; sys<gNALLSYST; sys++){
@@ -2046,23 +2046,23 @@ void TopPlotter::SaveHistosForLH(bool DD){
     if (sys < gNSYST) syst = sys;
     else              syst = 0; 
     
-    fHNBNJ_TTbar   [sys ] = (TH1F*)TTbar   .NBtagsNJets[ElMu][ibtag][sys ]->Clone("NJetsNBjets__"+TTbar   .name + sysname[sys]);
-    fHNBNJ_SUSYstop[syst] = (TH1F*)SUSYstop.NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+SUSYstop.name + sysname[sys]);
-    fHNBNJ_Stop    [syst] = (TH1F*)STop    .NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+STop    .name + sysname[sys]);
-    fHNBNJ_DY      [syst] = (TH1F*)DY      .NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+DY      .name + sysname[sys]);
-    fHNBNJ_VV      [syst] = (TH1F*)VV      .NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+VV      .name + sysname[sys]);
+    fHNBNJ_TTbar   [sys ] = (TH1F*)TTbar   .NBtagsNJets[ElMu][i1btag][sys ]->Clone("NJetsNBjets__"+TTbar   .name + sysname[sys]);
+    fHNBNJ_SUSYstop[syst] = (TH1F*)SUSYstop.NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+SUSYstop.name + sysname[sys]);
+    fHNBNJ_Stop    [syst] = (TH1F*)STop    .NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+STop    .name + sysname[sys]);
+    fHNBNJ_DY      [syst] = (TH1F*)DY      .NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+DY      .name + sysname[sys]);
+    fHNBNJ_VV      [syst] = (TH1F*)VV      .NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+VV      .name + sysname[sys]);
 
-//    fHNBNJ_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__ww"+sysname[sys]);
-//    fHNBNJ_WZ   [syst] = (TH1F*)S[WZ]                .NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__wz"+sysname[sys]);
-//    fHNBNJ_ZZ   [syst] = (TH1F*)S[ZZ]                .NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__zz"+sysname[sys]);
+//    fHNBNJ_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__ww"+sysname[sys]);
+//    fHNBNJ_WZ   [syst] = (TH1F*)S[WZ]                .NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__wz"+sysname[sys]);
+//    fHNBNJ_ZZ   [syst] = (TH1F*)S[ZZ]                .NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__zz"+sysname[sys]);
     
     if (DD) {
       // here crahses SaveHistosForLH(true)
-      fHNBNJ_Fake[syst] = (TH1F*)DD_NonW.NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
+      fHNBNJ_Fake[syst] = (TH1F*)DD_NonW.NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
     } else {
-      fHNBNJ_Fake[syst] = (TH1F*)   Fake.NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
+      fHNBNJ_Fake[syst] = (TH1F*)   Fake.NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+Fake.name+sysname[sys]);
     }
-    fHNBNJ_Rare  [syst] = (TH1F*)   Rare.NBtagsNJets[ElMu][ibtag][syst]->Clone("NJetsNBjets__"+Rare.name+sysname[sys]);
+    fHNBNJ_Rare  [syst] = (TH1F*)   Rare.NBtagsNJets[ElMu][i1btag][syst]->Clone("NJetsNBjets__"+Rare.name+sysname[sys]);
     
     //fHNBNJ_TTbar   [sys ]->Sumw2();
     //fHNBNJ_SUSYstop[syst]->Sumw2();
@@ -2084,22 +2084,22 @@ void TopPlotter::SaveHistosForLH(bool DD){
     fHNBNJ_Fake [syst]->Write();
   
   
-    fHMll_TTbar   [sys ] = (TH1F*)TTbar   .InvMass[ElMu][ibtag][sys ]->Clone("InvMass__"+TTbar   .name + sysname[sys]);
-    fHMll_SUSYstop[syst] = (TH1F*)SUSYstop.InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+SUSYstop.name + sysname[sys]);
-    fHMll_Stop    [syst] = (TH1F*)STop    .InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+STop    .name + sysname[sys]);
-    fHMll_DY      [syst] = (TH1F*)DY      .InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+DY      .name + sysname[sys]);
-    fHMll_VV      [syst] = (TH1F*)VV      .InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+VV      .name + sysname[sys]);
+    fHMll_TTbar   [sys ] = (TH1F*)TTbar   .InvMass[ElMu][i1btag][sys ]->Clone("InvMass__"+TTbar   .name + sysname[sys]);
+    fHMll_SUSYstop[syst] = (TH1F*)SUSYstop.InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+SUSYstop.name + sysname[sys]);
+    fHMll_Stop    [syst] = (TH1F*)STop    .InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+STop    .name + sysname[sys]);
+    fHMll_DY      [syst] = (TH1F*)DY      .InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+DY      .name + sysname[sys]);
+    fHMll_VV      [syst] = (TH1F*)VV      .InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+VV      .name + sysname[sys]);
 
-//    fHMll_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].InvMass[ElMu][ibtag][syst]->Clone("InvMass__ww"+sysname[sys]);
-//    fHMll_WZ   [syst] = (TH1F*)S[WZ]                .InvMass[ElMu][ibtag][syst]->Clone("InvMass__wz"+sysname[sys]);
-//    fHMll_ZZ   [syst] = (TH1F*)S[ZZ]                .InvMass[ElMu][ibtag][syst]->Clone("InvMass__zz"+sysname[sys]);
+//    fHMll_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].InvMass[ElMu][i1btag][syst]->Clone("InvMass__ww"+sysname[sys]);
+//    fHMll_WZ   [syst] = (TH1F*)S[WZ]                .InvMass[ElMu][i1btag][syst]->Clone("InvMass__wz"+sysname[sys]);
+//    fHMll_ZZ   [syst] = (TH1F*)S[ZZ]                .InvMass[ElMu][i1btag][syst]->Clone("InvMass__zz"+sysname[sys]);
     
     if (DD) {
-      fHMll_Fake[syst] = (TH1F*)DD_NonW.InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
+      fHMll_Fake[syst] = (TH1F*)DD_NonW.InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
     } else {
-      fHMll_Fake[syst] = (TH1F*)   Fake.InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
+      fHMll_Fake[syst] = (TH1F*)   Fake.InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+Fake.name+sysname[sys]);
     }
-    fHMll_Rare [syst]  = (TH1F*)   Rare.InvMass[ElMu][ibtag][syst]->Clone("InvMass__"+Rare.name+sysname[sys]);
+    fHMll_Rare [syst]  = (TH1F*)   Rare.InvMass[ElMu][i1btag][syst]->Clone("InvMass__"+Rare.name+sysname[sys]);
     
     fHMll_TTbar[sys ]->Write();
     fHMll_SUSYstop[syst]->Write();
@@ -2113,22 +2113,22 @@ void TopPlotter::SaveHistosForLH(bool DD){
     fHMll_Fake [syst]->Write();
   
   
-    fHdll_TTbar   [sys ] = (TH1F*)TTbar   .AbsDelPhiLeps[ElMu][ibtag][sys ]->Clone("AbsDelPhiLeps__"+TTbar   .name + sysname[sys]);
-    fHdll_SUSYstop[syst] = (TH1F*)SUSYstop.AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+SUSYstop.name + sysname[sys]);
-    fHdll_Stop    [syst] = (TH1F*)STop    .AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+STop    .name + sysname[sys]);
-    fHdll_DY      [syst] = (TH1F*)DY      .AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+DY	 .name + sysname[sys]);
-    fHdll_VV      [syst] = (TH1F*)VV      .AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+VV	 .name + sysname[sys]);
+    fHdll_TTbar   [sys ] = (TH1F*)TTbar   .AbsDelPhiLeps[ElMu][i1btag][sys ]->Clone("AbsDelPhiLeps__"+TTbar   .name + sysname[sys]);
+    fHdll_SUSYstop[syst] = (TH1F*)SUSYstop.AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+SUSYstop.name + sysname[sys]);
+    fHdll_Stop    [syst] = (TH1F*)STop    .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+STop    .name + sysname[sys]);
+    fHdll_DY      [syst] = (TH1F*)DY      .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+DY	 .name + sysname[sys]);
+    fHdll_VV      [syst] = (TH1F*)VV      .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+VV	 .name + sysname[sys]);
 
 //    fHMll_WW   [syst] = (TH1F*)S[WWTo2L2Nu_Madgraph].AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__ww"+sysname[sys]);
 //    fHMll_WZ   [syst] = (TH1F*)S[WZ]                .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__wz"+sysname[sys]);
 //    fHMll_ZZ   [syst] = (TH1F*)S[ZZ]                .AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__zz"+sysname[sys]);
     
     if (DD) {
-      fHdll_Fake[syst] = (TH1F*)DD_NonW.AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
+      fHdll_Fake[syst] = (TH1F*)DD_NonW.AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
     } else {
-      fHdll_Fake[syst] = (TH1F*)   Fake.AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
+      fHdll_Fake[syst] = (TH1F*)   Fake.AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+Fake.name+sysname[sys]);
     }
-    fHdll_Rare  [syst] = (TH1F*)   Rare.AbsDelPhiLeps[ElMu][ibtag][syst]->Clone("AbsDelPhiLeps__"+Rare.name+sysname[sys]);
+    fHdll_Rare  [syst] = (TH1F*)   Rare.AbsDelPhiLeps[ElMu][i1btag][syst]->Clone("AbsDelPhiLeps__"+Rare.name+sysname[sys]);
     
     fHdll_TTbar[sys ]->Write();
     fHdll_SUSYstop [syst]->Write();
@@ -2142,18 +2142,18 @@ void TopPlotter::SaveHistosForLH(bool DD){
     fHdll_Fake [syst]->Write();
   
   
-    fHdjj_TTbar   [sys ] = (TH1F*)TTbar   .delPhi2LeadJets[ElMu][ibtag][sys ]->Clone("delPhi2LeadJets__"+TTbar   .name + sysname[sys]);
-    fHdjj_SUSYstop[syst] = (TH1F*)SUSYstop.delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+SUSYstop.name + sysname[sys]);
-    fHdjj_Stop    [syst] = (TH1F*)STop    .delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+STop    .name + sysname[sys]);
-    fHdjj_DY      [syst] = (TH1F*)DY      .delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+DY      .name + sysname[sys]);
-    fHdjj_VV      [syst] = (TH1F*)VV      .delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+VV      .name + sysname[sys]);
+    fHdjj_TTbar   [sys ] = (TH1F*)TTbar   .delPhi2LeadJets[ElMu][i1btag][sys ]->Clone("delPhi2LeadJets__"+TTbar   .name + sysname[sys]);
+    fHdjj_SUSYstop[syst] = (TH1F*)SUSYstop.delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+SUSYstop.name + sysname[sys]);
+    fHdjj_Stop    [syst] = (TH1F*)STop    .delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+STop    .name + sysname[sys]);
+    fHdjj_DY      [syst] = (TH1F*)DY      .delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+DY      .name + sysname[sys]);
+    fHdjj_VV      [syst] = (TH1F*)VV      .delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+VV      .name + sysname[sys]);
 
     if (DD) {
-      fHdjj_Fake[syst] = (TH1F*)DD_NonW.delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+Fake.name+sysname[sys]);
+      fHdjj_Fake[syst] = (TH1F*)DD_NonW.delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+Fake.name+sysname[sys]);
     } else {
-      fHdjj_Fake[syst] = (TH1F*)   Fake.delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+Fake.name+sysname[sys]);
+      fHdjj_Fake[syst] = (TH1F*)   Fake.delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+Fake.name+sysname[sys]);
     }
-    fHdjj_Rare  [syst] = (TH1F*)   Rare.delPhi2LeadJets[ElMu][ibtag][syst]->Clone("delPhi2LeadJets__"+Rare.name+sysname[sys]);
+    fHdjj_Rare  [syst] = (TH1F*)   Rare.delPhi2LeadJets[ElMu][i1btag][syst]->Clone("delPhi2LeadJets__"+Rare.name+sysname[sys]);
     
     fHdjj_TTbar[sys ]->Write();
     fHdjj_SUSYstop [syst]->Write();
@@ -2164,18 +2164,18 @@ void TopPlotter::SaveHistosForLH(bool DD){
     fHdjj_Fake [syst]->Write();
   
   
-    fHdjl_TTbar   [sys ] = (TH1F*)TTbar   .minDelRJetsLeps[ElMu][ibtag][sys ]->Clone("minDelRJetsLeps__"+TTbar   .name + sysname[sys]);
-    fHdjl_SUSYstop[syst] = (TH1F*)SUSYstop.minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+SUSYstop.name + sysname[sys]);
-    fHdjl_Stop    [syst] = (TH1F*)STop    .minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+STop    .name + sysname[sys]);
-    fHdjl_DY      [syst] = (TH1F*)DY      .minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+DY      .name + sysname[sys]);
-    fHdjl_VV      [syst] = (TH1F*)VV      .minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+VV      .name + sysname[sys]);
+    fHdjl_TTbar   [sys ] = (TH1F*)TTbar   .minDelRJetsLeps[ElMu][i1btag][sys ]->Clone("minDelRJetsLeps__"+TTbar   .name + sysname[sys]);
+    fHdjl_SUSYstop[syst] = (TH1F*)SUSYstop.minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+SUSYstop.name + sysname[sys]);
+    fHdjl_Stop    [syst] = (TH1F*)STop    .minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+STop    .name + sysname[sys]);
+    fHdjl_DY      [syst] = (TH1F*)DY      .minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+DY      .name + sysname[sys]);
+    fHdjl_VV      [syst] = (TH1F*)VV      .minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+VV      .name + sysname[sys]);
     
     if (DD) {
-      fHdjl_Fake[syst] = (TH1F*)DD_NonW.minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+Fake.name+sysname[sys]);
+      fHdjl_Fake[syst] = (TH1F*)DD_NonW.minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+Fake.name+sysname[sys]);
     } else {
-      fHdjl_Fake[syst] = (TH1F*)   Fake.minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+Fake.name+sysname[sys]);
+      fHdjl_Fake[syst] = (TH1F*)   Fake.minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+Fake.name+sysname[sys]);
     }
-    fHdjl_Rare  [syst] = (TH1F*)   Rare.minDelRJetsLeps[ElMu][ibtag][syst]->Clone("minDelRJetsLeps__"+Rare.name+sysname[sys]);
+    fHdjl_Rare  [syst] = (TH1F*)   Rare.minDelRJetsLeps[ElMu][i1btag][syst]->Clone("minDelRJetsLeps__"+Rare.name+sysname[sys]);
     
     fHdjl_TTbar[sys ]->Write();
     fHdjl_SUSYstop [syst]->Write();
