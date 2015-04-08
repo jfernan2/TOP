@@ -2212,7 +2212,7 @@ void TopPlotter::CalculateSystematicErrors(Categories &C, Int_t cut){
 							S[TTJets_MadSpin].Yields[ch][cut])
 					     ) / (S[TTJets_MadSpin].Yields[ch][cut]);
       C.SystError[ch][cr]  = TMath::Abs(S[TTJetsFullLeptMGTuneP11].Yields[ch][cut] - S[TTJetsFullLeptMGTuneP11noCR].Yields[ch][cut]) / S[TTJetsFullLeptMGTuneP11].Yields[ch][cut]; 
-      C.SystError[ch][had] = TMath::Abs(S[TTbar_Powheg].Yields[ch][cut] - S[TTbar_Powheg_Herwig].Yields[ch][cut]) / S[TTbar_Powheg].Yields[ch][cut]; 
+      C.SystError[ch][had] = 0.; //TMath::Abs(S[TTbar_Powheg].Yields[ch][cut] - S[TTbar_Powheg_Herwig].Yields[ch][cut]) / S[TTbar_Powheg].Yields[ch][cut]; 
       C.SystError[ch][pdf] = GetPDFUncertainty();
     }
     C.SystError[ch][les]      = TMath::Max(TMath::Abs(C.Yields_syst[ch][cut][LESUp] - C.Yields[ch][cut]), 
