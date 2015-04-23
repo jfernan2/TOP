@@ -33,7 +33,7 @@ Test the code
 
     cd TOP
     resetpaf -a
-    root -l -b -q RunTree_ReReco.C\(\"WZ\",4,true\)
+    root -l -b -q 'RunTree_ReReco.C("WZ",4,true)'
 
 
 Make the top trees
@@ -46,7 +46,7 @@ Compute the top cross section
 ====
 
     cd TopCode/
-    root -l RunTopPlots.C\(\"/gpfs/csic_projects/cms/piedra/work/TOP/TopTrees\"\)
+    root -l 'RunTopPlots.C("/gpfs/csic_projects/cms/piedra/work/TOP/TopTrees")'
 
 
 It is commit time

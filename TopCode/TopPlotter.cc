@@ -692,7 +692,7 @@ void TopPlotter::LoadCategories(){
     Rare .SystError[chan][SFTrig] += S[WWZJets]               .SystError[chan][SFTrig]*S[WWZJets]               .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig] += S[WZZJets]               .SystError[chan][SFTrig]*S[WZZJets]               .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig] += S[ZZZJets]               .SystError[chan][SFTrig]*S[ZZZJets]               .SystError[chan][SFTrig];
-    Rare .SystError[chan][SFTrig]  = TMath::Sqrt(Rare .SystError[chan][SFTrig]);
+    Rare .SystError[chan][SFTrig]  = TMath::Sqrt(Rare.SystError[chan][SFTrig]);
   }
   
   // SYSTEMATIC ERRORS HISTOS
@@ -2256,28 +2256,27 @@ float TopPlotter::GetPDFUncertainty(){
   }
   return pdfunc_max;
 }
-void TopPlotter::CalculateSystematicErrorsWithXSec(Categories &C, Int_t cut){
-  /////////////////////////////////////////////////////////////////////////
-  //   This method calculates the cross-section for each systematic and    
-  //   compare it with the nominal one, the difference is assigned as a    
-  //   systematic uncertainty (for systematics varied up/down)             
-  /////////////////////////////////////////////////////////////////////////
-  fOutputSubDir = "SystematicErrors/";
-  
-  XSection tmp_up, tmp_down; 
-  Float_t obs(0.), bkg(0.), eff(0.);
-  
-  for (Int_t ch = 0; ch<gNCHANNELS; ch++){
-    obs = Data .Yields[ch][cut];
-    bkg = Total.Yields[ch][cut];
-    eff = TTbar.Yields[ch][cut];
-    
-    tmp_up  .xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
-    tmp_down.xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
-    if (C.name == "ttbar") eff = 0.;
-  }
-  
-}
+//void TopPlotter::CalculateSystematicErrorsWithXSec(Categories &C, Int_t cut){
+//  /////////////////////////////////////////////////////////////////////////
+//  //   This method calculates the cross-section for each systematic and    
+//  //   compare it with the nominal one, the difference is assigned as a    
+//  //   systematic uncertainty (for systematics varied up/down)             
+//  /////////////////////////////////////////////////////////////////////////
+//  fOutputSubDir = "SystematicErrors/";
+//  
+//  XSection tmp_up, tmp_down; 
+//  Float_t obs(0.), bkg(0.), eff(0.);
+//  
+//  for (Int_t ch = 0; ch<gNCHANNELS; ch++){
+//    obs = Data .Yields[ch][cut];
+//    bkg = Total.Yields[ch][cut];
+//    eff = TTbar.Yields[ch][cut];
+//    
+//    tmp_up  .xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
+//    tmp_down.xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
+//    if (C.name == "ttbar") eff = 0.;
+//  }
+//}
 void TopPlotter::CalculateDYBkg(){
   fOutputSubDir = "DataDriven/";
   gSystem->mkdir(fOutputDir+fOutputSubDir, kTRUE);
