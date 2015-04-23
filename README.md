@@ -44,8 +44,10 @@ Make the top trees
     ./runAll_TopMC.sh
 
 
-Compute the top cross section including systematic uncertainties
+Compute the top cross section
 ====
+
+It includes the systematic uncertainties.
 
     root -l RunTopPlots.C
 
