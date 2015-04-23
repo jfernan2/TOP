@@ -2,13 +2,17 @@ Everything starts here
 ====
 
     ssh -Y gridui.ifca.es -o ServerAliveInterval=240
-    cd /gpfs/csic_projects/cms/piedra/work    
+    source /cvmfs/cms.cern.ch/cmsset_default.sh
+    cd /gpfs/csic_users/piedra/CMSSW_7_3_0/src
+    cmsenv
 
 
 It is time to get the material
 ====
 
 Go to the master repository (https://github.com/folguera/TOP) and click **Fork** in the top-right corner of the page. Now get the code in your working area.
+
+    cd /gpfs/csic_projects/cms/piedra/work    
 
     git clone https://github.com/piedraj/TOP
     git clone https://piedra@git.cern.ch/reps/IFCA-UO-CMS/Utils
