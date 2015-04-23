@@ -59,5 +59,5 @@ And then commit your changes.
     git commit -m 'Modified'
     git push origin master
 
-If the changes have been made in a fork of the master, go to https://github.com/YOUR-USERNAME/TopAnalysis.git and click **Pull Request**.
+If the changes have been made in a fork of the master, go to https://github.com/piedraj/TOP and click **Pull Request**.
 
