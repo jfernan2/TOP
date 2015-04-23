@@ -6,7 +6,7 @@ echo "Setting up environment..."
 #source /opt/root/bin/thisroot.sh
 #cd /nfs/fanae/user/sscruz/TOP
 
-source /nfs/fanae/user/sscruz/ChargeMiss/MissCode/setup.sh
+#source /nfs/fanae/user/sscruz/ChargeMiss/MissCode/setup.sh
 
 #echo "Now start PoD..." 
 #source /opt/PoD/PoD_env.sh

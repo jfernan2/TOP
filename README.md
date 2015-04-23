@@ -35,14 +35,14 @@ Test the code
 Make the top trees
 ====
 
-    resetpaf -a
     ./runAll_TopMC.sh
 
 
 Compute the top cross section
 ====
 
-    root -l RunTopPlots.C
+    cd TopCode/
+    root -l RunTopPlots.C\(\"/gpfs/csic_projects/cms/piedra/work/TOP/TopTrees\"\)
 
 
 It is commit time
