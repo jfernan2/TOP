@@ -2,7 +2,6 @@ Everything starts here
 ====
 
     ssh -Y gridui.ifca.es -o ServerAliveInterval=240
-    source /cvmfs/cms.cern.ch/cmsset_default.sh
     cd /gpfs/csic_projects/cms/piedra/work    
 
 
@@ -11,12 +10,8 @@ It is time to get the material
 
 Go to the master repository (https://github.com/folguera/TOP) and click **Fork** in the top-right corner of the page. Now get the code in your working area.
 
-    git clone https://github.com/piedraj/TOP TOP
-
-    pushd /gpfs/csic_users/piedra/CMSSW_7_3_0/src
-    cmsenv
-    popd
-    git clone https://git.cern.ch/reps/IFCA-UO-CMS/Utils
+    git clone https://github.com/piedraj/TOP
+    git clone https://piedra@git.cern.ch/reps/IFCA-UO-CMS/Utils
 
     cd TOP
     mv ../Utils/PUWeight packages/.
@@ -47,7 +42,22 @@ Make the top trees
 Compute the top cross section
 ====
 
-It includes the systematic uncertainties.
-
     root -l RunTopPlots.C
+
+
+It is commit time
+====
+
+First get the latest changes in the repository, if any.
+
+    git pull https://github.com/folguera/TOP
+
+And then commit your changes.
+
+    git status
+    git add <filepattern>
+    git commit -m 'Modified'
+    git push origin master
+
+If the changes have been made in a fork of the master, go to https://github.com/YOUR-USERNAME/TopAnalysis.git and click **Pull Request**.
 
