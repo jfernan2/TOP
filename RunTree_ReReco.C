@@ -10,14 +10,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 TProof* proof = 0;
 
-void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
-		    Int_t    nSlots         =  1,
-		    Bool_t   DoSystStudies  =  false,
-		    Long64_t nEvents        = -1,
-		    Float_t  stopMass       = 0.0,
-		    Float_t  lspMass        = 0.0
-		    ){
-  
+
+void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
+		    Int_t    nSlots        =  1,
+		    Bool_t   DoSystStudies =  false,
+		    Long64_t nEvents       = -1,
+		    Float_t  stopMass      = 0.0,
+		    Float_t  lspMass       = 0.0
+		    )
+{
+  TString host = gSystem->HostName();
+    
   gROOT->LoadMacro("$PAFPATH/PAF.C");
   
   // VARIABLES TO BE USED AS PARAMETERS...
@@ -43,19 +46,25 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 
   // PROOF mode
   //----------------------------------------------------------------------------
-  if      (nSlots == 1) gPAFOptions->SetPAFMode(kSequential); // NO PROOF
-  else if (nSlots <= 8) gPAFOptions->SetPAFMode(kLite);       // PROOF Lite
-  else                  gPAFOptions->SetPAFMode(kPoD);        // PoD
+  if (host.Contains("uniovi.es"))
+    {
+      if      (nSlots == 1) gPAFOptions->SetPAFMode(kSequential);
+      else if (nSlots <= 8) gPAFOptions->SetPAFMode(kLite);
+      else                  gPAFOptions->SetPAFMode(kPoD);
+    }
+  else if (host.Contains("ifca.es"))
+    {
+      gPAFOptions->proofMode = kLite;
+    }
   
   gPAFOptions->SetNSlots(nSlots);
 
     
-  //SANTI 
+  // SANTI
   //  gPAFOptions->proofMode = kSequential;       // No PROOF
   //  gPAFOptions->proofMode = kLite;             // PROOF Lite
   //  gPAFOptions->proofMode = kPoD;              // PoD
-
-  //gPAFOptions->proofMode = kCluster;            // PROOF Cluster
+  //  gPAFOptions->proofMode = kCluster;          // PROOF Cluster
   //  gPAFOptions->NSlots = 50;                   // Number of slots
 
   // Optional parameters for PROOF Cluster mode
@@ -72,9 +81,11 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
    cerr << "ERROR: I could not initialise a PROOF session!" << endl;
    return;
  }
- if (gPAFOptions->GetPAFMode() != kSequential) 
+
+ if (host.Contains("uniovi.es") && gPAFOptions->GetPAFMode() != kSequential) 
    gPAFOptions->GetPROOFSession()->SetLogLevel(2, TProofDebug::kOutput); 
   
+
   // Tree type
   //----------------------------------------------------------------------------
   gPAFOptions->SetTreeType(kMiniTrees);
@@ -87,7 +98,10 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // INPUT DATA SAMPLE
   //
   TString userhome = "/mnt_pool/fanae105/user/$USER/";
-  gROOT->LoadMacro(userhome+"/Utils/DatasetManager/DatasetManager.C+");
+
+  if (host.Contains("ifca.es")) userhome = "/gpfs/csic_projects/cms/piedra/work/";
+
+  gROOT->LoadMacro(userhome + "Utils/DatasetManager/DatasetManager.C+");
   
   cout << ">> Setting datasets..." << endl;
   DatasetManager* dm = new DatasetManager("Legacy_Summer12_53X");
@@ -173,7 +187,14 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // Output file name
   //----------------------------------------------------------------------------
   Bool_t G_Use_CSVM = true;
+
   TString outputDir = "/mnt_pool/fanae105/user/palencia/TOP/TopTrees/";
+
+  if (host.Contains("ifca.es"))
+    {
+      gSystem->mkdir(userhome + "TOP/TopTrees/", kTRUE);
+      outputDir = userhome + "TOP/TopTrees/";
+    }
   
   if (DoSF && DoDF) outputDir += "";
   else if (DoSF)    outputDir += "SF/";
@@ -195,7 +216,11 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
     + mstop
     + ".root";
   
-  gPAFOptions->SetOutputFile(outputFile);
+  if (host.Contains("uniovi.es"))
+    gPAFOptions->SetOutputFile(outputFile);
+  else if (host.Contains("ifca.es"))
+    gPAFOptions->outputFile = outputFile;    
+
 
   // Parameters for the analysis
   //----------------------------------------------------------------------------
@@ -274,8 +299,12 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // + If true (default) the output file is reopened so the objects in the
   //   file can be interactively accessed. The object in the output are also
   //   listed
-  gPAFOptions->ReopenOutputFile(false);
+  if (host.Contains("uniovi.es"))
+    gPAFOptions->ReopenOutputFile(false);
+  else if (host.Contains("ifca.es"))
+    gPAFOptions->reopenOutputFile = false;
   
+
   // Run the analysis
   //----------------------------------------------------------------------------
   //  gPAFOptions->SetMergeThroughFile();
