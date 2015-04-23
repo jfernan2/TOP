@@ -13,8 +13,7 @@ Go to the master repository (https://github.com/folguera/TOP) and click **Fork**
     git clone https://github.com/piedraj/TOP
     git clone https://piedra@git.cern.ch/reps/IFCA-UO-CMS/Utils
 
-    cd TOP
-    mv ../Utils/PUWeight packages/.
+    mv Utils/PUWeight TOP/packages/.
 
 
 Setup PAF
@@ -28,6 +27,7 @@ Setup PAF
 Test the code
 ====
 
+    cd TOP
     resetpaf -a
     root -l -b -q RunTree_ReReco.C\(\"WZ\",4,true\)
 
