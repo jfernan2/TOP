@@ -1653,7 +1653,7 @@ void TopPlotter::DrawKinematicPlots(Bool_t DD, Int_t onechan, Int_t onevar, Int_
   gStyle->SetPadTickY(1);
   gStyle->SetPadTickX(1);
   
-  gROOT->LoadMacro("~folgueras/TOP/TopCode/tdrstyle.h"); 
+  gROOT->LoadMacro("tdrstyle.h"); 
   setTDRStyle();
   
   TLegend *leg = new TLegend(0.73,0.58,0.90,0.89);
@@ -1828,7 +1828,7 @@ void TopPlotter::DrawNbjetsNjets(bool DD){
   gStyle->SetPadTickY(1);
   gStyle->SetPadTickX(1);
   
-  gROOT->LoadMacro("~folgueras/TOP/TopCode/tdrstyle.h"); 
+  gROOT->LoadMacro("tdrstyle.h"); 
   setTDRStyle();
   
   TLegend *leg = new TLegend(0.73,0.58,0.90,0.89);
