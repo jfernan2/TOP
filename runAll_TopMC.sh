@@ -1,11 +1,14 @@
 #!/bin/bash
 
-echo "Setting up environment..."
+echo "Setting up Oviedo environment..."
 source /nfs/fanae/PAF_releases/PAF_devel/PAF_setup.sh
 source /opt/root/bin/thisroot.sh
-
-echo "Now start PoD..." 
 source /opt/PoD/PoD_env.sh
+
+#echo "Setting up IFCA environment..."
+#export PAFPATH=/gpfs/csic_projects/cms/PROOF/paf/
+#export PATH=$PAFPATH/bin:$PATH
+#source $PAFPATH/PAF_setup.sh
 
 
 ## Data 
