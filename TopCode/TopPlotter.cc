@@ -75,12 +75,12 @@ void TopPlotter::LoadSamples(TString pathtofiles){
     else 
       Weight = fLumiNorm; 
     
-    
     if(sample==TTJets_MadSpin)    toppt_weight = ((TH1F*) _file->Get("H_TopPtWeight"))->GetMean();
     if(sample==TTJets_MadSpinPDF) {
       S[sample].pdfWeights    = (TH1F*)_file->Get("H_pdfWeight");
       S[sample].pdfWeightsSum = (TH1F*)_file->Get("H_pdfWeightSum");
     }
+
     // Load numbers... 
     for (size_t ch=0; ch<gNCHANNELS; ch++){
       hOSyields = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[ch]);
@@ -101,7 +101,7 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	}
       }
     }      
-    
+
     if (//sample==TTJets_matchingup   || sample==TTJets_matchingdown     ||
 	//sample==TTJets_scaleup      || sample==TTJets_scaledown        ||
 	sample==TTJets_MadSpinPDF   || sample==TTbar_Powheg            ||
@@ -109,20 +109,19 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	sample==TTJetsFullLeptMGTuneP11noCR) continue;
 
     // Load Systematics (ONLY FOR MC...) 
-    for (size_t ch=0; ch<gNCHANNELS; ch++){                                                             if (!IsData){
+    for (size_t ch=0; ch<gNCHANNELS; ch++){
+      if (!IsData){
 	for (size_t sys=1; sys<gNSYST; sys++){
 	  hOSyields_sys = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[ch]+"_"+SystName[sys]);
 	  for (size_t cut=0; cut<iNCUTS; cut++)
 	    S[sample].Yields_syst[ch][cut][sys] = hOSyields_sys->GetBinContent(cut+1) * Weight;
 	}
 	
-	
 	S[sample].SystError[ch][SFIDISO] = ((TH1F*)_file->Get("H_LepSys_"+ gChanLabel[ch]+"_dilepton"))->GetMean();
 	S[sample].SystError[ch][SFTrig]  = ((TH1F*)_file->Get("H_TrigSys_"+ gChanLabel[ch]+"_dilepton"))->GetMean();
-  
       }
     }
-    
+
     // Load kinematic histograms of the samples. 
     for (size_t chan=0; chan<gNCHANNELS; chan++){
       for (size_t cut=0; cut<iNCUTS; cut++){
