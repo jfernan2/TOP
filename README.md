@@ -46,7 +46,7 @@ Compute the top cross section
 ====
 
     cd TopCode/
-    root -l 'RunTopPlots.C("/gpfs/csic_projects/cms/piedra/work/TOP/TopTrees",0)'
+    root -l -b -q 'RunTopPlots.C("/gpfs/csic_projects/cms/piedra/work/TOP/TopTrees",0)'
 
 
 It is commit time
