@@ -356,8 +356,12 @@ void TreeAnalysisTop::InsideLoop(){
   SetEventObjects();
 
 #ifdef __ISPDF
-  for (int pdf=0; pdf<52; pdf++)
-    fHpdfWeightSum->Fill(pdf,T_Event_pdfWeight->at(pdf));
+  for (int i=0; i<52; i++) {
+
+    float pdf = 1.0 * i;
+
+    fHpdfWeightSum->Fill(pdf, T_Event_pdfWeight->at(i));
+  }
 #endif
 
   // Get number of generated leptons 
@@ -1090,8 +1094,12 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   
 #ifdef __ISPDF
   if (cut==i1btag && chan==ElMu && sys==Norm) {
+
     for (int i=0; i<52; i++) {
-      fHpdfWeight->Fill(i, EventWeight*T_Event_pdfWeight->at(i));
+
+      float pdf = 1.0 * i;
+      
+      fHpdfWeight->Fill(pdf, EventWeight*T_Event_pdfWeight->at(i));
     }
   }
 #endif
