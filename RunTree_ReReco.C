@@ -54,7 +54,8 @@ void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
     }
   else if (host.Contains("ifca.es"))
     {
-      gPAFOptions->proofMode = kLite;
+      if   (nSlots == 1) gPAFOptions->proofMode = kSequential;
+      else               gPAFOptions->proofMode = kLite;
     }
   
   gPAFOptions->SetNSlots(nSlots);
@@ -274,8 +275,7 @@ void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
 
   // Number of events (Long64_t)
   //----------------------------------------------------------------------------
-  if (nSlots==1) gPAFOptions->SetNEvents(10000);
-  else           gPAFOptions->SetNEvents(nEvents);
+  gPAFOptions->SetNEvents(nEvents);
 
   // First event (Long64_t)
   //----------------------------------------------------------------------------

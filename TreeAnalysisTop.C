@@ -40,9 +40,9 @@ void TreeAnalysisTop::Initialise() {
 #ifdef __ISMC
   InitialiseGenHistos();
 #endif  
-  fHTopPtWeight  = CreateH1F("H_TopPtWeight" , "TopPt Weight",100, 0, 2);
-  fHpdfWeightSum = CreateH1F("H_pdfWeightSum", "PDF sum Weights", 52, -0.5, 51.5);
-  fHpdfWeight    = CreateH1F("H_pdfWeight"   , "PDF Weights", 52, -0.5, 51.5);
+  fHTopPtWeight  = CreateH1F("H_TopPtWeight" , "TopPt Weight"   , 100,    0,    2);
+  fHpdfWeightSum = CreateH1F("H_pdfWeightSum", "PDF sum Weights",  52, -0.5, 51.5);
+  fHpdfWeight    = CreateH1F("H_pdfWeight"   , "PDF Weights"    ,  52, -0.5, 51.5);
 
   if (gSampleName == "DoubleMu"        ||       
       gSampleName == "DoubleElectron"  || 
