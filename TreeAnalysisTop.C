@@ -8,9 +8,9 @@
 ClassImp(TreeAnalysisTop);
 #endif
 
+
 const float gJetEtCut = 30.;
-//#define DEBUG
-//#define __ISPDF
+
 
 TreeAnalysisTop::TreeAnalysisTop(TTree* tree) : PAFAnalysis(tree)
 {
@@ -356,11 +356,8 @@ void TreeAnalysisTop::InsideLoop(){
   SetEventObjects();
 
 #ifdef __ISPDF
-  for (int i=0; i<52; i++) {
-
-    float pdf = 1.0 * i;
-
-    fHpdfWeightSum->Fill(pdf, T_Event_pdfWeight->at(i));
+  for (int k=0; k<52; k++) {
+    fHpdfWeightSum->Fill(k, T_Event_pdfWeight->at(k));
   }
 #endif
 
@@ -369,7 +366,7 @@ void TreeAnalysisTop::InsideLoop(){
 #ifdef __ISMC
   SelectedGenLepton();
   
-  if (gSampleName == "TTJets_MadSpin"        ){
+  if (gSampleName == "TTJets_MadSpin") {
     
     Float_t Weight = 1.; 
     TLorentzVector top;
@@ -414,8 +411,7 @@ void TreeAnalysisTop::InsideLoop(){
   fHDeltaRLepJet[Elec] -> Fill(minDRel);
 #endif
 
-  // FOR PDF Uncertainties
-  
+
   // Accept only events with a good vertex
   //----------------------------------------------------------------------------
   if (SelectedVertexIndex() < 0) return;
@@ -1092,17 +1088,15 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   if (fChargeSwitch){   fHSSyields[chan][sys]->Fill(cut, EventWeight);  }
   else {                fHyields[chan][sys]  ->Fill(cut, EventWeight);  }
   
+
 #ifdef __ISPDF
-  if (cut==i1btag && chan==ElMu && sys==Norm) {
-
-    for (int i=0; i<52; i++) {
-
-      float pdf = 1.0 * i;
-      
-      fHpdfWeight->Fill(pdf, EventWeight*T_Event_pdfWeight->at(i));
+  if (cut == i1btag && chan == ElMu && sys == Norm) {
+    for (int k=0; k<52; k++) {
+      fHpdfWeight->Fill(k, EventWeight*T_Event_pdfWeight->at(k));
     }
   }
 #endif
+
 
   /// FOR SYSTEMATIC STUDIES
   int njets  = 0; njets  = getNJets();
