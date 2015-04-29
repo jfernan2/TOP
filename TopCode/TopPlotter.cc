@@ -75,12 +75,12 @@ void TopPlotter::LoadSamples(TString pathtofiles){
     else 
       Weight = fLumiNorm; 
     
-    
     if(sample==TTJets_MadSpin)    toppt_weight = ((TH1F*) _file->Get("H_TopPtWeight"))->GetMean();
     if(sample==TTJets_MadSpinPDF) {
       S[sample].pdfWeights    = (TH1F*)_file->Get("H_pdfWeight");
       S[sample].pdfWeightsSum = (TH1F*)_file->Get("H_pdfWeightSum");
     }
+
     // Load numbers... 
     for (size_t ch=0; ch<gNCHANNELS; ch++){
       hOSyields = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[ch]);
@@ -101,7 +101,7 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	}
       }
     }      
-    
+
     if (//sample==TTJets_matchingup   || sample==TTJets_matchingdown     ||
 	//sample==TTJets_scaleup      || sample==TTJets_scaledown        ||
 	sample==TTJets_MadSpinPDF   || sample==TTbar_Powheg            ||
@@ -109,20 +109,19 @@ void TopPlotter::LoadSamples(TString pathtofiles){
 	sample==TTJetsFullLeptMGTuneP11noCR) continue;
 
     // Load Systematics (ONLY FOR MC...) 
-    for (size_t ch=0; ch<gNCHANNELS; ch++){                                                             if (!IsData){
+    for (size_t ch=0; ch<gNCHANNELS; ch++){
+      if (!IsData){
 	for (size_t sys=1; sys<gNSYST; sys++){
 	  hOSyields_sys = (TH1F*) _file->Get("H_Yields_"  +gChanLabel[ch]+"_"+SystName[sys]);
 	  for (size_t cut=0; cut<iNCUTS; cut++)
 	    S[sample].Yields_syst[ch][cut][sys] = hOSyields_sys->GetBinContent(cut+1) * Weight;
 	}
 	
-	
 	S[sample].SystError[ch][SFIDISO] = ((TH1F*)_file->Get("H_LepSys_"+ gChanLabel[ch]+"_dilepton"))->GetMean();
 	S[sample].SystError[ch][SFTrig]  = ((TH1F*)_file->Get("H_TrigSys_"+ gChanLabel[ch]+"_dilepton"))->GetMean();
-  
       }
     }
-    
+
     // Load kinematic histograms of the samples. 
     for (size_t chan=0; chan<gNCHANNELS; chan++){
       for (size_t cut=0; cut<iNCUTS; cut++){
@@ -692,7 +691,7 @@ void TopPlotter::LoadCategories(){
     Rare .SystError[chan][SFTrig] += S[WWZJets]               .SystError[chan][SFTrig]*S[WWZJets]               .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig] += S[WZZJets]               .SystError[chan][SFTrig]*S[WZZJets]               .SystError[chan][SFTrig];
     Rare .SystError[chan][SFTrig] += S[ZZZJets]               .SystError[chan][SFTrig]*S[ZZZJets]               .SystError[chan][SFTrig];
-    Rare .SystError[chan][SFTrig]  = TMath::Sqrt(Rare .SystError[chan][SFTrig]);
+    Rare .SystError[chan][SFTrig]  = TMath::Sqrt(Rare.SystError[chan][SFTrig]);
   }
   
   // SYSTEMATIC ERRORS HISTOS
@@ -1654,7 +1653,7 @@ void TopPlotter::DrawKinematicPlots(Bool_t DD, Int_t onechan, Int_t onevar, Int_
   gStyle->SetPadTickY(1);
   gStyle->SetPadTickX(1);
   
-  gROOT->LoadMacro("~folgueras/TOP/TopCode/tdrstyle.h"); 
+  gROOT->LoadMacro("tdrstyle.h"); 
   setTDRStyle();
   
   TLegend *leg = new TLegend(0.73,0.58,0.90,0.89);
@@ -1829,7 +1828,7 @@ void TopPlotter::DrawNbjetsNjets(bool DD){
   gStyle->SetPadTickY(1);
   gStyle->SetPadTickX(1);
   
-  gROOT->LoadMacro("~folgueras/TOP/TopCode/tdrstyle.h"); 
+  gROOT->LoadMacro("tdrstyle.h"); 
   setTDRStyle();
   
   TLegend *leg = new TLegend(0.73,0.58,0.90,0.89);
@@ -2256,28 +2255,27 @@ float TopPlotter::GetPDFUncertainty(){
   }
   return pdfunc_max;
 }
-void TopPlotter::CalculateSystematicErrorsWithXSec(Categories &C, Int_t cut){
-  /////////////////////////////////////////////////////////////////////////
-  //   This method calculates the cross-section for each systematic and    
-  //   compare it with the nominal one, the difference is assigned as a    
-  //   systematic uncertainty (for systematics varied up/down)             
-  /////////////////////////////////////////////////////////////////////////
-  fOutputSubDir = "SystematicErrors/";
-  
-  XSection tmp_up, tmp_down; 
-  Float_t obs(0.), bkg(0.), eff(0.);
-  
-  for (Int_t ch = 0; ch<gNCHANNELS; ch++){
-    obs = Data .Yields[ch][cut];
-    bkg = Total.Yields[ch][cut];
-    eff = TTbar.Yields[ch][cut];
-    
-    tmp_up  .xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
-    tmp_down.xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
-    if (C.name == "ttbar") eff = 0.;
-  }
-  
-}
+//void TopPlotter::CalculateSystematicErrorsWithXSec(Categories &C, Int_t cut){
+//  /////////////////////////////////////////////////////////////////////////
+//  //   This method calculates the cross-section for each systematic and    
+//  //   compare it with the nominal one, the difference is assigned as a    
+//  //   systematic uncertainty (for systematics varied up/down)             
+//  /////////////////////////////////////////////////////////////////////////
+//  fOutputSubDir = "SystematicErrors/";
+//  
+//  XSection tmp_up, tmp_down; 
+//  Float_t obs(0.), bkg(0.), eff(0.);
+//  
+//  for (Int_t ch = 0; ch<gNCHANNELS; ch++){
+//    obs = Data .Yields[ch][cut];
+//    bkg = Total.Yields[ch][cut];
+//    eff = TTbar.Yields[ch][cut];
+//    
+//    tmp_up  .xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
+//    tmp_down.xsec[ch] = ttbar_TLWG * (obs - bkg) / eff;
+//    if (C.name == "ttbar") eff = 0.;
+//  }
+//}
 void TopPlotter::CalculateDYBkg(){
   fOutputSubDir = "DataDriven/";
   gSystem->mkdir(fOutputDir+fOutputSubDir, kTRUE);

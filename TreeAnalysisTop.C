@@ -8,11 +8,20 @@
 ClassImp(TreeAnalysisTop);
 #endif
 
-const float gJetEtCut = 30.;
-//#define DEBUG
-//#define __ISPDF
 
-TreeAnalysisTop::TreeAnalysisTop(TTree* tree) : PAFAnalysis(tree) {}
+const float gJetEtCut = 30.;
+
+
+TreeAnalysisTop::TreeAnalysisTop(TTree* tree) : PAFAnalysis(tree)
+{
+  fHDummy        = 0;
+  hWeight        = 0;
+  fHTopPtWeight  = 0;
+  fHpdfWeightSum = 0;
+  fHpdfWeight    = 0;
+}
+
+
 //------------------------------------------------------------------------------
 // Initialise
 //------------------------------------------------------------------------------
@@ -31,9 +40,9 @@ void TreeAnalysisTop::Initialise() {
 #ifdef __ISMC
   InitialiseGenHistos();
 #endif  
-  fHTopPtWeight  = CreateH1F("H_TopPtWeight" ,"TopPt Weight",100, 0, 2);
-  fHpdfWeightSum = CreateH1F("H_pdfWeightSum", "PDF sum Weights", 52, -0.5, 51.5);
-  fHpdfWeight    = CreateH1F("H_pdfWeight"   , "PDF Weights", 52, -0.5, 51.5);
+  fHTopPtWeight  = CreateH1F("H_TopPtWeight" , "TopPt Weight"   , 100,    0,    2);
+  fHpdfWeightSum = CreateH1F("H_pdfWeightSum", "PDF sum Weights",  52, -0.5, 51.5);
+  fHpdfWeight    = CreateH1F("H_pdfWeight"   , "PDF Weights"    ,  52, -0.5, 51.5);
 
   if (gSampleName == "DoubleMu"        ||       
       gSampleName == "DoubleElectron"  || 
@@ -350,8 +359,9 @@ void TreeAnalysisTop::InsideLoop(){
   SetEventObjects();
 
 #ifdef __ISPDF
-  for (int pdf=0; pdf<52; pdf++)
-    fHpdfWeightSum->Fill(pdf,T_Event_pdfWeight->at(pdf));
+  for (int k=0; k<52; k++) {
+    fHpdfWeightSum->Fill(k, T_Event_pdfWeight->at(k));
+  }
 #endif
 
   // Get number of generated leptons 
@@ -359,7 +369,7 @@ void TreeAnalysisTop::InsideLoop(){
 #ifdef __ISMC
   SelectedGenLepton();
   
-  if (gSampleName == "TTJets_MadSpin"        ){
+  if (gSampleName == "TTJets_MadSpin") {
     
     Float_t Weight = 1.; 
     TLorentzVector top;
@@ -405,8 +415,7 @@ void TreeAnalysisTop::InsideLoop(){
   fHDeltaRLepJet[Elec] -> Fill(minDRel);
 #endif
 
-  // FOR PDF Uncertainties
-  
+
   // Accept only events with a good vertex
   //----------------------------------------------------------------------------
   if (SelectedVertexIndex() < 0) return;
@@ -829,7 +838,6 @@ float TreeAnalysisTop::getSF(gChannel chan) {
   if (gIsData)              return 1.; //Don't scale data
   
   float id1(1.),id2(1.), trig(1.);
-  float err1(0.), err2(0.), err_trg(0.);
   if (chan == Muon){
     id1  = fLeptonSF->GetTightMuonSF(fHypLepton1.p.Pt(), fHypLepton1.p.Eta());
     id2  = fLeptonSF->GetTightMuonSF(fHypLepton2.p.Pt(), fHypLepton2.p.Eta());
@@ -849,33 +857,39 @@ float TreeAnalysisTop::getSF(gChannel chan) {
   return (PUSF*id1*id2*trig);
   
 }
-float TreeAnalysisTop::getTopPtSF(){
-  // Return SF of the pt pt of the top 
-  // Only apply SF if the process is ttbar...
-  if(!gSampleName.Contains("TTJets")) return 1.;
+
+
+// Return SF of the pt of the top. Only apply SF if the process is ttbar
+float TreeAnalysisTop::getTopPtSF()
+{
+  Float_t Weight = 1.; 
+
+  if (!gSampleName.Contains("TTJets")) return Weight;
   
-  if (gSysSource==TopPt) {
+  if (gSysSource == TopPt) {
+#ifdef __ISMC
+    
     TLorentzVector top;
     Float_t topSF = 0.;
-    Float_t Weight = 1.; 
-#ifdef __ISMC
+
     if (T_Gen_t_pt->size() != 2) return 1.;
     
     for (size_t t=0; t<T_Gen_t_pt->size(); t++){
-      //top.SetPxPyPzE(T_Gen_tSt3_Px->at(t),T_Gen_tSt3_Py->at(t),T_Gen_tSt3_Pz->at(t),T_Gen_t_energy->at(t));
       top.SetPtEtaPhiE(T_Gen_t_pt->at(t), T_Gen_t_eta->at(t), T_Gen_t_phi->at(t), T_Gen_t_energy->at(t));
+
       Float_t pt = TMath::Min(top.Pt(), 400.);
-      //    topSF = TMath::Exp(0.148 - 0.00129 * pt);
+      //      topSF = TMath::Exp(0.148 - 0.00129 * pt);
       topSF = TMath::Exp(0.156 - 0.00137 * pt);
       Weight *= topSF;
     }
     Weight = TMath::Sqrt(Weight);
 #endif
-    return Weight;
   }
   
-  return 1.;
+  return Weight;
 }
+
+
 void TreeAnalysisTop::FillDYHistograms(){
 
   float Mll = 0.;
@@ -1133,13 +1147,15 @@ void TreeAnalysisTop::FillYieldsHistograms(gChannel chan, iCut cut, gSystFlag sy
   if (fChargeSwitch){   fHSSyields[chan][sys]->Fill(cut, EventWeight);  }
   else {                fHyields[chan][sys]  ->Fill(cut, EventWeight);  }
   
+
 #ifdef __ISPDF
-  if (cut==i1btag && chan==ElMu && sys==Norm) {
-    for (int i=0; i<52; i++) {
-      fHpdfWeight->Fill(i, EventWeight*T_Event_pdfWeight->at(i));
+  if (cut == i1btag && chan == ElMu && sys == Norm) {
+    for (int k=0; k<52; k++) {
+      fHpdfWeight->Fill(k, EventWeight*T_Event_pdfWeight->at(k));
     }
   }
 #endif
+
 
   /// FOR SYSTEMATIC STUDIES
   int njets  = 0; njets  = getNJets();
@@ -1387,15 +1403,15 @@ bool TreeAnalysisTop::Passes3rdLeptonVeto(){
   
   //  Int_t nvetoleptons = 0;
   for(UInt_t i = 0; i < T_Muon_Pt->size(); ++i){
-    if (fHypLepton1.index == i && fHypLepton1.type == 0) continue;
-    if (fHypLepton2.index == i && fHypLepton2.type == 0) continue;
+    if (fHypLepton1.index > -1 && (UInt_t)fHypLepton1.index == i && fHypLepton1.type == 0) continue;
+    if (fHypLepton2.index > -1 && (UInt_t)fHypLepton2.index == i && fHypLepton2.type == 0) continue;
     if (IsVetoMuon(i)) return false;
     //    nvetoleptons++;
   }
   
   for(UInt_t i = 0; i < T_Elec_Pt->size(); ++i){
-    if (fHypLepton1.index == i && fHypLepton1.type == 1) continue;
-    if (fHypLepton2.index == i && fHypLepton2.type == 1) continue;
+    if (fHypLepton1.index > -1 && (UInt_t)fHypLepton1.index == i && fHypLepton1.type == 1) continue;
+    if (fHypLepton2.index > -1 && (UInt_t)fHypLepton2.index == i && fHypLepton2.type == 1) continue;
     if (IsVetoElectron(i)) return false;
     //    nvetoleptons++;
   }

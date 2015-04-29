@@ -293,7 +293,7 @@ void MakePlots(TString pathtofiles, iVar histovar, iCut cut){
   gStyle->SetPadTickY(1);
   gStyle->SetPadTickX(1);
   
-  gROOT->LoadMacro("~folgueras/TOP/TopCode/tdrstyle.C"); 
+  gROOT->LoadMacro("tdrstyle.C"); 
   setTDRStyle();
   
   cout << "Get Histograms from files... ";

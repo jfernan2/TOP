@@ -1,16 +1,16 @@
 #!/bin/bash
 
-echo "Setting up environment..."
-#source /nfs/fanae/root_releases/root.5.34.13.slc5/bin/thisroot.sh
-source /nfs/fanae/PAF_releases/PAF_devel/PAF_setup.sh
-source /opt/root/bin/thisroot.sh
-#cd /nfs/fanae/user/sscruz/TOP
-
-#source /nfs/fanae/user/sscruz/ChargeMiss/MissCode/setup.sh
-
-echo "Now start PoD..." 
-source /opt/PoD/PoD_env.sh
-
+if [[ `hostname -d` == *"uniovi"* ]]; then
+    echo "Setting up Oviedo environment..."
+    source /nfs/fanae/PAF_releases/PAF_devel/PAF_setup.sh
+    source /opt/root/bin/thisroot.sh
+    source /opt/PoD/PoD_env.sh
+else
+    echo "Setting up IFCA environment..."
+    export PAFPATH=/gpfs/csic_projects/cms/PROOF/paf/
+    export PATH=$PAFPATH/bin:$PATH
+    source $PAFPATH/PAF_setup.sh
+fi
 
 resetpaf -a
 

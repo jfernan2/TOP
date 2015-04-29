@@ -328,7 +328,7 @@ class TopPlotter {
   void CalculateNonWZLeptonsBkg();
   void CalculateDYBkg();
   void CalculateCrossSection(Bool_t DD = false);
-  void CalculateSystematicErrorsWithXSec(Categories&, Int_t);
+  //  void CalculateSystematicErrorsWithXSec(Categories&, Int_t);
   float GetPDFUncertainty();
 
   void DrawKinematicPlots(Bool_t DD,Int_t onechan = -1,Int_t onevar = -1, Int_t onecut =-1);
