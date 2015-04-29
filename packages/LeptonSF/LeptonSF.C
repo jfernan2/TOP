@@ -126,33 +126,34 @@ TH2F* LeptonSF::GetHistogramFromFileF(const char* filename,
 }
 
 TCanvas* LeptonSF::Draw() {
+  //gStyle->SetOptStat(0);
+  //gStyle->SetPalette(1);
+  //gStyle->SetPaintTextFormat("4.3f");
   TCanvas* c = new TCanvas();
-  c->Divide(3,2);
+  c->Divide(2,1);
+  
   c->cd(1);
-  fTightElectronIDSF->SetTitle("Tight Electron ID");
-  fTightElectronIDSF->SetXTitle("#eta");
-  fTightElectronIDSF->SetYTitle("P_{t}");
-  fTightElectronIDSF->Draw("COL, TEXT");
+  fTightElectronSF->SetTitle("Electron Id/Iso SF");
+  fTightElectronSF->SetXTitle("#eta");
+  fTightElectronSF->SetYTitle("P_{t}");
+  fTightElectronSF->GetYaxis()->SetRange(1, 3);
+  //fTightElectronSF->GetYaxis()->SetRangeUser(0.,100.);
+  fTightElectronSF->Draw("COLZ, TEXTE");
+  
+  /*c->cd(2);
+  fTightMuonSF->SetTitle("Tight Muon ID");
+  fTightMuonSF->SetXTitle("P_{t}");
+  fTightMuonSF->SetYTitle("#eta");
+  fTightMuonSF->GetXaxis()->SetRange(1,8);
+  fTightMuonSF->Draw("COLZ, TEXTE");
+  */
+  
   c->cd(2);
-  fTightMuonIDSF->SetTitle("Tight Muon ID");
-  fTightMuonIDSF->SetXTitle("#eta");
-  fTightMuonIDSF->SetYTitle("P_{t}");
-  fTightMuonIDSF->Draw("COL, TEXT");
-  c->cd(3);
-  fTightMuonIsoSF->SetTitle("Tight Muon Isolation");
-  fTightMuonIsoSF->SetXTitle("#eta");
-  fTightMuonIsoSF->SetYTitle("P_{t}");
-  fTightMuonIsoSF->Draw("COL, TEXT");
-
-  c->cd(4);
-  fDoubleElSF->SetTitle("Double Electron");
-  fDoubleElSF->Draw("COL, TEXT");
-  c->cd(5);
-  fDoubleMuSF->SetTitle("Double Muon");
-  fDoubleMuSF->Draw("COL, TEXT");
-  c->cd(6);
-  fMuEGSF->SetTitle("MuEG Trigger");
-  fMuEGSF->Draw("COL, TEXT");
+  fMuEGSF->SetTitle("MuEG Trigger SF");
+  fMuEGSF->GetXaxis()->SetNdivisions(505);
+  fMuEGSF->Draw("COLZ, TEXTE");
+  
+  c->SaveAs("sfs.png");
 
   return c;
 }

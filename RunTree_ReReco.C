@@ -104,8 +104,11 @@ void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
 
   gROOT->LoadMacro(userhome + "Utils/DatasetManager/DatasetManager.C+");
   
+  gPAFOptions->SetTreeDir("demo");
+ 
   cout << ">> Setting datasets..." << endl;
-  DatasetManager* dm = new DatasetManager("Legacy_Summer12_53X");
+  //DatasetManager* dm = new DatasetManager("Legacy_Summer12_53X");
+  DatasetManager* dm = new DatasetManager(2, "PHYS14");
   dm->RedownloadFiles();
   
   // Deal with data samples
@@ -189,7 +192,7 @@ void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
   //----------------------------------------------------------------------------
   Bool_t G_Use_CSVM = true;
 
-  TString outputDir = "/mnt_pool/fanae105/user/palencia/TOP/TopTrees/";
+  TString outputDir = "/mnt_pool/fanae105/user/palencia/april14Run2/TOP/TopTrees/temp";
 
   if (host.Contains("ifca.es"))
     {
@@ -212,7 +215,7 @@ void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
   TString LumiString = oss.str();
   TString outputFile = outputDir
     + "/"
-    + "Tree_Legacy_"
+    + "Tree_13TeV_EA_"
     + sampleName
     + mstop
     + ".root";

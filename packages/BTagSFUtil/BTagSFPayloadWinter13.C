@@ -9,8 +9,10 @@ void BTagSFUtil::GetBTagPayload(TString BTagAlgorithm, TString DataPeriod) {
   //if (TaggerName==       "JPM") TaggerCut = 0.545;
   //if (TaggerName==       "JPT") TaggerCut = 0.790;
   if (TaggerName==      "CSVL") TaggerCut = 0.244;
-  if (TaggerName==      "CSVM") TaggerCut = 0.679;
-  if (TaggerName==      "CSVT") TaggerCut = 0.898;
+  //if (TaggerName==      "CSVM") TaggerCut = 0.679;
+  if (TaggerName==      "CSVM") TaggerCut = 0.423;  // this is the cut for the loose WP of the new discriminator iCSVv2
+  //if (TaggerName==      "CSVM") TaggerCut = 0.814;  // this is the cut for the medium WP of the new discriminator iCSVv2
+   if (TaggerName==      "CSVT") TaggerCut = 0.898;
   if (TaggerName==    "CSVV1L") TaggerCut = 0.405;
   if (TaggerName==    "CSVV1M") TaggerCut = 0.783;
   if (TaggerName==    "CSVV1T") TaggerCut = 0.920;

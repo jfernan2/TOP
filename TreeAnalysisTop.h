@@ -232,7 +232,9 @@ class TreeAnalysisTop: public PAFAnalysis {
   float getJetPtIndex(unsigned int);
   float getBtagJetPtIndex(unsigned int);
   float getErrPt(float,float);
+  float getJERScaleUp(int);
   float getJERScale(int);
+  float getJERScaleDown(int);
   float getSF(gChannel);
   float getLeptonError(gChannel);
   float getTriggerError(gChannel);
@@ -426,6 +428,7 @@ class TreeAnalysisTop: public PAFAnalysis {
   //  std::vector<jet>    Jet15;
   
   std::vector<float> JetEt;
+  std::vector<float> JetPt;
   std::vector<float> JetPhi;
   std::vector<float> MuPx;
   std::vector<float> MuPy;
