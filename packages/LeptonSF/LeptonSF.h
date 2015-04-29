@@ -89,6 +89,7 @@ class LeptonSF {
 			       const char* histo = "electronsDATAMCratio_FO_ID_ISO");
   
   TH2D* LoadTightElectronSF (const char* file = "http://www.hep.uniovi.es/folgueras/TOP/LeptonSF/LegacySF/ElecSF_tight_inclerrs.root",
+  //TH2D* LoadTightElectronSF (const char* file = "/nfs/fanae/user/palencia/sfs13TeV/sf_DY_ttbar.root",
 			     const char* histo = "GlobalSF");
 
   // + Trigger SFs
@@ -97,6 +98,7 @@ class LeptonSF {
   TH2F* LoadDoubleMuonSF(const char* file = "http://www.hep.uniovi.es/folgueras/TOP/LeptonSF/LegacySF/triggerSummary_mumu_tightleps.root",
  			 const char* histo = "scalefactor_eta2d_with_syst");
   TH2F* LoadElMuSF(const char* file = "http://www.hep.uniovi.es/folgueras/TOP/LeptonSF/LegacySF/triggerSummary_emu_tightleps.root",
+  //TH2F* LoadElMuSF(const char* file = "/nfs/fanae/user/palencia/sfs13TeV/triggerSummary_emu.root",
  		   const char* histo = "scalefactor_eta2d_with_syst");
 
 

@@ -86,11 +86,15 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   ///////////////////////////////
   // INPUT DATA SAMPLE
   //
-  TString userhome = "/mnt_pool/fanae105/user/$USER/";
+  //  TString userhome = "/mnt_pool/fanae105/user/$USER/";
+  TString userhome = "/mnt_pool/fanae105/user/$USER/13TeV/";
   gROOT->LoadMacro(userhome+"/Utils/DatasetManager/DatasetManager.C+");
+
+  gPAFOptions->SetTreeDir("demo");
   
   cout << ">> Setting datasets..." << endl;
-  DatasetManager* dm = new DatasetManager("Legacy_Summer12_53X");
+  //DatasetManager* dm = new DatasetManager("Legacy_Summer12_53X");
+  DatasetManager* dm = new DatasetManager(2, "PHYS14");
   dm->RedownloadFiles();
   
   // Deal with data samples
@@ -173,7 +177,8 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   // Output file name
   //----------------------------------------------------------------------------
   Bool_t G_Use_CSVM = true;
-  TString outputDir = "/mnt_pool/fanae105/user/palencia/TOP/TopTrees/";
+  //  TString outputDir = "/mnt_pool/fanae105/user/palencia/april14Run2/TOP/TopTrees/temp";
+  TString outputDir = "./TopTrees/temp";
   
   if (DoSF && DoDF) outputDir += "";
   else if (DoSF)    outputDir += "SF/";
@@ -190,7 +195,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
   TString LumiString = oss.str();
   TString outputFile = outputDir
     + "/"
-    + "Tree_Legacy_"
+    + "Tree_13TeV_EA_"
     + sampleName
     + mstop
     + ".root";
@@ -249,7 +254,7 @@ void RunTree_ReReco(TString  sampleName     = "TTbar_Madgraph",
 
   // Number of events (Long64_t)
   //----------------------------------------------------------------------------
-  if (nSlots==1) gPAFOptions->SetNEvents(10000);
+  if (nSlots==1) gPAFOptions->SetNEvents(1000000);
   else           gPAFOptions->SetNEvents(nEvents);
 
   // First event (Long64_t)
