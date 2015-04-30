@@ -1809,7 +1809,6 @@ bool TreeAnalysisTop::IsTightElectron(unsigned int iElec, float ptcut){
   }
   */
   
-  float pt    = lep.Pt();
   float sceta = TMath::Abs(T_Elec_SC_Eta->at(iElec));
   if (sceta > 1.4442 && sceta < 1.566) return false;
   if (lep.Pt() < ptcut)                return false;
@@ -1907,7 +1906,7 @@ bool TreeAnalysisTop::IsTightElectron(unsigned int iElec, float ptcut){
   }
   //if(T_Event_EventNumber==84826380) cout << " elec with pT = " << lep.Pt() <<" passes Medium Id? " << passMediumID  << endl; 
   
-  if (!passMediumID)                        return false;
+  if (!passMediumID) return false;
    
   return true;
 }
@@ -2218,19 +2217,17 @@ void TreeAnalysisTop::SmearJetPts(int flag){
       //else {
       
       // get JER scale factors; https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#JER_Scaling_factors_and_Uncertai
-      float jerScaleUp   = getJERScaleUp(*it);	  
-      float jerScale     = getJERScale(*it);	  
+      float jerScale = getJERScale(*it);	  
       
       // smear method 1 in https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
-      float factor1 = 0.;
-      if (genJet.DeltaR(tmp) < 0.5) factor1 = max(0.0, genJet.Pt() + jerScale*(tmp.Pt() - genJet.Pt()) );
-      else                          factor1 = tmp.Pt();
+      //      float factor1 = 0.;
+      //      if (genJet.DeltaR(tmp) < 0.5) factor1 = max(0.0, genJet.Pt() + jerScale*(tmp.Pt() - genJet.Pt()) );
+      //      else                          factor1 = tmp.Pt();
       
       // smear method 2 in https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
       float sigmaMC  = getErrPt(JetPt.at(*it), T_JetAKCHS_Eta->at(*it)) / JetPt.at(*it);
       float factor   = fRand3->Gaus(1., sqrt(jerScale*jerScale -1.) * sigmaMC );
       
-      //cout << " genJet pT = " << genJet.Pt() << ", recoJet pT = "  << tmp.Pt() << ", newPt = " << factor*JetPt.at(*it) << ", factor1 = " << factor1 <<  endl;
       
       JetPt.at(*it) = JetPt.at(*it) * factor;		// smear for flag 3
       //}
