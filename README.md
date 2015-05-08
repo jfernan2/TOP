@@ -3,8 +3,9 @@ Everything starts here
 
     ssh -Y gridui.ifca.es -o ServerAliveInterval=240
     source /cvmfs/cms.cern.ch/cmsset_default.sh
-    cd /gpfs/csic_users/piedra/CMSSW_7_3_0/src
+    pushd /gpfs/csic_users/piedra/CMSSW_7_3_0/src
     cmsenv
+    popd
 
 
 It is time to get the material
