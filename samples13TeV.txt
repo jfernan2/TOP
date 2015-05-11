@@ -1,0 +1,12 @@
+TTJets_MadSpin
+TTbar_Pythia
+TW
+TbarW
+ZJets_Madgraph
+WJets_Madgraph
+WZTo3LNu
+ZZ4L
+TTWJets
+TTZJets
+TTbar_Pythia_scaledown
+TTbar_Pythia_scaleup

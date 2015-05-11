@@ -1,0 +1,28 @@
+#!/bin/sh
+#$ -P l.gaes
+#$ -S /bin/bash
+#$ -cwd
+#$ -t 1-12
+#$ -N Top_13TeV
+#$ -pe proof 4
+#$ -e $JOB_ID-$TASK_ID.err
+#$ -o $JOB_ID-$TASK_ID.out
+
+echo -e "\n *** Everything starts here ***\n"
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+pushd /gpfs/csic_users/piedra/CMSSW_7_3_0/src
+eval `scramv1 runtime -sh`
+popd
+
+echo -e "\n *** Setup PAF ***\n"
+export PAFPATH=/gpfs/csic_projects/cms/PROOF/paf/
+export PATH=$PAFPATH/bin:$PATH
+source $PAFPATH/PAF_setup.sh
+resetpaf -a
+
+INPUTFILESFILE="/gpfs/csic_projects/cms/piedra/work/TOP/samples13TeV.txt"
+INPUTFILE=$(awk "NR==$SGE_TASK_ID" $INPUTFILESFILE)
+
+echo -e "\n *** Run on $INPUTFILE sample ***\n"
+root -l -b -q 'RunTree_ReReco.C("'$INPUTFILE'", 4, true)'
+
