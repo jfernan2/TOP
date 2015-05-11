@@ -40,7 +40,16 @@ Test the code
 Make the top trees
 ====
 
+Nominal way
+
     ./runAll_TopMC.sh
+
+Submitting jobs
+
+    export NSAMPLES=`wc -l < samples13TeV.txt`
+    echo $NSAMPLES 
+    qsub -t 1-$NSAMPLES queue_submit.sge
+    qstat -u piedra
 
 
 Compute the top cross section

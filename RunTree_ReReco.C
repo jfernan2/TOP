@@ -107,9 +107,8 @@ void RunTree_ReReco(TString  sampleName    = "TTbar_Madgraph",
   gPAFOptions->SetTreeDir("demo");
  
   cout << ">> Setting datasets..." << endl;
-  //DatasetManager* dm = new DatasetManager("Legacy_Summer12_53X");
   DatasetManager* dm = new DatasetManager(2, "PHYS14");
-  dm->RedownloadFiles();
+  if (sampleName == "TestSync") dm->RedownloadFiles();
   
   // Deal with data samples
   if ((sampleName == "DoubleElectron" ||
