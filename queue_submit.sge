@@ -2,7 +2,7 @@
 #$ -P l.gaes
 #$ -S /bin/bash
 #$ -cwd
-#$ -t 1-12
+#$ -t 2-13
 #$ -N Top_13TeV
 #$ -pe proof 4
 #$ -e $JOB_ID-$TASK_ID.err
